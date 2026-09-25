@@ -112,15 +112,26 @@ export class GroundRing {
     this.mesh.renderOrder = 2;
   }
 
-  /** Centre the ring at (x, z) with the given radius, turned by `angle` radians. */
-  place(x: number, z: number, radius: number, angle = 0) {
+  /**
+   * Centre the ring at (x, z) with the given radius, turned by `angle` radians; `thin` below 1
+   * narrows the band towards its outer edge (the mesh's outer radius is 1).
+   */
+  place(x: number, z: number, radius: number, angle = 0, thin = 1) {
     const pos = this.mesh.geometry.getAttribute('position') as THREE.BufferAttribute;
     const arr = pos.array as Float32Array;
     const c = Math.cos(angle);
     const sn = Math.sin(angle);
     for (let i = 0; i < arr.length; i += 3) {
-      const bx = this.base[i];
-      const bz = this.base[i + 2];
+      let bx = this.base[i];
+      let bz = this.base[i + 2];
+      if (thin !== 1) {
+        const rr = Math.hypot(bx, bz);
+        if (rr > 1e-6) {
+          const k = (1 - (1 - rr) * thin) / rr;
+          bx *= k;
+          bz *= k;
+        }
+      }
       const wx = x + (bx * c - bz * sn) * radius;
       const wz = z + (bx * sn + bz * c) * radius;
       arr[i] = wx;
@@ -375,7 +386,8 @@ export class Actors {
 
     this.zoneR += (sim.dogThreatRadius - this.zoneR) * (1 - Math.exp(-8 * dt));
     // The dashes creep round slowly, so the ring reads as Pip's and alive, not as a ground mark.
-    this.zone.place(d.x, d.z, this.zoneR, this.time * 0.12);
+    // Bold while the first day's label explains it, a finer line after that.
+    this.zone.place(d.x, d.z, this.zoneR, this.time * 0.12, sim.elapsed < 20 && sim.elapsed >= 0 ? 1 : 0.6);
     this.zoneUnder.place(d.x, d.z, this.zoneR + 0.3);
     this.zone.mesh.material.color.set(d.creeping ? 0x8fd0ff : 0xfff4d6);
     const reach = this.zoneR * 1.6;

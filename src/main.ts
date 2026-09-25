@@ -1,3 +1,8 @@
+// Bundled fonts (SIL Open Font License), no network fetch: Fraunces with its soft axis for
+// display type, Nunito for everything else.
+import '@fontsource-variable/fraunces/soft.css';
+import '@fontsource-variable/fraunces/soft-italic.css';
+import '@fontsource-variable/nunito';
 import './style.css';
 import type { Difficulty } from './game/config';
 import { Game } from './game/game';

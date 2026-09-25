@@ -95,12 +95,12 @@ export class Indicators {
       const onScreen = inFrame && Math.abs(nx) < 0.92 && ny > -0.8 && ny < 0.66;
       const label = e.querySelector('.ind-label') as HTMLElement;
       if (onScreen && m.iconOnScreen) {
-        // The icon floats over the thing itself, no arrow.
+        // The icon floats up and to the side of the thing, never over it, with no arrow.
         e.hidden = false;
         e.classList.add('beside');
         e.classList.remove('on-screen');
         label.textContent = '';
-        e.style.transform = `translate(${((nx + 1) / 2) * w}px, ${Math.max(30, ((1 - ny) / 2) * h - 62)}px)`;
+        e.style.transform = `translate(${Math.min(w - 30, ((nx + 1) / 2) * w + 46)}px, ${Math.max(30, ((1 - ny) / 2) * h - 46)}px)`;
         continue;
       }
       if (onScreen) {

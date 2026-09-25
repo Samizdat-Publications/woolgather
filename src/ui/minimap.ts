@@ -191,7 +191,7 @@ export class Minimap {
   /** Place names over everything else, so no dot ever hides a name a banner uses. */
   private drawLabels(c: CanvasRenderingContext2D) {
     c.save();
-    c.font = '700 11.5px system-ui, sans-serif';
+    c.font = "800 11.5px 'Nunito Variable', system-ui, sans-serif";
     c.textAlign = 'center';
     c.lineWidth = 3;
     c.lineJoin = 'round';

@@ -748,3 +748,21 @@ Newest at the bottom. Record every non-obvious choice.
   faces of trees, bushes and rocks go near-black (more cool fill), soft dark relief blotches sit
   at the frame edges, and the stream at sunset could be the brightest, most reflective surface;
   the title shot has a dark canopy behind the buttons.
+- 2026-09-25 (M4): the UI is one designed look: stitched felt panels (warm ink with a dashed wool
+  stitch inside the edge) for every HUD box and card, Fraunces with its soft axis for titles and big
+  numbers (a rounded, woolly serif) and Nunito for everything else, both bundled from npm (latin
+  subsets, about 180 KB, no network fetch), gold for the one primary action per screen, ember and
+  alarm red for danger, leaf green for good news, a 4 px spacing grid. Key names in tips and banners
+  are drawn as key caps. Title: the name in ink on the golden evening sky, the choice of evening
+  and the buttons on a felt card below, the keys on one line (left and right pick the evening).
+  Pause: the menu beside a sound panel (volume, music and effects sliders, mute, stored in
+  localStorage). Results: a kicker (day's end or nightfall, and the difficulty), the title, stars
+  that pop in, a ledger with dotted leaders, a separate tip box on a loss. How to play: controls
+  (keyboard and gamepad) beside how herding works, the marker legend below. Menus work from the
+  keyboard (arrows or WASD move between buttons, Enter chooses, Tab outside play) and the gamepad
+  (d-pad or stick, A chooses); a focused button takes Enter itself, so one key press never acts
+  twice. Carried over from M3: after a win Pip trots to the mouth of the fold and stands facing the
+  flock with a happy hop, and the camera frames him and the fold in the part of the screen the
+  results card leaves free; once the target is met the fold gate stays in shot near it; the
+  snatch's "!" floats beside the sheep, not over it; the minimap fades while the flock is at the
+  gate under it; the reach ring is a finer line after the first day's opening seconds.

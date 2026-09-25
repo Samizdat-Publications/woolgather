@@ -1,7 +1,10 @@
 // Keyboard + gamepad, reduced to intents. Movement is screen relative: up = north = -Z.
 // Ctrl is deliberately unused: Ctrl+W closes the browser tab and cannot be intercepted.
 
-type Edge = 'bark' | 'pause' | 'latch' | 'confirm' | 'back' | 'mute' | 'any';
+type Edge = 'bark' | 'pause' | 'latch' | 'confirm' | 'back' | 'mute' | 'any' | 'up' | 'down' | 'left' | 'right';
+
+/** Menu directions from the keyboard (movement keys double as menu keys). */
+const NAV_KEYS: Record<string, Edge> = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
 
 const MOVE_KEYS: Record<string, [number, number]> = {
   KeyW: [0, -1],
@@ -26,15 +29,21 @@ export class Input {
   private held = new Set<string>();
   private edges = new Set<Edge>();
   private padPrev: boolean[] = [];
+  private stickPrev = { x: 0, y: 0 };
   private enabled = true;
 
   constructor() {
     window.addEventListener('keydown', (e) => {
-      if (BLOCK_DEFAULT.has(e.code)) e.preventDefault();
+      // Sliders and checkboxes in the menus keep their own keys; Tab moves between buttons
+      // outside play.
+      const field = e.target instanceof HTMLInputElement;
+      if (BLOCK_DEFAULT.has(e.code) && !field && (this.enabled || e.code !== 'Tab')) e.preventDefault();
       this.device = 'keyboard';
       this.held.add(e.code);
       if (e.repeat) return;
       this.edges.add('any');
+      const nav = NAV_KEYS[e.code];
+      if (nav && !field) this.edges.add(nav);
       if (e.code === 'Space' || e.code === 'KeyB') this.edges.add('bark');
       if (e.code === 'Escape' || e.code === 'KeyP') this.edges.add('pause');
       if (e.code === 'Enter' || e.code === 'NumpadEnter') {
@@ -98,6 +107,17 @@ export class Input {
       if (edge(3)) this.edges.add('latch');
       if (edge(0)) this.edges.add('confirm');
       if (edge(1)) this.edges.add('back');
+      // Menu directions: the d-pad, or a flick of the stick.
+      if (edge(12)) this.edges.add('up');
+      if (edge(13)) this.edges.add('down');
+      if (edge(14)) this.edges.add('left');
+      if (edge(15)) this.edges.add('right');
+      const flick = (v: number, prev: number) => (v > 0.6 && prev <= 0.6 ? 1 : v < -0.6 && prev >= -0.6 ? -1 : 0);
+      const fx = flick(ax, this.stickPrev.x);
+      const fy = flick(az, this.stickPrev.y);
+      if (fx) this.edges.add(fx > 0 ? 'right' : 'left');
+      if (fy) this.edges.add(fy > 0 ? 'down' : 'up');
+      this.stickPrev = { x: ax, y: az };
       if (btn.some((b, i) => b && !this.padPrev[i])) {
         this.edges.add('any');
         this.device = 'gamepad';

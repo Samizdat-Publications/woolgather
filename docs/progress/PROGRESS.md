@@ -463,3 +463,21 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Nightfall at the fold, fireflies over the grass](m3-close-night.png)
 *Nightfall at the fold, fireflies over the grass*
 
+
+## m4-ui-r1 (2026-09-25)
+
+![M4: the designed title screen, the name on the evening sky](m4-ui-r1-title.png)
+*M4: the designed title screen, the name on the evening sky*
+
+![How to play: controls beside how herding works, the marker legend below](m4-ui-r1-howto.png)
+*How to play: controls beside how herding works, the marker legend below*
+
+![Pause with sound sliders](m4-ui-r1-pause.png)
+*Pause with sound sliders*
+
+![Results: Pip at the fold mouth beside the card](m4-ui-r1-win-end.png)
+*Results: Pip at the fold mouth beside the card*
+
+![A loss with its tip](m4-ui-r1-lose-end.png)
+*A loss with its tip*
+

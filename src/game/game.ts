@@ -67,6 +67,7 @@ export class Game {
     this.audio = new GameAudio(this.level);
     if (opts.difficulty) this.ui.setDifficulty(opts.difficulty);
     this.ui.onAction = (a) => this.onUi(a);
+    this.ui.bindSound(this.audio.engine.settings, () => this.audio.engine.apply());
     this.toTitle();
   }
 
@@ -127,6 +128,30 @@ export class Game {
         this.howtoFrom = null;
         break;
     }
+  }
+
+  /**
+   * Enter (or the gamepad's A) on a menu: a focused button is the player's choice (Enter clicks
+   * it by itself; a gamepad press clicks it here), otherwise the screen's default action.
+   */
+  private confirm(fallback: () => unknown) {
+    const el = document.activeElement;
+    if (el instanceof HTMLButtonElement && this.ui.root.contains(el)) {
+      if (this.input.device === 'gamepad') el.click();
+      return;
+    }
+    fallback();
+  }
+
+  /** Arrow keys, WASD, the d-pad or the stick move between menu buttons; left and right choose the evening on the title. */
+  private menuNav() {
+    const input = this.input;
+    if (this.mode === 'title' && this.howtoFrom === null) {
+      if (input.pressed('left')) this.ui.cycleDifficulty(-1);
+      if (input.pressed('right')) this.ui.cycleDifficulty(1);
+    }
+    const dir = input.pressed('up') ? -1 : input.pressed('down') ? 1 : 0;
+    if (dir) this.ui.moveFocus(dir);
   }
 
   private setMode(m: Mode) {
@@ -204,10 +229,12 @@ export class Game {
 
     if (input.pressed('mute')) {
       const muted = this.audio.toggleMute();
+      this.ui.syncSound();
       this.ui.toast(muted ? 'Sound off (M to turn it back on)' : 'Sound on', 'info');
     }
+    if (this.mode !== 'playing') this.menuNav();
     if (this.mode === 'title') {
-      if (input.pressed('confirm') && this.howtoFrom === null) this.newDay();
+      if (input.pressed('confirm')) this.confirm(() => this.howtoFrom === null && this.newDay());
     } else if (this.mode === 'playing' && sim) {
       if (input.pressed('pause')) {
         this.setMode('paused');
@@ -230,11 +257,12 @@ export class Game {
       }
     } else if (this.mode === 'paused') {
       if (input.pressed('pause') && this.howtoFrom === null) this.setMode('playing');
+      else if (input.pressed('confirm')) this.confirm(() => this.howtoFrom === null && this.setMode('playing'));
     } else if (this.mode === 'ended') {
       if (this.endCardT > 0) {
         this.endCardT -= rawDt;
         if (this.endCardT <= 0 && sim?.outcome) this.ui.showEnd(sim.outcome, sim);
-      } else if (input.pressed('confirm')) this.newDay();
+      } else if (input.pressed('confirm')) this.confirm(() => this.newDay());
     }
 
     if (!this.ready || !this.world || !this.actors) {
@@ -250,9 +278,8 @@ export class Game {
       this.ui.update(sim, this.mode === 'paused' ? 0 : dt, this.clock);
       this.ui.minimap.setMood(mood.t);
       if (this.mode === 'ended' && sim.outcome?.kind === 'win') {
-        // Look at the fold while the gate closes, with the fold to the right of the results card.
-        const f = this.level.fold;
-        this.stage.setFocusGoal(f.cx - 12, this.terrain.ground(f.cx, f.cz), f.cz + 2, 1.15);
+        this.pipHome(sim, rawDt);
+        this.frameResults();
       } else {
         this.frameCamera(sim);
       }
@@ -441,6 +468,16 @@ export class Game {
       ess.wolves++;
       if (w.state === 'drag') dragFrame = true;
     }
+    // Once the target is met, the fold gate stays in shot while Pip is within reach of it, so the
+    // call to latch has the gate beside it.
+    if (this.gateGlow) {
+      const m = this.level.fold.mouth;
+      if ((m.x - d.x) ** 2 + (m.z - d.z) ** 2 < 55 * 55) {
+        grow(m.x, m.z);
+        grow(this.level.fold.minX + 4, this.level.fold.cz);
+        framed = true;
+      }
+    }
     let zoom = BASE_ZOOM;
     if (framed) {
       if (n > 0) {
@@ -486,6 +523,59 @@ export class Game {
     if (d.sprinting) zoom = Math.max(zoom, BASE_ZOOM * 1.08);
     this.stage.setFocusGoal(fx, this.terrain.height(d.x, d.z), fz, zoom);
   }
+
+  /**
+   * After a win the camera looks at the fold while the gate closes, with the fold and Pip in the
+   * part of the screen the results card leaves free.
+   */
+  private frameResults() {
+    const f = this.level.fold;
+    const w = window.innerWidth;
+    const aspect = w / Math.max(1, window.innerHeight);
+    const cardRight = Math.max(24, 0.05 * w) + Math.min(520, 0.9 * w);
+    const frac = Math.min(0.7, cardRight / w);
+    const zoom = 1.1;
+    const halfW = VIEW.half * zoom * (aspect / (16 / 9));
+    const x0 = f.mouth.x - 3;
+    const x1 = f.maxX + 1;
+    const freeCentre = ((frac + 1) / 2 - 0.5) * 2 * halfW;
+    this.stage.setFocusGoal((x0 + x1) / 2 - freeCentre, this.terrain.ground(f.cx, f.cz), f.cz + 2, zoom);
+  }
+
+  /** After a win Pip trots to the mouth of the fold and stands facing his flock, wagging. */
+  private pipHome(sim: Sim, dt: number) {
+    const d = sim.dog;
+    const m = this.level.fold.mouth;
+    const dx = m.x - d.x;
+    const dz = m.z - d.z;
+    const dist = Math.hypot(dx, dz);
+    d.sprinting = false;
+    d.creeping = false;
+    if (dist > 45) return;
+    if (dist > 0.6) {
+      const sp = Math.min(6.5, dist * 3);
+      d.vx = (dx / dist) * sp;
+      d.vz = (dz / dist) * sp;
+      d.x += d.vx * dt;
+      d.z += d.vz * dt;
+      d.speed = sp;
+      d.facing = Math.atan2(d.vx, d.vz);
+      this.pipArrived = false;
+    } else {
+      d.vx = 0;
+      d.vz = 0;
+      d.speed = 0;
+      let a = Math.PI / 2 - d.facing;
+      a = Math.atan2(Math.sin(a), Math.cos(a));
+      d.facing += a * (1 - Math.exp(-6 * dt));
+      if (!this.pipArrived) {
+        // A happy little bark-hop as he gets there.
+        this.pipArrived = true;
+        d.sinceBark = 0;
+      }
+    }
+  }
+  private pipArrived = false;
 
   private markers(sim: Sim): Marker[] {
     const h = (x: number, z: number) => this.terrain.height(x, z);
@@ -681,7 +771,11 @@ export class Game {
     // Only an animal under the map makes it see-through: the fold and the farmhouse may sit under
     // it (that is where the map gets read), people need to see Pip and the sheep.
     if (under(sim.dog.x, sim.dog.z)) return true;
-    return sim.sheep.some((s) => s.state !== 'lost' && s.state !== 'folded' && under(s.x, s.z));
+    if (sim.sheep.some((s) => s.state !== 'lost' && s.state !== 'folded' && under(s.x, s.z))) return true;
+    // The gate while sheep are going through it: the moment the map must not hide.
+    const m = this.level.fold.mouth;
+    const nearGate = sim.sheep.some((s) => s.state !== 'lost' && s.state !== 'folded' && (s.x - m.x) ** 2 + (s.z - m.z) ** 2 < 30 * 30);
+    return nearGate && under(this.level.fold.minX, this.level.fold.cz);
   }
 
   /** Screen positions (CSS pixels) of Pip, the loose sheep and the hunting wolves in view. */
