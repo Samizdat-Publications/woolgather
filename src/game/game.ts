@@ -208,7 +208,7 @@ export class Game {
       mood = this.stage.applyMood(moodTime(sim.t, sim.preset.wolfStart, sim.preset.dayLength));
       this.actors.sync(sim, this.mode === 'paused' ? 0 : rawDt, mood, this.mode === 'playing');
       this.ui.update(sim, this.mode === 'paused' ? 0 : rawDt, this.clock);
-      this.ui.minimap.setNight(mood.night);
+      this.ui.minimap.setMood(mood.t);
       if (this.mode === 'ended' && sim.outcome?.kind === 'win') {
         // Look at the fold while the gate closes.
         const f = this.level.fold;
@@ -249,7 +249,8 @@ export class Game {
     const L = this.level;
     const offScreen = (x: number, z: number) => {
       tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
-      return !(tmpV.z < 1 && Math.abs(tmpV.x) < 0.85 && Math.abs(tmpV.y) < 0.8);
+      // Anything even at the edge of the view counts as seen: the inset never repeats it.
+      return !(tmpV.z < 1 && Math.abs(tmpV.x) < 0.98 && Math.abs(tmpV.y) < 0.96);
     };
     let best: { x: number; z: number; text: string; rank: number; id: number; heading: number } | null = null;
     for (const w of sim.wolves) {
@@ -398,7 +399,8 @@ export class Game {
     for (const s of sim.sheep) {
       if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed') continue;
       tmpV.set(s.x, h(s.x, s.z) + 0.8, s.z).project(cam);
-      if (tmpV.z < 1 && Math.abs(tmpV.x) < 0.95 && Math.abs(tmpV.y) < 0.92) anyVisible = true;
+      // A sheep partly in view counts as visible.
+      if (tmpV.z < 1 && Math.abs(tmpV.x) < 1.03 && Math.abs(tmpV.y) < 1.03) anyVisible = true;
       const dd = (s.x - d.x) ** 2 + (s.z - d.z) ** 2;
       if (dd < nd) {
         nd = dd;

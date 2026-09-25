@@ -37,12 +37,12 @@ export const SUN_MOON_SWAP = 0.905;
 const KEYS: Mood[] = [
   // A strong warm key against a lower, cool sky fill: lit grass reads green-gold, shadows cool, and
   // the ground has real contrast instead of an even olive wash.
-  { t: 0.0, elev: 22, azim: 245, keyColor: '#ffc88a', keyIntensity: 3.5, hemiSky: '#b9cce8', hemiGround: '#7d8c52', hemiIntensity: 1.05, fog: '#efd9b0', fogNear: 80, fogFar: 260, skyTop: '#7ea6d0', skyHorizon: '#f8d49a', sunGlow: '#fff0c8', exposure: 1.0, night: 0, shadow: 0.6, ground: '#fffaf0' },
-  { t: 0.25, elev: 15, azim: 252, keyColor: '#ffc486', keyIntensity: 3.5, hemiSky: '#b6c4e6', hemiGround: '#74814c', hemiIntensity: 1.05, fog: '#f2cc98', fogNear: 78, fogFar: 250, skyTop: '#6f8cc4', skyHorizon: '#fbb878', sunGlow: '#ffd08a', exposure: 1.02, night: 0, shadow: 0.58, ground: '#fff6ea' },
-  // Sunset, when the wolves come out: a low coral-pink sun under a rose sky with a lavender fill;
-  // sage grass turns gold under it rather than brown.
-  { t: 0.45, elev: 10, azim: 259, keyColor: '#ffae96', keyIntensity: 3.6, hemiSky: '#b8a8e0', hemiGround: '#6a6060', hemiIntensity: 1.1, fog: '#e79a8c', fogNear: 72, fogFar: 240, skyTop: '#565c9e', skyHorizon: '#ff8a66', sunGlow: '#ff9460', exposure: 1.14, night: 0.1, shadow: 0.5, ground: '#fff2e6' },
-  { t: 0.6, elev: 6, azim: 264, keyColor: '#ffa092', keyIntensity: 2.8, hemiSky: '#ae9ad8', hemiGround: '#5c5c6c', hemiIntensity: 1.2, fog: '#c890a4', fogNear: 66, fogFar: 232, skyTop: '#474a90', skyHorizon: '#f07c72', sunGlow: '#ff7860', exposure: 1.12, night: 0.2, shadow: 0.45, ground: '#fff0ea' },
+  { t: 0.0, elev: 22, azim: 245, keyColor: '#ffcc88', keyIntensity: 4.0, hemiSky: '#a8b8e8', hemiGround: '#7d8c52', hemiIntensity: 1.0, fog: '#efd9b0', fogNear: 80, fogFar: 260, skyTop: '#7ea6d0', skyHorizon: '#f8d49a', sunGlow: '#fff0c8', exposure: 1.12, night: 0, shadow: 0.6, ground: '#fffaf0' },
+  { t: 0.25, elev: 15, azim: 252, keyColor: '#ffc684', keyIntensity: 4.0, hemiSky: '#a6b4e6', hemiGround: '#74814c', hemiIntensity: 1.0, fog: '#f2cc98', fogNear: 78, fogFar: 250, skyTop: '#6f8cc4', skyHorizon: '#fbb878', sunGlow: '#ffd08a', exposure: 1.12, night: 0, shadow: 0.58, ground: '#fff6ea' },
+  // Sunset, when the wolves come out: a low pink-coral sun under a rose sky with a lavender fill;
+  // the grass turns gold under it and the pink falls on the fleece, stone and water.
+  { t: 0.45, elev: 10, azim: 259, keyColor: '#ffa6b0', keyIntensity: 3.6, hemiSky: '#b8a8e0', hemiGround: '#6a6060', hemiIntensity: 1.1, fog: '#e79a8c', fogNear: 72, fogFar: 240, skyTop: '#565c9e', skyHorizon: '#ff8f8a', sunGlow: '#ff9460', exposure: 1.14, night: 0.1, shadow: 0.5, ground: '#fff2e6' },
+  { t: 0.6, elev: 6, azim: 264, keyColor: '#ff98b4', keyIntensity: 2.8, hemiSky: '#ae9ad8', hemiGround: '#5c5c6c', hemiIntensity: 1.2, fog: '#c890a4', fogNear: 66, fogFar: 232, skyTop: '#474a90', skyHorizon: '#e87c96', sunGlow: '#ff7860', exposure: 1.12, night: 0.2, shadow: 0.45, ground: '#fff0ea' },
   // Dusk, the last minute or so: the sun on the horizon, a dim rose key, a strong lilac fill, the
   // longest (but light) shadows of the evening.
   { t: 0.74, elev: 2, azim: 267, keyColor: '#e88aa4', keyIntensity: 1.7, hemiSky: '#9c88cc', hemiGround: '#544e66', hemiIntensity: 1.45, fog: '#9a7aa4', fogNear: 62, fogFar: 224, skyTop: '#343a80', skyHorizon: '#c46e86', sunGlow: '#e0708a', exposure: 1.12, night: 0.32, shadow: 0.35, ground: '#faeef6' },

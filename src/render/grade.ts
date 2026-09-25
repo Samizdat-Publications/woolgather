@@ -38,14 +38,14 @@ interface GradeKey {
 }
 
 const KEYS: GradeKey[] = [
-  { t: 0.0, sat: 0.8, shadow: '#4f7cb0', shadowAmt: 0.5, high: '#ffe6b8', highAmt: 0.25, lo: '#2e4a6a', mid: '#a09a4a', hi: '#ffe4b0', ramp: 0.04, gain: 1.0, contrast: 1.38, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.22, vignette: 0.22 },
-  { t: 0.3, sat: 0.82, shadow: '#5470b4', shadowAmt: 0.55, high: '#ffdcaa', highAmt: 0.3, lo: '#32466e', mid: '#b0904a', hi: '#ffd8a0', ramp: 0.04, gain: 1.02, contrast: 1.38, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.24, vignette: 0.24 },
-  { t: 0.45, sat: 0.95, shadow: '#7a58c8', shadowAmt: 0.7, high: '#ffc0b0', highAmt: 0.35, lo: '#503a8c', mid: '#c89a6a', hi: '#ffd0b0', ramp: 0.05, gain: 1.06, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.26, vignette: 0.26 },
-  { t: 0.6, sat: 0.92, shadow: '#6e50c4', shadowAmt: 0.75, high: '#ffb8b8', highAmt: 0.38, lo: '#463a8a', mid: '#c0887c', hi: '#ffc4b8', ramp: 0.08, gain: 1.14, contrast: 1.28, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.26, vignette: 0.28 },
+  { t: 0.0, sat: 0.8, shadow: '#4f7cb0', shadowAmt: 0.5, high: '#ffe6b8', highAmt: 0.25, lo: '#2e4a6a', mid: '#a09a4a', hi: '#ffe4b0', ramp: 0.04, gain: 1.0, contrast: 1.38, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.24, vignette: 0.22 },
+  { t: 0.3, sat: 0.82, shadow: '#5470b4', shadowAmt: 0.55, high: '#ffdcaa', highAmt: 0.3, lo: '#32466e', mid: '#b0904a', hi: '#ffd8a0', ramp: 0.04, gain: 1.02, contrast: 1.38, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.26, vignette: 0.24 },
+  { t: 0.45, sat: 0.95, shadow: '#7a58c8', shadowAmt: 0.7, high: '#ffbccb', highAmt: 0.35, lo: '#503a8c', mid: '#c89a6a', hi: '#ffd0b0', ramp: 0.05, gain: 1.06, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.26 },
+  { t: 0.6, sat: 0.92, shadow: '#6e50c4', shadowAmt: 0.75, high: '#ffb4cc', highAmt: 0.38, lo: '#463a8a', mid: '#c0887c', hi: '#ffc4b8', ramp: 0.08, gain: 1.14, contrast: 1.28, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.28 },
   // Deep rose-violet dusk.
-  { t: 0.74, sat: 0.88, shadow: '#5a3ca8', shadowAmt: 0.8, high: '#ffb8c8', highAmt: 0.4, lo: '#3a2c78', mid: '#a06aa0', hi: '#ffc8d4', ramp: 0.16, gain: 1.42, contrast: 1.26, pivot: 0.26, haze: '#b87ab0', hazeAmt: 0.24, vignette: 0.32 },
-  { t: 0.88, sat: 0.8, shadow: '#40328e', shadowAmt: 0.82, high: '#e6bce4', highAmt: 0.45, lo: '#2c2466', mid: '#7e5aa8', hi: '#e0c8f0', ramp: 0.26, gain: 1.75, contrast: 1.26, pivot: 0.2, haze: '#7a5aa4', hazeAmt: 0.22, vignette: 0.36 },
-  { t: 1.0, sat: 0.7, shadow: '#262a80', shadowAmt: 0.85, high: '#d4deff', highAmt: 0.5, lo: '#181c52', mid: '#5650aa', hi: '#d0d8ff', ramp: 0.4, gain: 0.92, contrast: 1.3, pivot: 0.18, haze: '#383c80', hazeAmt: 0.2, vignette: 0.42 },
+  { t: 0.74, sat: 0.88, shadow: '#5a3ca8', shadowAmt: 0.8, high: '#ffb8c8', highAmt: 0.4, lo: '#3a2c78', mid: '#a06aa0', hi: '#ffc8d4', ramp: 0.16, gain: 1.42, contrast: 1.26, pivot: 0.26, haze: '#b87ab0', hazeAmt: 0.28, vignette: 0.32 },
+  { t: 0.88, sat: 0.8, shadow: '#40328e', shadowAmt: 0.82, high: '#e6bce4', highAmt: 0.45, lo: '#2c2466', mid: '#7e5aa8', hi: '#e0c8f0', ramp: 0.26, gain: 1.75, contrast: 1.26, pivot: 0.2, haze: '#7a5aa4', hazeAmt: 0.24, vignette: 0.36 },
+  { t: 1.0, sat: 0.7, shadow: '#262a80', shadowAmt: 0.85, high: '#d4deff', highAmt: 0.5, lo: '#181c52', mid: '#5650aa', hi: '#d0d8ff', ramp: 0.4, gain: 0.92, contrast: 1.3, pivot: 0.18, haze: '#383c80', hazeAmt: 0.18, vignette: 0.42 },
 ];
 
 /** Display-space (sRGB) components of a hex colour. */
@@ -66,6 +66,8 @@ export class GradePass {
   enabled = true;
   /** The haze band suits the top-down play camera; the title's low shot shows the real sky. */
   hazeScale = 1;
+  /** Display-space sky colour the haze leans towards (set from the mood's horizon each frame). */
+  hazeSky: THREE.Vector3 | null = null;
 
   constructor() {
     this.target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
@@ -157,8 +159,9 @@ export class GradePass {
             // Contrast around the phase's own pivot: highlights brighten while shadows deepen,
             // without crushing a dusk or night frame to black.
             c = (c - uPivot) * uContrast + uPivot;
-            // Haze over the far side of the valley and its pines, along the top of the frame.
-            c = mix(c, uHaze, uHazeAmt * smoothstep(0.74, 1.0, vUv.y));
+            // Sky-coloured haze over the far third of the valley (peach, then rose, then violet): the
+            // sky the herding camera cannot show, as the air it lights.
+            c = mix(c, uHaze, uHazeAmt * smoothstep(0.6, 1.0, vUv.y));
             vec2 v = (vUv - 0.5) * vec2(uAspect, 1.0);
             // A soft glow on the side of the frame the sun (or moon) is on: the sky the herding
             // camera cannot see, lighting the air on its side of the valley.
@@ -211,6 +214,7 @@ export class GradePass {
     u.uContrast.value = m(a.contrast, b.contrast);
     u.uPivot.value = m(a.pivot, b.pivot);
     mc(a.haze, b.haze, u.uHaze.value);
+    if (this.hazeSky) u.uHaze.value.lerp(this.hazeSky, 0.6);
     u.uHazeAmt.value = m(a.hazeAmt, b.hazeAmt) * this.hazeScale;
     u.uVignette.value = m(a.vignette, b.vignette);
   }

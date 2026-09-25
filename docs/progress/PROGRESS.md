@@ -238,3 +238,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Straw hay and a slatted rack; a full fold at the end of the day](m2-assets-r19-latch-end.png)
 *Straw hay and a slatted rack; a full fold at the end of the day*
 
+
+## m2-assets-r20 (2026-09-25)
+
+![Golden hour: bright amber light on a fresh green meadow](m2-assets-r20-start.png)
+*Golden hour: bright amber light on a fresh green meadow*
+
+![The wolf in its toothed danger ring at the edge of the pines](m2-assets-r20-wolf.png)
+*The wolf in its toothed danger ring at the edge of the pines*
+
+![A reachable snatch: countdown banner and a side-view inset](m2-assets-r20-snatch.png)
+*A reachable snatch: countdown banner and a side-view inset*
+
+![Deep violet dusk: lit windows, the fold lantern, a hunting wolf](m2-assets-r20-late-dusk.png)
+*Deep violet dusk: lit windows, the fold lantern, a hunting wolf*
+

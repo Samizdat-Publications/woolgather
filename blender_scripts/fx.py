@@ -54,6 +54,34 @@ def ring(name, inner, outer, seg=64):
     return ob
 
 
+def toothed_ring(name, inner, outer, teeth=12, fill=0.62, seg_per=4):
+    """A ring broken into teeth: a shape cue for the wolves' danger ring that does not rely on
+    colour alone (red-blind players see the dashes)."""
+    bm = bmesh.new()
+    step = math.tau / teeth
+    for t in range(teeth):
+        a0 = t * step
+        a1 = a0 + step * fill
+        ring_pts = []
+        for k in range(seg_per + 1):
+            a = a0 + (a1 - a0) * k / seg_per
+            ring_pts.append((math.cos(a), math.sin(a)))
+        verts_in = [bm.verts.new((c * inner, s * inner, 0)) for c, s in ring_pts]
+        verts_out = [bm.verts.new((c * outer, s * outer, 0)) for c, s in ring_pts]
+        for k in range(seg_per):
+            f = bm.faces.new((verts_in[k], verts_out[k], verts_out[k + 1], verts_in[k + 1]))
+            f.normal_update()
+            if f.normal.z < 0:
+                f.normal_flip()
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    me.materials.append(W.mat("fx_ring", "#fff4d6", 1.0))
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    return ob
+
+
 def moon():
     p = W.Part("moon")
     m = W.mat("moon", "#f3f0e2", 1.0, emit="#f3f0e2", emit_strength=1.0)
@@ -88,6 +116,7 @@ def main():
         ring("thick_ring", 0.66, 1.0),
         ring("soft_ring", 0.97, 1.0, 96),
         ring("thin_ring", 0.985, 1.0, 128),
+        toothed_ring("danger_ring", 0.8, 1.0),
         moon(),
         heart(),
         small("wool_tuft", "#f4efe2", 0.12, 1),

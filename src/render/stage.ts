@@ -9,6 +9,7 @@ import { GradePass } from './grade';
 const tmpV = new THREE.Vector3();
 const tmpC = new THREE.Color();
 const MOON_GLOW = new THREE.Color(0.62, 0.68, 0.95);
+const HAZE = new THREE.Vector3();
 
 export class Stage {
   readonly renderer: THREE.WebGLRenderer;
@@ -97,6 +98,8 @@ export class Stage {
     this.fog.far = m.fogFar * (this.titleShot ? 1.5 : 1);
     this.key.shadow.intensity = m.shadow;
     this.grade.hazeScale = this.titleShot ? 0 : 1;
+    const sky = tmpC.copy(m.skyHorizon).convertLinearToSRGB();
+    this.grade.hazeSky = HAZE.set(sky.r, sky.g, sky.b);
     this.grade.apply(t, m.exposure);
     // Sun-side glow: warm while the sun is up, faint silver from the moon later on.
     const moon = t >= SUN_MOON_SWAP;

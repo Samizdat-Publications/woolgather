@@ -436,3 +436,18 @@ Newest at the bottom. Record every non-obvious choice.
   and stalled). Field walls have their own collision tag: sheep and Pip go round, wolves leap
   them. They also sat where Pip's outrun circles the far-bank flock and slowed the herding to a
   crawl; they now run 6-8 m inside the forest edge.
+- 2026-09-25 (M2 critic r19, the last major was the golden hour reading as dim olive and the
+  rose act as rust): the golden hour is a brighter amber key (4.0) against a cooler, lower fill at
+  exposure 1.12, on fresher yellow-green grass (between the sage and the old lime); grass luma
+  0.48 and contrast 87 at the start, then a steady fall to 0.23 at night. The sunset keys are
+  pink-coral and pink-magenta, the grade's highlights pink, and a haze in the sky's own colour
+  (peach, rose, violet) covers the top third of the frame. The vignette is light (it read as brown
+  corner blotches) and the terrain's relief shading is subtler.
+- 2026-09-25 (M2 critic r19): the wolf is cool mid-grey with a charcoal back, pale underparts,
+  drawn at 2.0x; its ring is toothed (`danger_ring`, 12 teeth, turning slowly) over a dark band, so
+  it reads by shape and brightness as well as colour (red-blind players saw it vanish on olive
+  grass). Pip has a thin dark outline (a cream one merged with his white collar) and more black
+  from above (dark legs with white socks, no white neck stripe, a smaller white tail tip). Edge
+  markers slide along the top edge past the timer instead of dropping into the field; a partly
+  visible sheep counts as visible; the inset needs the wolf truly off screen. The minimap is tinted
+  with the evening (sepia by day, dimmer and cooler into the dusk) and wolves are ringed red dots.

@@ -35,9 +35,6 @@ def collie():
     b.jitter(v, 0.02, seed=3)
     # White collar right round the neck: a collie's full ruff, readable from above and behind.
     b.cyl(white, loc=(0, -0.33, 0.2), r1=0.2, r2=0.17, depth=0.12, rot=(math.radians(-40), 0, 0), seg=10)
-    # White stripe down the back of the neck and a white tail base spot break up the dark back.
-    v = b.ico(white, loc=(0, -0.2, 0.2), radius=0.07, scale=(0.9, 1.8, 0.5))
-    b.jitter(v, 0.01, seed=6)
     # Red neckerchief: a band round the neck and a point hanging over the chest. Reads from above.
     b.cyl(red, loc=(0, -0.38, 0.16), r1=0.19, r2=0.17, depth=0.07, rot=(math.radians(-35), 0, 0), seg=10)
     b.cyl(red, loc=(0, -0.47, 0.03), r1=0.13, r2=0.0, depth=0.18, rot=(math.radians(200), 0, 0), seg=3)
@@ -66,14 +63,15 @@ def collie():
     t = W.Part("tail")
     t.limb(black, (0, 0, 0), (0, 0.24, -0.16), 0.065, 0.06, seg=7)
     t.limb(black, (0, 0.24, -0.16), (0, 0.36, -0.28), 0.06, 0.05, seg=7)
-    v = t.ico(white, loc=(0, 0.41, -0.33), radius=0.06, scale=(1, 1.3, 1))  # white tip
+    v = t.ico(white, loc=(0, 0.41, -0.33), radius=0.045, scale=(1, 1.2, 1))  # small white tip
     t.jitter(v, 0.008, seed=5)
     t.finish(parent=body, pivot=(0, 0.45, 0.06))
 
-    for sx, sy, name, upper in ((1, -1, "leg_fl", white), (-1, -1, "leg_fr", white), (1, 1, "leg_bl", black), (-1, 1, "leg_br", black)):
+    # Dark legs with white socks, so from above Pip is a black dog with a white collar.
+    for sx, sy, name in ((1, -1, "leg_fl"), (-1, -1, "leg_fr"), (1, 1, "leg_bl"), (-1, 1, "leg_br")):
         L = W.Part(name)
-        L.limb(upper, (0, 0, 0.02), (0, 0, -0.26), 0.058, 0.046, seg=6)
-        L.limb(white, (0, 0, -0.26), (0, -0.02, -0.46), 0.046, 0.04, seg=6)
+        L.limb(black, (0, 0, 0.02), (0, 0, -0.3), 0.058, 0.046, seg=6)
+        L.limb(white, (0, 0, -0.3), (0, -0.02, -0.46), 0.046, 0.04, seg=6)
         L.ico(white, loc=(0, -0.035, -0.47), radius=0.05, scale=(1, 1.35, 0.6))
         L.finish(parent=body, pivot=(0.11 * sx, 0.3 * sy if sy > 0 else -0.27, -0.06))
     return root
@@ -118,13 +116,14 @@ def sheep():
 
 
 def wolf():
-    # Built to read from the herding camera, i.e. from above: a dark umber back and ruff (always
-    # darker than the cream sheep), a pale muzzle, chest and belly, big dark ears splayed
+    # Built to read from the herding camera, i.e. from above: cool mid-grey with a charcoal back and
+    # ruff (darker than the cream sheep, lighter than the dusk bushes), a pale muzzle, chest and
+    # belly, big dark ears splayed
     # outwards, legs set wide enough to show from above, and a thick brush of a tail held low.
     # (Earlier versions read as a foal, then as a dark smudge, then as a pale tube head-on.)
-    grey = W.mat("wolf_grey", "#77695c", 0.9)
-    light = W.mat("wolf_light", "#d9d0bf", 0.9)
-    dark = W.mat("wolf_dark", "#40362e", 0.85)
+    grey = W.mat("wolf_grey", "#8a8e96", 0.9)
+    light = W.mat("wolf_light", "#dcdad4", 0.9)
+    dark = W.mat("wolf_dark", "#383a40", 0.85)
     nose = W.mat("wolf_nose", "#111114", 0.5)
     glow = W.mat("wolf_eyes", "#ffc045", 0.4, emit="#ffb030", emit_strength=4.0)
 

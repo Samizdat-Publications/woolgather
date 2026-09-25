@@ -33,16 +33,18 @@ export const hudState: { insetVisible: boolean; insetSide: InsetSide } = { inset
 
 // Screen regions taken by HUD panels (top-left counts, top-right minimap, the timer and message
 // banner across the top middle, the wolf-cam inset), in CSS pixels.
-function avoidHud(px: number, py: number, w: number, h: number) {
+function avoidHud(px: number, py: number, w: number, h: number): [number, number] {
   if (px > w - 250 && py < 215) py = 230;
   if (px < 190 && py < 135) py = 150;
-  if (Math.abs(px - w / 2) < 340 && py < 150) py = 165;
+  // The timer and banner across the top middle: slide along the edge past them rather than
+  // dropping into the field, where a marker reads as an object in the world.
+  if (Math.abs(px - w / 2) < 340 && py < 150) px = px < w / 2 ? w / 2 - 350 : w / 2 + 350;
   if (hudState.insetVisible) {
     // Markers on the inset's edge hop above it.
     const r = insetRect(hudState.insetSide, w, h);
     if (px > r.x - 34 && px < r.x + r.w + 34 && py > r.y - 30 && py < r.y + r.h + 30) py = r.y - 34;
   }
-  return py;
+  return [px, py];
 }
 
 export class Indicators {
@@ -102,8 +104,7 @@ export class Indicators {
       const k = Math.min(mx / Math.max(Math.abs(nx), 1e-4), my / Math.max(Math.abs(ny), 1e-4));
       nx *= k;
       ny *= k;
-      const px = ((nx + 1) / 2) * w;
-      const py = avoidHud(px, ((1 - ny) / 2) * h, w, h);
+      const [px, py] = avoidHud(((nx + 1) / 2) * w, ((1 - ny) / 2) * h, w, h);
       e.style.transform = `translate(${px}px, ${py}px)`;
       (e.querySelector('.ind-arrow') as HTMLElement).style.transform = `rotate(${ang}rad)`;
     }

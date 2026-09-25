@@ -172,12 +172,12 @@ def water_level_at(s_x, s_z):
 
 # ----------------------------------------------------------------------------- colours
 
-# Sage greens, light and not too saturated: warm light turns them gold rather than lime, and
-# the sunset does not push them to mustard.
-GRASS_A = "#86a068"
-GRASS_B = "#9cb07a"
-GRASS_DRY = "#b8b288"
-GRASS_LUSH = "#678a5a"
+# Fresh, light yellow-greens between sage and lime: warm light turns them gold, not olive, and
+# they stay green enough not to go rust under the sunset.
+GRASS_A = "#8eae5c"
+GRASS_B = "#a6bd6c"
+GRASS_DRY = "#c0b87a"
+GRASS_LUSH = "#6a9652"
 WORN = "#9c9a6a"
 MUD = "#7a6440"
 STRAW = "#c8b068"
@@ -217,7 +217,7 @@ def color(x, z, h):
     curv = h - (height(x + 3, z) + height(x - 3, z) + height(x, z + 3) + height(x, z - 3)) / 4
     c = mix(c, lin(GRASS_DRY), smoothstep(0.04, 0.35, curv) * 0.4)
     c = mix(c, lin(GRASS_LUSH), smoothstep(0.04, 0.35, -curv) * 0.3)
-    shade = 0.88 + 0.22 * smoothstep(-1.0, 7.0, h) - 0.12 * smoothstep(0.05, 0.5, -curv)
+    shade = 0.95 + 0.1 * smoothstep(-1.0, 7.0, h) - 0.06 * smoothstep(0.05, 0.5, -curv)
     c = (c[0] * shade, c[1] * shade, c[2] * shade, c[3])
     # Around rocks: bare, stony ground.
     for rx, rz, rr in LEVEL["rocks"]:

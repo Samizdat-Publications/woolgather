@@ -9,7 +9,7 @@ import type { Terrain } from './terrain';
 // procedural animation can move them (milestone 3 adds the full motion).
 
 // Characters are drawn larger than life so they read from the herding camera's height.
-export const SCALE = { dog: 1.85, sheep: 1.42, wolf: 1.7 };
+export const SCALE = { dog: 1.85, sheep: 1.42, wolf: 2.0 };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
 
 /**
@@ -101,12 +101,17 @@ export class GroundRing {
     this.mesh.renderOrder = 2;
   }
 
-  place(x: number, z: number, radius: number) {
+  /** Centre the ring at (x, z) with the given radius, turned by `angle` radians. */
+  place(x: number, z: number, radius: number, angle = 0) {
     const pos = this.mesh.geometry.getAttribute('position') as THREE.BufferAttribute;
     const arr = pos.array as Float32Array;
+    const c = Math.cos(angle);
+    const sn = Math.sin(angle);
     for (let i = 0; i < arr.length; i += 3) {
-      const wx = x + this.base[i] * radius;
-      const wz = z + this.base[i + 2] * radius;
+      const bx = this.base[i];
+      const bz = this.base[i + 2];
+      const wx = x + (bx * c - bz * sn) * radius;
+      const wz = z + (bx * sn + bz * c) * radius;
       arr[i] = wx;
       arr[i + 1] = this.terrain.surface(wx, wz) + this.lift;
       arr[i + 2] = wz;
@@ -135,7 +140,7 @@ export class Actors {
   readonly root = new THREE.Group();
   readonly dog: Rig;
   private sheep: Rig[] = [];
-  private wolves = new Map<number, { rig: Rig; danger: GroundRing; glow: THREE.Sprite }>();
+  private wolves = new Map<number, { rig: Rig; danger: GroundRing; under: GroundRing; glow: THREE.Sprite }>();
   private glowMat = new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffb040, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
   private marker: GroundRing;
   private zone: GroundRing;
@@ -149,8 +154,9 @@ export class Actors {
     private terrain: Terrain,
   ) {
     this.dog = rig(a.collie, SCALE.dog);
-    // ~0.1 m in the world: 2-3 px from the herding camera.
-    addOutline(this.dog.root, 0xfff1d0, 0.055);
+    // A thin dark ink line (a cream one merged with his white collar and socks); his rim light
+    // keeps him readable at night.
+    addOutline(this.dog.root, 0x231c2b, 0.045);
     this.root.add(this.dog.root);
     this.marker = new GroundRing(a.fx.get('bark_ring')!, 0xffd27a, terrain, 0.09);
     this.marker.mesh.material.opacity = 0.85;
@@ -219,7 +225,8 @@ export class Actors {
     for (const m of this.whiteMats) m.emissiveIntensity = 1 + 0.4 * night;
     // Rim light: faint and warm by day, rose-pink through the sunset and dusk, silver by moonlight.
     const sunset = Math.min(1, Math.max(0, (mood.t - 0.4) / 0.1)) * Math.min(1, Math.max(0, (0.92 - mood.t) / 0.08));
-    this.rim.value.setRGB(1, 0.64 - 0.06 * sunset, 0.56 + 0.1 * sunset).lerp(RIM_MOON, night).multiplyScalar(0.06 + 0.16 * sunset + 0.45 * night);
+    const gold = 1 - Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15));
+    this.rim.value.setRGB(1, 0.7 - 0.12 * sunset, 0.5 + 0.16 * sunset).lerp(RIM_MOON, night).multiplyScalar(0.06 + 0.1 * gold + 0.16 * sunset + 0.45 * night);
     // Gameplay rings belong to play, not to the pause menu or the results card.
     this.zone.mesh.visible = showRings;
     this.marker.mesh.visible = showRings;
@@ -266,9 +273,12 @@ export class Actors {
       let v = this.wolves.get(w.id);
       if (!v) {
         const r = rig(this.a.wolf, SCALE.wolf);
-        // A slim, wide danger ring that hugs the ground around every hunting wolf: it frames the
-        // animal instead of covering it.
-        const danger = new GroundRing(this.a.fx.get('bark_ring')!, 0xff4a30, this.terrain, 0.1);
+        // A toothed red ring that hugs the ground around every hunting wolf, over a dark band: it
+        // frames the animal instead of covering it, and the teeth and the dark band still read
+        // for players who cannot tell red from green.
+        const under = new GroundRing(this.a.fx.get('thick_ring')!, 0x1a1420, this.terrain, 0.09);
+        under.mesh.material.opacity = 0.35;
+        const danger = new GroundRing(this.a.fx.get('danger_ring')!, 0xff4a30, this.terrain, 0.1);
         // A plain saturated red-orange: strong enough in colour that the grade leaves it alone at
         // every hour (pushing it above white made the tone mapping wash it to salmon).
         // Warm eye-shine that reads from the herding camera once the light goes.
@@ -276,21 +286,24 @@ export class Actors {
         glow.scale.setScalar(0.7);
         glow.position.set(0, 0.1, 0.24); // heads face +Z: the eyes are in front
         (r.head ?? r.root).add(glow);
-        this.root.add(r.root, danger.mesh);
-        v = { rig: r, danger, glow };
+        this.root.add(r.root, under.mesh, danger.mesh);
+        v = { rig: r, danger, under, glow };
         this.wolves.set(w.id, v);
       }
       const y = h(w.x, w.z);
       v.rig.root.position.set(w.x, y, w.z);
       v.rig.root.rotation.y = w.facing;
       const pulse = 0.5 + 0.5 * Math.sin(this.time * 7);
-      v.danger.mesh.visible = w.state !== 'flee';
-      if (v.danger.mesh.visible) v.danger.place(w.x, w.z, 2.9 + 0.2 * pulse);
-      v.danger.mesh.material.opacity = 0.6 + 0.3 * pulse;
+      v.danger.mesh.visible = v.under.mesh.visible = w.state !== 'flee';
+      if (v.danger.mesh.visible) {
+        v.danger.place(w.x, w.z, 3.2 + 0.2 * pulse, this.time * 0.8);
+        v.under.place(w.x, w.z, 3.35);
+      }
+      v.danger.mesh.material.opacity = 0.7 + 0.25 * pulse;
     }
     for (const [id, v] of this.wolves) {
       if (!seen.has(id)) {
-        this.root.remove(v.rig.root, v.danger.mesh);
+        this.root.remove(v.rig.root, v.danger.mesh, v.under.mesh);
         this.wolves.delete(id);
       }
     }

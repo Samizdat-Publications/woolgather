@@ -138,9 +138,13 @@ export class Minimap {
     }
   }
 
-  /** Dim the map with the evening so it never becomes the brightest thing on a night screen. */
-  setNight(night: number) {
-    const f = `brightness(${(1 - 0.45 * night).toFixed(2)}) saturate(${(1 - 0.35 * night).toFixed(2)})`;
+  /**
+   * Tint the map with the evening (warm and a little faded by day, dimmer and cooler as the dusk
+   * deepens), so it never becomes the brightest, greenest thing on a sunset or night screen.
+   */
+  setMood(t: number) {
+    const dusk = Math.min(1, Math.max(0, (t - 0.5) / 0.4));
+    const f = `sepia(${(0.25 + 0.15 * dusk).toFixed(2)}) brightness(${(0.95 - 0.45 * dusk).toFixed(2)}) saturate(${(0.9 - 0.45 * dusk).toFixed(2)}) hue-rotate(${Math.round(-20 * dusk)}deg)`;
     if (this.canvas.style.filter !== f) this.canvas.style.filter = f;
   }
 
@@ -160,17 +164,16 @@ export class Minimap {
       c.strokeStyle = 'rgba(30, 24, 34, 0.9)';
       c.stroke();
     }
+    // Wolves: red dots with a dark ring, a different shape from Pip's arrow.
     for (const w of sim.wolves) {
       if (w.state === 'gone') continue;
-      const x = this.px(w.x);
-      const z = this.pz(w.z);
       c.beginPath();
-      c.moveTo(x, z - 4);
-      c.lineTo(x + 3.5, z + 3);
-      c.lineTo(x - 3.5, z + 3);
-      c.closePath();
+      c.arc(this.px(w.x), this.pz(w.z), 3.4, 0, Math.PI * 2);
       c.fillStyle = '#e0503c';
       c.fill();
+      c.lineWidth = 1.6;
+      c.strokeStyle = 'rgba(30, 16, 20, 0.95)';
+      c.stroke();
     }
     const d = sim.dog;
     const dx = this.px(d.x);
