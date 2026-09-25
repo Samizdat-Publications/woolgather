@@ -406,3 +406,15 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Hearts rise as sheep reach the fold by lantern light](m3-feel-r2-late-night.png)
 *Hearts rise as sheep reach the fold by lantern light*
 
+
+## m3-feel-r3 (2026-09-25)
+
+![Soft dust clouds behind bolting sheep](m3-feel-r3-herding.png)
+*Soft dust clouds behind bolting sheep*
+
+![The pines at the bottom of the frame turn see-through](m3-feel-r3-pause.png)
+*The pines at the bottom of the frame turn see-through*
+
+![A snatch: the dragged sheep sheds wool under the wolf's alarm ring](m3-feel-r3-snatch.png)
+*A snatch: the dragged sheep sheds wool under the wolf's alarm ring*
+

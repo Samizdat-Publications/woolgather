@@ -275,7 +275,7 @@ export class Actors {
     // ink line round the fleece and face, wolves a hot ember line that says danger. Added to the
     // prototypes, so every clone shares them.
     addOutline(a.sheep, 0x2a2230, 0.04, ['body', 'head']);
-    addOutline(a.wolf, 0xff6a3d, 0.045);
+    addOutline(a.wolf, 0x1c1418, 0.045);
   }
 
   private whiteMats: THREE.MeshLambertMaterial[] = [];
@@ -330,7 +330,7 @@ export class Actors {
     // The dashes creep round slowly, so the ring reads as Pip's and alive, not as a ground mark.
     this.zone.place(d.x, d.z, this.zoneR, this.time * 0.12);
     this.zoneUnder.place(d.x, d.z, this.zoneR + 0.3);
-    this.zone.mesh.material.color.set(d.creeping ? 0x8fd0ff : d.sprinting ? 0xffb07a : 0xfff4d6);
+    this.zone.mesh.material.color.set(d.creeping ? 0x8fd0ff : d.sprinting ? 0xffffff : 0xfff4d6);
     const reach = this.zoneR + 9;
     const near = sim.sheep.some(
       (s) => s.state !== 'folded' && s.state !== 'lost' && s.state !== 'grabbed' && (s.x - d.x) ** 2 + (s.z - d.z) ** 2 < reach * reach,
@@ -338,7 +338,7 @@ export class Actors {
     // Always readable (the how-to points at it), stronger with sheep about or while creeping, and
     // at full strength for the first seconds of the day while its label explains it.
     const intro = sim.elapsed < 20 ? 1 : 0;
-    const want = Math.max(intro * 0.5, near ? (d.creeping ? 0.5 : 0.38) : 0.22);
+    const want = Math.max(intro * 0.42, near ? (d.creeping ? 0.42 : d.sprinting ? 0.36 : 0.3) : 0.16);
     this.zoneA += (want - this.zoneA) * (1 - Math.exp(-5 * dt));
     this.zone.mesh.material.opacity = this.zoneA;
     this.zoneUnder.mesh.material.opacity = this.zoneA * 0.4;

@@ -84,6 +84,7 @@ function instance(proto: THREE.Object3D, spots: Placement[], opts: { shadow?: bo
 const MAX_HOLES = 6;
 const HOLES = { value: Array.from({ length: MAX_HOLES }, () => new THREE.Vector3()) };
 const HOLE_COUNT = { value: 0 };
+const BUF_H = { value: 720 };
 let holeCountMain = 0;
 /** Tree cut-outs follow the main view; switch them off while another camera renders. */
 export function treeHoles(on: boolean) {
@@ -98,6 +99,7 @@ function fadeMaterial(src: THREE.Material) {
   m.onBeforeCompile = (shader) => {
     shader.uniforms.uHoles = HOLES;
     shader.uniforms.uHoleCount = HOLE_COUNT;
+    shader.uniforms.uBufH = BUF_H;
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nattribute float instanceFade;\nvarying float vFade;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFade = instanceFade;');
@@ -105,7 +107,8 @@ function fadeMaterial(src: THREE.Material) {
       .replace('#include <common>', `#include <common>
         varying float vFade;
         uniform vec3 uHoles[${MAX_HOLES}];
-        uniform int uHoleCount;`)
+        uniform int uHoleCount;
+        uniform float uBufH;`)
       .replace(
         '#include <opaque_fragment>',
         `#include <opaque_fragment>
@@ -115,7 +118,8 @@ function fadeMaterial(src: THREE.Material) {
           float d = length(gl_FragCoord.xy - uHoles[i].xy);
           cut = min(cut, smoothstep(uHoles[i].z * 0.65, uHoles[i].z, d));
         }
-        gl_FragColor.a = mix(cut, 1.0, vFade);`,
+        float fore = mix(0.3, 1.0, smoothstep(0.06, 0.3, gl_FragCoord.y / uBufH));
+        gl_FragColor.a = min(mix(cut, 1.0, vFade), fore);`,
       );
   };
   m.customProgramCacheKey = () => 'wg-fade-holes';
@@ -573,6 +577,7 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   }
   holeCountMain = n;
   HOLE_COUNT.value = n;
+  BUF_H.value = bufH;
   const wu = w.water.material.uniforms;
   wu.uTime.value = time;
   // Glints are sky colour washed towards white, so sunset hues read as sparkle, not blotches.

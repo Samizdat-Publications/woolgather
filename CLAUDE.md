@@ -663,3 +663,12 @@ Newest at the bottom. Record every non-obvious choice.
   a bigger faster ring with the prey marked, a carry the biggest fastest ring with an alarm ring
   swelling out and the red "!" floating over the sheep even on screen. The bark chip turns solid
   gold when ready; the stream shows slow lighter streaks drifting downstream.
+- 2026-09-25 (M3 critic r2, two majors: the forest edge looming over the action, and the animals
+  not carrying the action): trees in the bottom 30% of the frame (between the camera and the
+  valley) fade to a see-through 30% (alpha-to-coverage), so the pines no longer loom; dust and
+  splash spray are soft camera-facing puffs a metre or two across that swell and fade (the fx
+  beads read as dotted breadcrumbs), tufts, splash drops and hearts are 2-3x bigger, fireflies are
+  sized for the lens and distance; a snatched sheep sheds wool and kicks up a dust trail as it is
+  dragged; wolves have a dark ink outline like the sheep and Pip (the ember outline melted into
+  the amber ground; the ring says danger); Pip's ring stays white or blue (orange and red belong
+  to the wolves) and is quieter; the herding camera sits a little closer (zoom 1.08).

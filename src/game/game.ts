@@ -578,6 +578,10 @@ export class Game {
     }
     for (const w of sim.wolves) {
       if ((w.state === 'charge' || w.state === 'flee') && w.speed > 6 && !w.inWater) kick(w.x, w.z, w.vx, w.vz, 1.1);
+      if (w.state === 'drag' && w.target) {
+        if (Math.random() < 0.5) kick(w.target.x, w.target.z, w.vx, w.vz, 1.2);
+        if (Math.random() < 0.35) p.tufts(w.target.x, w.target.z, 2);
+      }
     }
   }
 
@@ -850,7 +854,7 @@ export class Game {
 const tmpV = new THREE.Vector3();
 /** The herding camera's usual distance (1 = the configured offset): far enough that Pip's reach
  * ring takes about half the screen's height. */
-const BASE_ZOOM = 1.2;
+const BASE_ZOOM = 1.08;
 /** Ground in view at zoom 1 around the focus (metres): across, towards the camera, away from it. */
 const VIEW = { half: 27.3, south: 17.8, north: 24.3 };
 const tmpV2 = new THREE.Vector2();
