@@ -142,7 +142,7 @@ def main():
         ring("thin_ring", 0.985, 1.0, 128),
         toothed_ring("danger_ring", 0.8, 1.0),
         # Pip's reach: dashes, so it never reads like the solid rings on the ground elsewhere.
-        toothed_ring("dashed_ring", 0.972, 1.0, teeth=48, fill=0.5, seg_per=2),
+        toothed_ring("dashed_ring", 0.982, 1.0, teeth=56, fill=0.5, seg_per=2),
         chevron("chevron"),
         moon(),
         heart(),

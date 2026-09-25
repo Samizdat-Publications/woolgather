@@ -117,10 +117,14 @@ export const WOLF = {
 };
 
 export const CAMERA = {
-  // A little lower and narrower than straight overhead: less lean on trees at the screen edges and
-  // a three-quarter view of the animals, with about the same ground in view as before.
-  fov: 34,
-  offset: { x: 0, y: 36, z: 32 },
+  // A three-quarter view from well back with a long lens: about 48 degrees down, the same ground
+  // in view as a closer, wider camera, but things near the top of the screen are drawn about 0.73
+  // the size of things near the bottom (0.57 with a 34 degree lens), and tall props near the
+  // camera no longer swell and lean at the edges.
+  fov: 20,
+  /** The title's low establishing shot keeps a wider lens. */
+  titleFov: 34,
+  offset: { x: 0, y: 65, z: 57.8 },
   lookAhead: 0.4,
   followRate: 4.5,
 };

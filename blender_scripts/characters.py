@@ -34,7 +34,10 @@ def collie():
     v = b.ico(white, loc=(0, -0.37, 0.13), radius=0.17, scale=(1.2, 0.9, 1.0))  # neck ruff
     b.jitter(v, 0.02, seed=3)
     # White collar right round the neck: a collie's full ruff, readable from above and behind.
-    b.cyl(white, loc=(0, -0.32, 0.2), r1=0.22, r2=0.19, depth=0.16, rot=(math.radians(-40), 0, 0), seg=10)
+    b.cyl(white, loc=(0, -0.3, 0.2), r1=0.25, r2=0.22, depth=0.2, rot=(math.radians(-40), 0, 0), seg=10)
+    # A broad white ruff over the shoulders, the collie's mark from above.
+    v = b.ico(white, loc=(0, -0.22, 0.2), radius=0.2, scale=(1.25, 0.8, 0.45))
+    b.jitter(v, 0.015, seed=6)
     # Red neckerchief: a band round the neck and a point hanging over the chest. Reads from above.
     b.cyl(red, loc=(0, -0.38, 0.16), r1=0.19, r2=0.17, depth=0.07, rot=(math.radians(-35), 0, 0), seg=10)
     b.cyl(red, loc=(0, -0.47, 0.03), r1=0.13, r2=0.0, depth=0.18, rot=(math.radians(200), 0, 0), seg=3)
@@ -43,12 +46,13 @@ def collie():
     h = W.Part("head")
     v = h.sphere(black, loc=(0, -0.09, 0.06), scale=(0.165, 0.185, 0.16), seg=9, rings=7)
     h.jitter(v, 0.01, seed=4)
-    v = h.ico(white, loc=(0, -0.16, 0.16), radius=0.06, scale=(0.7, 1.8, 0.5))  # blaze
+    v = h.ico(white, loc=(0, -0.15, 0.165), radius=0.07, scale=(0.8, 1.9, 0.5))  # broad blaze
     h.limb(white, (0, -0.18, 0.02), (0, -0.37, -0.02), 0.08, 0.052, seg=8)  # muzzle
     h.ico(nose, loc=(0, -0.375, -0.005), radius=0.034)
     catch = W.mat("eye_catchlight", "#ffffff", 0.2)
     for sx in (1, -1):
         h.ico(tan, loc=(0.105 * sx, -0.17, -0.01), radius=0.034, scale=(1, 1.2, 0.85))  # cheeks
+        h.ico(tan, loc=(0.07 * sx, -0.2, 0.13), radius=0.026, scale=(1.2, 0.9, 0.5))  # eyebrows
         h.ico(eye, loc=(0.075 * sx, -0.235, 0.085), radius=0.028)
         h.ico(catch, loc=(0.08 * sx, -0.258, 0.095), radius=0.008)
     head = h.finish(parent=body, pivot=(0, -0.42, 0.18))
@@ -63,7 +67,7 @@ def collie():
     t = W.Part("tail")
     t.limb(black, (0, 0, 0), (0, 0.24, -0.16), 0.065, 0.06, seg=7)
     t.limb(black, (0, 0.24, -0.16), (0, 0.36, -0.28), 0.06, 0.05, seg=7)
-    v = t.ico(white, loc=(0, 0.41, -0.33), radius=0.065, scale=(1, 1.4, 1))  # white tip
+    v = t.ico(white, loc=(0, 0.4, -0.32), radius=0.08, scale=(1, 1.6, 1))  # white tip
     t.jitter(v, 0.008, seed=5)
     t.finish(parent=body, pivot=(0, 0.45, 0.06))
 
@@ -116,65 +120,72 @@ def sheep():
 
 
 def wolf():
-    # Built to read from the herding camera, i.e. from above: cool mid-grey with a charcoal back and
-    # ruff (darker than the cream sheep, lighter than the dusk bushes), a pale muzzle, chest and
-    # belly, big dark ears splayed
-    # outwards, legs set wide enough to show from above, and a thick brush of a tail held low.
-    # (Earlier versions read as a foal, then as a dark smudge, then as a pale tube head-on.)
-    grey = W.mat("wolf_grey", "#8e939c", 0.9)
-    light = W.mat("wolf_light", "#dcdad4", 0.9)
-    dark = W.mat("wolf_dark", "#3e4350", 0.85)
+    # Built to read from the herding camera, i.e. from above, at 40-60 px: a charcoal coat (darker
+    # than the rose and the violet ground alike) with a pale grey saddle, so the back shows a light
+    # patch in a dark body; a white muzzle and cheek mask that set the head apart; big upright
+    # ears; a thick brush of a tail in one colour; and legs splayed out from under a low, wide,
+    # skulking body, so four legs show from above.
+    # (Earlier versions read as a foal, a dark smudge, a pale tube head-on and a hooded figure.)
+    grey = W.mat("wolf_grey", "#3c414c", 0.9)
+    light = W.mat("wolf_light", "#e6e2da", 0.9)
+    dark = W.mat("wolf_dark", "#2c3039", 0.85)
+    saddle = W.mat("wolf_saddle", "#8f949d", 0.9)
     nose = W.mat("wolf_nose", "#111114", 0.5)
     glow = W.mat("wolf_eyes", "#ffc045", 0.4, emit="#ffb030", emit_strength=4.0)
 
     root = W.empty("wolf")
     b = W.Part("body")
-    v = b.sphere(grey, loc=(0, 0.08, 0.0), scale=(0.33, 0.72, 0.26), seg=10, rings=7)
+    v = b.sphere(grey, loc=(0, 0.08, 0.0), scale=(0.36, 0.72, 0.25), seg=10, rings=7)
     b.jitter(v, 0.02, seed=51)
-    v = b.ico(dark, loc=(0, -0.38, 0.1), radius=0.36, scale=(1.45, 0.95, 1.0), subdiv=1)  # broad shoulder ruff
+    v = b.ico(dark, loc=(0, -0.38, 0.1), radius=0.36, scale=(1.5, 0.95, 1.0), subdiv=1)  # broad shoulder ruff
     b.jitter(v, 0.045, seed=52, scale=4.0)
-    b.sphere(light, loc=(0, 0.02, -0.16), scale=(0.2, 0.54, 0.11), seg=8, rings=5)  # belly
-    v = b.ico(light, loc=(0, -0.58, -0.02), radius=0.2, scale=(1.1, 0.8, 1.1))  # chest
+    b.sphere(light, loc=(0, 0.02, -0.16), scale=(0.22, 0.54, 0.11), seg=8, rings=5)  # belly
+    v = b.ico(light, loc=(0, -0.6, -0.02), radius=0.2, scale=(1.1, 0.8, 1.1))  # chest
     b.jitter(v, 0.02, seed=53)
-    v = b.sphere(dark, loc=(0, 0.1, 0.17), scale=(0.15, 0.66, 0.13), seg=8, rings=5)  # narrow dark saddle
+    v = b.sphere(saddle, loc=(0, 0.14, 0.16), scale=(0.25, 0.52, 0.12), seg=8, rings=5)  # grizzled grey saddle
     b.jitter(v, 0.015, seed=55)
-    body = b.finish(parent=root, pivot=(0, 0, 0.64))
+    body = b.finish(parent=root, pivot=(0, 0, 0.56))
 
     h = W.Part("head")
-    v = h.sphere(grey, loc=(0, -0.08, 0.03), scale=(0.21, 0.24, 0.19), seg=8, rings=6)
+    v = h.sphere(grey, loc=(0, -0.08, 0.03), scale=(0.22, 0.25, 0.19), seg=8, rings=6)
     h.jitter(v, 0.012, seed=54)
-    h.limb(light, (0, -0.17, -0.02), (0, -0.63, -0.07), 0.125, 0.065, seg=7)  # long pale muzzle
-    h.ico(nose, loc=(0, -0.64, -0.06), radius=0.05)
-    h.ico(light, loc=(0, -0.22, -0.11), radius=0.09, scale=(1.2, 1.5, 0.7))  # jaw
-    v = h.ico(light, loc=(0, 0.02, -0.08), radius=0.17, scale=(1.35, 0.8, 1.0))  # cheek ruff
-    h.jitter(v, 0.02, seed=56)
-    head = h.finish(parent=body, pivot=(0, -0.76, 0.18))
+    h.limb(light, (0, -0.17, -0.02), (0, -0.6, -0.07), 0.13, 0.07, seg=7)  # white muzzle
+    h.ico(nose, loc=(0, -0.61, -0.05), radius=0.055)
+    h.ico(light, loc=(0, -0.22, -0.11), radius=0.1, scale=(1.2, 1.5, 0.7))  # jaw
+    for sx in (1, -1):
+        # White cheek mask: a pale patch each side of the face, readable from above.
+        v = h.ico(light, loc=(0.15 * sx, -0.12, -0.02), radius=0.1, scale=(0.9, 1.3, 0.8))
+        h.jitter(v, 0.01, seed=56 + (sx > 0))
+    head = h.finish(parent=body, pivot=(0, -0.78, 0.16))
 
     eyes = W.Part("eyes")
     for sx in (1, -1):
-        eyes.ico(glow, loc=(0.09 * sx, -0.22, 0.09), radius=0.036, scale=(1.2, 0.8, 0.8))
+        eyes.ico(glow, loc=(0.09 * sx, -0.22, 0.09), radius=0.038, scale=(1.2, 0.8, 0.8))
     eyes.finish(parent=head, pivot=(0, 0, 0))
 
-    # Big charcoal pointed ears splayed wide: two clear triangles from above and behind.
+    # Big upright pointed ears, a little apart: two clear triangles above the pale mask.
     for sx, name in ((1, "ear_l"), (-1, "ear_r")):
         e = W.Part(name)
-        e.cyl(dark, loc=(0, 0, 0.16), r1=0.15, r2=0.01, depth=0.38, seg=4, rot=(0, 0.55 * sx, 0))
-        e.finish(parent=head, pivot=(0.11 * sx, -0.01, 0.15))
+        e.cyl(dark, loc=(0, 0, 0.18), r1=0.16, r2=0.01, depth=0.4, seg=4, rot=(0, 0.3 * sx, 0))
+        e.finish(parent=head, pivot=(0.12 * sx, -0.01, 0.15))
 
-    # A thick brush of a tail held out behind rather than hanging down.
+    # A thick brush of a tail in one colour, hanging low like a skulking wolf's: from behind it
+    # drops out of sight instead of pointing at the camera like a column.
     t = W.Part("tail")
-    t.limb(dark, (0, 0, 0), (0, 0.42, -0.14), 0.12, 0.17, seg=8)
-    t.limb(grey, (0, 0.42, -0.14), (0, 0.76, -0.3), 0.17, 0.13, seg=8)
-    v = t.ico(dark, loc=(0, 0.83, -0.35), radius=0.15, scale=(1, 1.3, 1))  # dark brush tip
+    t.limb(grey, (0, 0, 0), (0, 0.3, -0.22), 0.14, 0.2, seg=8)
+    t.limb(grey, (0, 0.3, -0.22), (0, 0.46, -0.52), 0.2, 0.14, seg=8)
+    v = t.ico(grey, loc=(0, 0.48, -0.58), radius=0.14, scale=(1, 1.1, 1.3))
     t.jitter(v, 0.02, seed=57)
     t.finish(parent=body, pivot=(0, 0.74, 0.1))
 
+    # Legs splayed outwards from under a low body: the feet land clear of the body's outline, so
+    # four legs show from above. Pale lower legs catch the light.
     for sx, sy, name in ((1, -1, "leg_fl"), (-1, -1, "leg_fr"), (1, 1, "leg_bl"), (-1, 1, "leg_br")):
         L = W.Part(name)
-        L.limb(grey, (0, 0, 0.04), (0, 0, -0.28), 0.08, 0.057, seg=6)
-        L.limb(light, (0, 0, -0.28), (0, -0.02, -0.5), 0.057, 0.046, seg=6)
-        L.ico(dark, loc=(0, -0.04, -0.51), radius=0.06, scale=(1, 1.35, 0.55))
-        L.finish(parent=body, pivot=(0.19 * sx, 0.46 * sy if sy > 0 else -0.42, -0.1))
+        L.limb(grey, (0, 0, 0.04), (0.1 * sx, 0, -0.24), 0.085, 0.06, seg=6)
+        L.limb(light, (0.1 * sx, 0, -0.24), (0.16 * sx, -0.02, -0.44), 0.06, 0.048, seg=6)
+        L.ico(dark, loc=(0.17 * sx, -0.05, -0.45), radius=0.065, scale=(1, 1.35, 0.55))
+        L.finish(parent=body, pivot=(0.24 * sx, 0.46 * sy if sy > 0 else -0.42, -0.1))
     return root
 
 

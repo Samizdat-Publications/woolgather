@@ -11,7 +11,7 @@ import { clamp } from '../game/math';
 // way towards the phase's colour for its tone (shadows, midtones, highlights) along the colour
 // wheel, with the chroma eased towards the phase's own:
 //   gold      untouched grass, cool blue shadows, cream highlights
-//   sunset    lit grass coral-rose, shaded grass violet, other materials mostly their own
+//   sunset    green-olive grass under a rose-gold sun, magenta-violet shade, pink whites
 //   twilight  colour fading from the ground: mauve in the moonlight, indigo in the shade
 //   night     violet-indigo ground and shadows, silver moonlit tops, warm windows
 // Strongly saturated signal colours (the wolves' danger ring and outline, Pip's marker, lamp
@@ -42,6 +42,15 @@ interface GradeKey {
    */
   spare: number;
   /**
+   * How much of its own colour shade keeps before it takes the shadow hue: shade is lit by the
+   * sky, not the sun, so at sunset olive grass in shadow turns violet instead of passing through
+   * red and brown on the way.
+   */
+  shadeKeep: number;
+  /** How far near-grey things (stone, fleece, fences) are kept out of the zone colours: fully in
+   * daylight, hardly at all after dark, when every colour has faded. */
+  greyKeep: number;
+  /**
    * Once the sun is down, warm light can only be lamps and windows: warm-hued pixels keep their
    * colour by this much, so the lamp pools glow orange against the violet night.
    */
@@ -63,20 +72,19 @@ interface GradeKey {
 
 const KEYS: GradeKey[] = [
   // Golden hour: the lights carry it; the grade only cools the shadows and creams the whites.
-  { t: 0.0, sat: 0.8, zones: [0.34, 0.5, 0.7, 0.86], spare: 0.55, warm: 0, shadow: [255, 0.06, 0.3], mid: [100, 0.11, 0], high: [75, 0.05, 0.2], protect: 0.2, gain: 1.0, contrast: 1.38, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.24, vignette: 0.16 },
-  { t: 0.3, sat: 0.82, zones: [0.34, 0.5, 0.7, 0.86], spare: 0.55, warm: 0, shadow: [262, 0.06, 0.35], mid: [85, 0.11, 0.1], high: [65, 0.06, 0.25], protect: 0.2, gain: 1.02, contrast: 1.38, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.26, vignette: 0.18 },
-  // Sunset, as the wolves come out. The low light rakes across the hills: grass brighter than
-  // the valley's average (slopes facing the sun) turns coral-rose, grass darker than it (shade,
-  // slopes facing away) turns cool violet, the flats between read rose. Other materials (path,
-  // stone, water, trees) keep most of their own colour; the pink key light is on the whites.
-  { t: 0.45, sat: 0.95, zones: [0.4, 0.56, 0.72, 0.88], spare: 0.7, warm: 0, shadow: [290, 0.08, 0.68], mid: [18, 0.08, 0.62], high: [8, 0.05, 0.4], protect: 0.17, gain: 1.06, contrast: 1.34, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.2 },
-  { t: 0.6, sat: 0.95, zones: [0.38, 0.54, 0.7, 0.86], spare: 0.7, warm: 0, shadow: [292, 0.08, 0.7], mid: [8, 0.075, 0.66], high: [2, 0.05, 0.42], protect: 0.16, gain: 1.06, contrast: 1.34, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.24 },
+  { t: 0.0, sat: 0.8, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.8, spare: 0.55, warm: 0, shadow: [255, 0.06, 0.3], mid: [100, 0.11, 0], high: [75, 0.05, 0.2], protect: 0.2, gain: 1.0, contrast: 1.38, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.24, vignette: 0.16 },
+  { t: 0.3, sat: 0.82, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.75, spare: 0.55, warm: 0, shadow: [262, 0.06, 0.35], mid: [85, 0.11, 0.1], high: [65, 0.06, 0.25], protect: 0.2, gain: 1.02, contrast: 1.38, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.26, vignette: 0.18 },
+  // Sunset, as the wolves come out: light, not paint. The grass stays a warm green-olive under
+  // the rose-gold sun; the magenta-violet goes into the shade and the sky light; the pink is on
+  // the fleece, stone and path, the water mirrors the rose and lavender sky.
+  { t: 0.45, sat: 0.95, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.3, spare: 0.6, warm: 0, shadow: [312, 0.075, 0.6], mid: [98, 0.1, 0.16], high: [20, 0.05, 0.4], protect: 0.17, gain: 1.06, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.2 },
+  { t: 0.6, sat: 0.95, zones: [0.32, 0.48, 0.68, 0.84], greyKeep: 1, shadeKeep: 0.28, spare: 0.6, warm: 0, shadow: [316, 0.075, 0.62], mid: [92, 0.1, 0.18], high: [10, 0.05, 0.45], protect: 0.16, gain: 1.06, contrast: 1.3, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.24 },
   // Twilight under the rising moon, closing in: the ground's own colour fades (as it does to the
   // eye in low light), moonlit ground mauve, shade indigo, silver tops; the frame darkens.
-  { t: 0.74, sat: 0.45, zones: [0.3, 0.44, 0.62, 0.8], spare: 0.4, warm: 0.8, shadow: [308, 0.075, 0.75], mid: [324, 0.065, 0.72], high: [300, 0.035, 0.45], protect: 0.13, gain: 0.98, contrast: 1.36, pivot: 0.24, haze: '#b87ab0', hazeAmt: 0.26, vignette: 0.32 },
-  { t: 0.88, sat: 0.35, zones: [0.26, 0.4, 0.58, 0.78], spare: 0.25, warm: 1, shadow: [302, 0.075, 0.76], mid: [312, 0.062, 0.74], high: [292, 0.03, 0.45], protect: 0.12, gain: 0.9, contrast: 1.36, pivot: 0.2, haze: '#7a5aa4', hazeAmt: 0.22, vignette: 0.38 },
+  { t: 0.74, sat: 0.45, zones: [0.3, 0.44, 0.62, 0.8], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.4, warm: 0.8, shadow: [308, 0.11, 0.75], mid: [324, 0.09, 0.72], high: [300, 0.035, 0.45], protect: 0.13, gain: 0.98, contrast: 1.36, pivot: 0.24, haze: '#b87ab0', hazeAmt: 0.26, vignette: 0.32 },
+  { t: 0.88, sat: 0.35, zones: [0.26, 0.4, 0.58, 0.78], greyKeep: 0.2, shadeKeep: 0.3, spare: 0.25, warm: 1, shadow: [302, 0.11, 0.76], mid: [312, 0.085, 0.74], high: [292, 0.03, 0.45], protect: 0.12, gain: 0.9, contrast: 1.36, pivot: 0.2, haze: '#7a5aa4', hazeAmt: 0.22, vignette: 0.38 },
   // Night: violet-indigo ground, deeper indigo shade, silver moonlit tops, warm windows.
-  { t: 1.0, sat: 0.3, zones: [0.24, 0.38, 0.56, 0.76], spare: 0.15, warm: 1, shadow: [296, 0.07, 0.78], mid: [304, 0.06, 0.76], high: [285, 0.03, 0.45], protect: 0.11, gain: 0.84, contrast: 1.36, pivot: 0.18, haze: '#383c80', hazeAmt: 0.18, vignette: 0.44 },
+  { t: 1.0, sat: 0.3, zones: [0.24, 0.38, 0.56, 0.76], greyKeep: 0.2, shadeKeep: 0.3, spare: 0.15, warm: 1, shadow: [296, 0.1, 0.78], mid: [304, 0.08, 0.76], high: [285, 0.03, 0.45], protect: 0.11, gain: 0.84, contrast: 1.36, pivot: 0.18, haze: '#383c80', hazeAmt: 0.18, vignette: 0.44 },
 ];
 
 /** Display-space (sRGB) components of a hex colour. */
@@ -125,6 +133,8 @@ export class GradePass {
         uHighZ: { value: new THREE.Vector3() },
         uProtect: { value: 0.2 },
         uSpare: { value: 0.5 },
+        uShadeKeep: { value: 1 },
+        uGreyKeep: { value: 1 },
         uWarm: { value: 0 },
         uGain: { value: 1 },
         uContrast: { value: 1 },
@@ -145,7 +155,7 @@ export class GradePass {
         }`,
       fragmentShader: `
         uniform sampler2D tDiffuse;
-        uniform float uExposure, uEnabled, uSat, uProtect, uSpare, uWarm, uGain, uContrast, uPivot, uHazeAmt, uVignette, uAspect;
+        uniform float uExposure, uEnabled, uSat, uProtect, uSpare, uWarm, uShadeKeep, uGreyKeep, uGain, uContrast, uPivot, uHazeAmt, uVignette, uAspect;
         uniform vec3 uShadowZ, uMidZ, uHighZ, uHaze, uSunGlow;
         uniform vec4 uZones;
         uniform vec2 uSunDir2;
@@ -202,7 +212,7 @@ export class GradePass {
           dh = atan(sin(dh), cos(dh));
           float h2 = h + dh * mix(1.0, a, own);
           // Near-grey pixels (stone, fleece, fence) only take a little of the zone's colour.
-          float c2 = mix(c, z.y * clamp(l / 0.62, 0.35, 1.25), a * (0.35 + 0.65 * own));
+          float c2 = mix(c, z.y * clamp(l / 0.62, 0.35, 1.25), a * mix(1.0, 0.35 + 0.65 * own, uGreyKeep));
           return c2 * vec2(cos(h2), sin(h2));
         }
         void main() {
@@ -225,7 +235,7 @@ export class GradePass {
             // hues (the stream, stone) partly, so the valley keeps some of its own colours.
             float fromGrass = abs(atan(sin(hue - 1.99), cos(hue - 1.99)));
             float k = 1.0 - uSpare * smoothstep(1.0, 1.6, fromGrass) * smoothstep(0.012, 0.045, cs);
-            vec2 ab = wS * toward(hue, cs, lab.x, k, uShadowZ) + wM * toward(hue, cs, lab.x, k, uMidZ) + wH * toward(hue, cs, lab.x, k, uHighZ);
+            vec2 ab = wS * toward(hue, cs * uShadeKeep, lab.x, k, uShadowZ) + wM * toward(hue, cs, lab.x, k, uMidZ) + wH * toward(hue, cs, lab.x, k, uHighZ);
             // Signal colours keep their own; the animals keep most of theirs, so they stand out
             // from the ground by colour as well as by outline.
             // Lamp light after sunset: orange-yellow hues (OKLCH about 40-100 degrees) with some colour.
@@ -239,8 +249,9 @@ export class GradePass {
             // without crushing a dusk or night frame to black.
             c = (c - uPivot) * uContrast + uPivot;
             // Sky-coloured haze over the far third of the valley (peach, then rose, then violet): the
-            // sky the herding camera cannot show, as the air it lights.
-            c = mix(c, uHaze, uHazeAmt * smoothstep(0.6, 1.0, vUv.y));
+            // sky the herding camera cannot show, as the air it lights. Screened on (it adds light)
+            // rather than mixed: rose mixed into olive grass is brown, rose light over it is rose air.
+            c = 1.0 - (1.0 - c) * (1.0 - uHaze * uHazeAmt * smoothstep(0.55, 1.0, vUv.y));
             vec2 v = (vUv - 0.5) * vec2(uAspect, 1.0);
             // A soft glow on the side of the frame the sun (or moon) is on.
             float sunSide = smoothstep(-0.15, 0.95, dot(v, uSunDir2));
@@ -286,6 +297,8 @@ export class GradePass {
     mixZone(a.high, b.high, s, u.uHighZ.value);
     u.uProtect.value = m(a.protect, b.protect);
     u.uSpare.value = m(a.spare, b.spare);
+    u.uShadeKeep.value = m(a.shadeKeep, b.shadeKeep);
+    u.uGreyKeep.value = m(a.greyKeep, b.greyKeep);
     u.uWarm.value = m(a.warm, b.warm);
     u.uGain.value = m(a.gain, b.gain);
     u.uContrast.value = m(a.contrast, b.contrast);

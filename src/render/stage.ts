@@ -31,6 +31,8 @@ export class Stage {
   /** Title shot: a low camera across the valley towards the setting sun, instead of the herding view. */
   private titleShot = false;
   private titleAngle = 0;
+  /** Metres the herding camera stands further back than the one the fog was set for. */
+  private fogShift = 0;
 
   constructor(host: HTMLElement) {
     // The scene renders into the grade pass's multisampled target, so the canvas itself needs
@@ -46,7 +48,7 @@ export class Stage {
     this.renderer.domElement.id = 'game-canvas';
     host.appendChild(this.renderer.domElement);
 
-    this.camera = new THREE.PerspectiveCamera(CAMERA.fov, 1, 0.5, 600);
+    this.camera = new THREE.PerspectiveCamera(CAMERA.fov, 1, 1, 700);
     this.fog = new THREE.Fog(0xe8dcc0, 70, 230);
     this.scene.fog = this.fog;
 
@@ -93,9 +95,11 @@ export class Stage {
     this.hemi.groundColor.copy(m.hemiGround);
     this.hemi.intensity = m.hemiIntensity;
     this.fog.color.copy(m.fog);
-    // The title's long view across the valley needs thinner air than the herding view.
-    this.fog.near = m.fogNear * (this.titleShot ? 1.8 : 1);
-    this.fog.far = m.fogFar * (this.titleShot ? 1.5 : 1);
+    // The title's long view across the valley needs thinner air than the herding view. The fog
+    // distances were set for a camera 48 m from the ground it looks at; the herding camera now
+    // stands further back, so the fog starts that much further out.
+    this.fog.near = this.titleShot ? m.fogNear * 1.8 : m.fogNear + this.fogShift;
+    this.fog.far = this.titleShot ? m.fogFar * 1.5 : m.fogFar + this.fogShift;
     this.key.shadow.intensity = m.shadow;
     this.grade.hazeScale = this.titleShot ? 0 : 1;
     const sky = tmpC.copy(m.skyHorizon).convertLinearToSRGB();
@@ -107,7 +111,8 @@ export class Stage {
     const dir = moon ? m.keyDir : m.sunDir;
     tmpV.copy(this.camera.position).addScaledVector(dir, 800).project(this.camera);
     const behind = tmpV.z > 1;
-    const glow = moon ? MOON_GLOW : tmpC.copy(m.sunGlow).lerp(m.skyHorizon, 0.4);
+    // Gold while the sun is high, the rose of the horizon once it sets.
+    const glow = moon ? MOON_GLOW : tmpC.copy(m.sunGlow).lerp(m.skyHorizon, t < 0.3 ? 0.4 : 0.4 + Math.min(1, (t - 0.3) / 0.15) * 0.35);
     // Strongest through sunset and dusk, when the western sky is the brightest thing in the world.
     const amount = this.titleShot ? 0 : moon ? 0.07 : t < 0.3 ? 0.16 : t < 0.5 ? 0.16 + (t - 0.3) * 0.8 : Math.max(0.1, 0.32 - (t - 0.5) * 0.5);
     this.grade.setSun(behind ? -tmpV.x : tmpV.x, behind ? -tmpV.y : tmpV.y, glow, Math.max(0, amount));
@@ -142,6 +147,11 @@ export class Stage {
   updateCamera(dt: number) {
     const f = this.focus;
     const g = this.focusGoal;
+    const fov = this.titleShot ? CAMERA.titleFov : CAMERA.fov;
+    if (this.camera.fov !== fov) {
+      this.camera.fov = fov;
+      this.camera.updateProjectionMatrix();
+    }
     if (this.titleShot) {
       f.lerp(g, 1 - Math.exp(-2 * dt));
       // East of the focus, looking west with the low sun just left of centre, slowly swinging.
@@ -152,12 +162,16 @@ export class Stage {
       f.x = damp(f.x, g.x, CAMERA.followRate, dt);
       f.y = damp(f.y, g.y, CAMERA.followRate * 0.6, dt);
       f.z = damp(f.z, g.z, CAMERA.followRate, dt);
-      this.zoom = damp(this.zoom, this.zoomGoal, 1.6, dt);
+      // Pull back quickly (a threat coming into the frame must be seen at once), push in gently.
+      this.zoom = damp(this.zoom, this.zoomGoal, this.zoomGoal > this.zoom ? 3.2 : 1.2, dt);
       const o = CAMERA.offset;
       this.camera.position.set(f.x + o.x * this.zoom, f.y + o.y * this.zoom, f.z + o.z * this.zoom);
+      const dist = Math.hypot(o.x, o.y, o.z) * this.zoom;
+      this.fogShift = dist - 48.2;
       this.shakeT += dt;
       if (this.shake > 0.001) {
-        const s = this.shake * this.shake * 0.55;
+        // Scaled with the distance so a shake looks the same size whatever the lens.
+        const s = this.shake * this.shake * 0.55 * (dist / 48.2);
         this.camera.position.x += Math.sin(this.shakeT * 53.1) * s;
         this.camera.position.y += Math.sin(this.shakeT * 61.7 + 1.3) * s * 0.6;
         this.camera.position.z += Math.cos(this.shakeT * 47.3 + 0.4) * s;

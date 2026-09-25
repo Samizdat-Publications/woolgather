@@ -25,7 +25,7 @@ const GOLDEN_GROUND = groundLight(sampleMood(0, createMoodValues()));
 const GROUND_TINT = { value: new THREE.Color(1, 1, 1) };
 /** Direction the hill shading is lit from (the sun, then the moon), level with the horizon. */
 const HILL_DIR = { value: new THREE.Vector3(-1, 0, 0) };
-const PLUM = new THREE.Color('#5a3c5e');
+const LAVENDER = new THREE.Color('#c8b4e8');
 const INDIGO = new THREE.Color('#3a3c8a');
 
 interface Placement {
@@ -138,6 +138,7 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         uLight: { value: 1 },
         uTint: { value: new THREE.Color('#ffc88c') },
         uTintAmt: { value: 0.2 },
+        uReflect: { value: 0 },
         uFord: { value: new THREE.Vector3(ford.x, ford.z, ford.r) },
         uGlint: { value: 0.2 },
       },
@@ -156,7 +157,7 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
     fragmentShader: `
       uniform float uTime;
       uniform vec3 uDeep, uShallow, uSky, uFoam, uTint;
-      uniform float uLight, uTintAmt, uGlint;
+      uniform float uLight, uTintAmt, uGlint, uReflect;
       uniform vec3 uFord;
       varying vec2 vUv;
       varying vec2 vWorld;
@@ -182,6 +183,12 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         float ripple = smoothstep(0.6, 0.95, sin(vWorld.y * 2.6 + vWorld.x * 0.8 - uTime * 2.2) * 0.5 + 0.5);
         col = mix(col, bed + ripple * 0.12, shallow * 0.8);
         col = mix(col, uTint * (dot(col, LW) / max(dot(uTint, LW), 0.001)), uTintAmt);
+        // The evening sky mirrored on the surface, broken by the current: brightest in slow streaks
+        // near the banks, the deep middle keeping some of its own dark colour, so it still reads as
+        // water (a flat mirror read as a painted road).
+        float sheen = vnoise(vec2(vUv.x * 1.6 - uTime * 0.18, vUv.y * 4.0)) * 0.6 + vnoise(vec2(vUv.x * 4.5 - uTime * 0.3, vUv.y * 9.0) + 3.0) * 0.4;
+        float refl = uReflect * (0.35 + 0.65 * smoothstep(0.1, 0.85, across)) * (0.55 + 0.45 * smoothstep(0.3, 0.75, sheen));
+        col = mix(col, uTint * 0.95, refl);
         // Thin glints streaking downstream: noise stretched along the flow, fine across it.
         vec2 p = vec2(vUv.x * 3.0 - uTime * 0.55, vUv.y * 11.0);
         float n = vnoise(p) * 0.6 + vnoise(p * vec2(2.1, 1.7) + 7.0) * 0.4;
@@ -541,7 +548,9 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
     tmpP.set(p.x, y, p.z).project(camera);
     if (tmpP.z > 1 || Math.abs(tmpP.x) > 1.2 || Math.abs(tmpP.y) > 1.2) continue;
     const dist = camera.position.distanceTo(tmpS.set(p.x, y, p.z));
-    HOLES.value[n].set(((tmpP.x + 1) / 2) * bufW, ((tmpP.y + 1) / 2) * bufH, (bufH / 720) * 78 * (48 / Math.max(10, dist)));
+    // A window about 3.2 m across at the character, whatever the lens.
+    const fov = (camera as THREE.PerspectiveCamera).fov ?? 34;
+    HOLES.value[n].set(((tmpP.x + 1) / 2) * bufW, ((tmpP.y + 1) / 2) * bufH, (3.18 * bufH * 0.5) / (Math.tan(THREE.MathUtils.degToRad(fov / 2)) * Math.max(10, dist)));
     n++;
   }
   holeCountMain = n;
@@ -556,7 +565,8 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   wu.uGlint.value = 0.2 + 0.12 * mood.night;
   GROUND_TINT.value.copy(mood.ground);
   HILL_DIR.value.set(mood.keyDir.x, 0, mood.keyDir.z).normalize();
-  wu.uTint.value.copy(mood.skyHorizon).lerp(PLUM, 0.25).lerp(INDIGO, mood.night);
+  wu.uTint.value.copy(mood.skyHorizon).lerp(LAVENDER, 0.5).lerp(INDIGO, mood.night);
+  wu.uReflect.value = 0.7 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.6 * mood.night);
   // From sunset the stream mirrors the sky: rose, then lilac, then the moonlit indigo.
   wu.uTintAmt.value = 0.06 + 0.42 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
   const su = w.sky.material.uniforms;

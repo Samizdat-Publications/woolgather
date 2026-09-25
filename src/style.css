@@ -71,6 +71,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1622; col
 .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(20, 16, 26, 0.55); pointer-events: auto; }
 .screen .card { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 28px 40px 32px; border-radius: 16px; background: rgba(28, 21, 36, 0.96); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); max-width: min(720px, 92vw); }
 .end-screen, .pause-screen, .howto-screen { background: rgba(20, 16, 26, 0.3); }
+/* The results sit on the left, solid, so the fold and the flock inside it stay in view beside them. */
+.end-screen { align-items: flex-start; padding-left: max(24px, 5vw); background: linear-gradient(90deg, rgba(20, 16, 26, 0.45), rgba(20, 16, 26, 0) 60%); }
+.end-screen .card { background: rgb(28, 21, 36); max-width: min(560px, 90vw); }
 /* The title shot of the valley stays visible: only the middle, behind the words, is darkened. */
 .title-screen { background: radial-gradient(ellipse 60% 55% at 50% 48%, rgba(20, 16, 26, 0.5), rgba(20, 16, 26, 0.05) 100%); }
 .screen h1 { font-size: 72px; margin: 0; }

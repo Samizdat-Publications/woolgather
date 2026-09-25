@@ -9,7 +9,7 @@ import type { Terrain } from './terrain';
 // procedural animation can move them (milestone 3 adds the full motion).
 
 // Characters are drawn larger than life so they read from the herding camera's height.
-export const SCALE = { dog: 2.2, sheep: 1.42, wolf: 2.0 };
+export const SCALE = { dog: 2.5, sheep: 1.42, wolf: 2.0 };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
 
 /**
@@ -23,7 +23,8 @@ export function addOutline(root: THREE.Object3D, color: THREE.ColorRepresentatio
     shader.uniforms.uOutline = { value: width };
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float uOutline;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * uOutline;');
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * uOutline;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nmvPosition.z -= 0.45;\ngl_Position = projectionMatrix * mvPosition;');
     // Part of the animal for the colour grade (see actors' character shader): keeps its colour.
     shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.a = 0.0;');
   };
@@ -239,7 +240,7 @@ export class Actors {
     //   out, so they stay white and grey under the coral sunset and the moon.
     // - A rim light: silhouettes catch the sky, faintly by day and silver by moonlight, so the
     //   animals stand off the ground at dusk and at night.
-    const neutral = new Set(['wool', 'coat_white', 'coat_black', 'wolf_grey', 'wolf_light', 'wolf_dark']);
+    const neutral = new Set(['wool', 'coat_white', 'coat_black', 'wolf_grey', 'wolf_light', 'wolf_dark', 'wolf_saddle']);
     const noKeep = { value: 0 };
     for (const proto of [a.sheep, a.collie, a.wolf]) {
       proto.traverse((o) => {
@@ -321,7 +322,7 @@ export class Actors {
     // Always readable (the how-to points at it), stronger with sheep about or while creeping, and
     // at full strength for the first seconds of the day while its label explains it.
     const intro = sim.elapsed < 20 ? 1 : 0;
-    const want = Math.max(intro * 0.6, near ? (d.creeping ? 0.6 : 0.45) : 0.32);
+    const want = Math.max(intro * 0.5, near ? (d.creeping ? 0.5 : 0.38) : 0.22);
     this.zoneA += (want - this.zoneA) * (1 - Math.exp(-5 * dt));
     this.zone.mesh.material.opacity = this.zoneA;
     this.zoneUnder.mesh.material.opacity = this.zoneA * 0.4;

@@ -513,3 +513,25 @@ Newest at the bottom. Record every non-obvious choice.
   and charcoal ears splayed wide, so from above it shows a dark and a light side against any
   ground; the pines are lighter. The playtest bot now leaves a snatch the game calls too far to
   save, like a player reading the banner (it used to run 150 m after every one and lose the day).
+- 2026-09-25 (M2 critic r23, two majors: the wolves not reading as wolves from above, and the
+  rose phase a salmon wash over everything): the evening's colour is light, not paint. Under the
+  rose-gold sun the grass stays a warm green-olive; the magenta-violet is in the shade (shadows
+  take the sky's light and shed most of their own colour before the violet, so they never pass
+  through red or brown) and in the sky light; the fleece, stone and path catch the pink; the
+  stream mirrors the rose and lavender sky in slow streaks, lighter than its banks near the edges
+  and darker down its deep middle (a flat mirror read as a painted road); the far valley's haze
+  is screened on as light (rose mixed into olive is brown). The gold turns to rose over the
+  wolves' first minute (from 15 s before they come out to 45 s after) instead of in seconds.
+- 2026-09-25 (M2 critic r23): the herding camera uses a 20 degree lens from 1.8x further back:
+  the same ground in view, but the far edge of the screen is drawn at 0.73 of the near edge (0.57
+  before), so tall props no longer swell and lean at the edges and a wolf at the bottom is not
+  three times Pip's size at the top; the fog, shake and tree windows are scaled to match, and it
+  pulls back quickly (a new threat is seen at once) and pushes in gently. The wolf was rebuilt
+  for the view from above: charcoal coat, grizzled grey saddle, white muzzle and cheek mask, big
+  upright ears, a thick one-colour tail that hangs low, and legs splayed out from under a low
+  body. Pip is 2.5x with a broad white ruff, blaze and tail tip and tan brows; outlines are pushed
+  back from the camera so only the silhouette shows (the sky-blue one speckled his white patches).
+  The reach ring is thinner and lighter; the ring tip only mentions creeping (the ring's own label
+  says the rest); the gatepost label waits until the latch banner has shrunk to its chip; the
+  minimap fades over the farmhouse; the results card sits on the left, opaque, with the fold and
+  its flock framed beside it.

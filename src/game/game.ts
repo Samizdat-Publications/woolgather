@@ -210,9 +210,9 @@ export class Game {
       this.ui.update(sim, this.mode === 'paused' ? 0 : rawDt, this.clock);
       this.ui.minimap.setMood(mood.t);
       if (this.mode === 'ended' && sim.outcome?.kind === 'win') {
-        // Look at the fold while the gate closes.
+        // Look at the fold while the gate closes, with the fold to the right of the results card.
         const f = this.level.fold;
-        this.stage.setFocusGoal(f.minX + 1, this.terrain.ground(f.cx, f.cz), f.cz, 1.1);
+        this.stage.setFocusGoal(f.cx - 12, this.terrain.ground(f.cx, f.cz), f.cz + 2, 1.15);
       } else {
         this.frameCamera(sim);
       }
@@ -439,7 +439,7 @@ export class Game {
         for (const p of best ?? []) grow(p.x, p.z);
       }
       // Frame the whole working group (Pip, flock, landmark), not Pip with the rest at the edges.
-      // At zoom 1 the view spans about +-27 m across, 15 m towards the camera, 26 m away from it.
+      // At zoom 1 the view spans VIEW: about +-27 m across, 18 m towards the camera, 24 m away.
       // Margins keep everything framed clear of the timer and banners at the top (9 m: the far
       // side of the tilted view is squeezed) and of the meters, hints and edge markers at the
       // bottom (8 m). Capped so Pip, with his outline, stays a readable size.
@@ -448,9 +448,9 @@ export class Game {
         // The tilted view sees further away from the camera than towards it, so the centre that
         // needs the least zoom sits south of the box's middle: where both margins bind equally.
         const cx0 = fx + ((x0 + x1) / 2 - fx) * 0.85;
-        const cz0 = fz + ((26 * (z1 + 8) + 15 * (z0 - 9)) / 41 - fz) * 0.85;
+        const cz0 = fz + ((VIEW.north * (z1 + 8) + VIEW.south * (z0 - 9)) / (VIEW.north + VIEW.south) - fz) * 0.85;
         const halfW = Math.max(x1 - cx0, cx0 - x0) + 5;
-        return { x: cx0, z: cz0, zoom: Math.max(BASE_ZOOM, halfW / 27, (z1 - cz0 + 8) / 15, (cz0 - z0 + 9) / 26) };
+        return { x: cx0, z: cz0, zoom: Math.max(BASE_ZOOM, halfW / VIEW.half, (z1 - cz0 + 8) / VIEW.south, (cz0 - z0 + 9) / VIEW.north) };
       };
       let f = fit(minX, maxX, minZ, maxZ);
       // When everything will not fit, the hunt wins: the wolf, its prey and Pip stay in frame and
@@ -475,7 +475,7 @@ export class Game {
         x: this.gateGlow ? f.minX - 0.6 : f.minX + 2,
         y: h(f.minX, f.cz) + (this.gateGlow ? 3.4 : 3),
         z: this.gateGlow ? f.cz - (f.maxZ - f.minZ) * 0.5 : f.cz,
-        labelOnScreen: this.gateGlow ? 'Enter: latch the gate' : sim.elapsed < 45 ? 'Fold' : undefined,
+        labelOnScreen: this.gateGlow ? (this.ui.promptIsChip ? 'Enter: latch the gate' : undefined) : sim.elapsed < 45 ? 'Fold' : undefined,
       },
     ];
     // The wolf-cam inset stands in for the edge marker of the hunt it is showing.
@@ -576,7 +576,8 @@ export class Game {
       return px > r.left - 24 && px < r.right + 24 && py > r.top - 24 && py < r.bottom + 24;
     };
     const f = this.level.fold;
-    if (under(f.cx, f.cz) || under(f.minX, f.cz) || under(sim.dog.x, sim.dog.z)) return true;
+    const farm = this.level.farmhouse;
+    if (under(f.cx, f.cz) || under(f.minX, f.cz) || under(sim.dog.x, sim.dog.z) || (farm && under(farm.x, farm.z))) return true;
     return sim.sheep.some((s) => s.state !== 'lost' && under(s.x, s.z));
   }
 
@@ -699,7 +700,7 @@ export class Game {
       nearest = Math.min(nearest, Math.hypot(s.x - d.x, s.z - d.z));
     }
     if (!wolvesOut && nearest < 22) {
-      this.tip('ring', "The dashed ring is Pip's reach: sheep inside it run away. Hold C to creep and shrink it", 9, t);
+      if (t > 20 || this.runs > 1) this.tip('ring', 'Hold C to creep: the dashed ring shrinks and the sheep stay calmer', 9, t);
     }
     this.farT = nearest > 45 && nearest < Infinity ? this.farT + dt : 0;
     if (!wolvesOut && this.farT > 3 && this.tipsShown.has('ring')) {
@@ -742,4 +743,6 @@ const tmpV = new THREE.Vector3();
 /** The herding camera's usual distance (1 = the configured offset): far enough that Pip's reach
  * ring takes about half the screen's height. */
 const BASE_ZOOM = 1.2;
+/** Ground in view at zoom 1 around the focus (metres): across, towards the camera, away from it. */
+const VIEW = { half: 27.3, south: 17.8, north: 24.3 };
 const tmpV2 = new THREE.Vector2();

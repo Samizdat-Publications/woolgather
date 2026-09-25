@@ -289,3 +289,21 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Nightfall: dark indigo, the lantern's warm pool, white sheep and Pip's outline](m2-assets-r23-late-night.png)
 *Nightfall: dark indigo, the lantern's warm pool, white sheep and Pip's outline*
 
+
+## m2-assets-r24 (2026-09-25)
+
+![A hunt in one frame: Pip, the stalking wolf, the dashed line to its prey; golden-olive light, violet shade](m2-assets-r24-wolf.png)
+*A hunt in one frame: Pip, the stalking wolf, the dashed line to its prey; golden-olive light, violet shade*
+
+![Sunset at the bridge: the stream mirrors the rose sky](m2-assets-r24-bridge.png)
+*Sunset at the bridge: the stream mirrors the rose sky*
+
+![The results card beside the full fold](m2-assets-r24-win-end.png)
+*The results card beside the full fold*
+
+![Twilight in violet, closing in](m2-assets-r24-late-dusk.png)
+*Twilight in violet, closing in*
+
+![Nightfall: the lantern and the farmhouse windows](m2-assets-r24-late-night.png)
+*Nightfall: the lantern and the farmhouse windows*
+

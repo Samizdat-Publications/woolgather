@@ -239,6 +239,10 @@ export class Ui {
     if (want && el.innerHTML !== want) el.innerHTML = want;
   }
   private promptSince = -1;
+  /** The latch prompt has shrunk to its chip. */
+  get promptIsChip() {
+    return $('.hud-prompt', this.root).classList.contains('chip');
+  }
 
   /** HUD panels go see-through while Pip, a sheep or a wolf is behind them (screen points). */
   fadePanels(points: { x: number; y: number }[]) {
