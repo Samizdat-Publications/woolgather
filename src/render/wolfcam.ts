@@ -57,7 +57,8 @@ export class WolfCam {
 
   /** Keep the camera on a wolf while the inset lingers after the hunt stops mattering. */
   follow(x: number, y: number, z: number, dt: number) {
-    const goalPos = new THREE.Vector3(x, y + 9, z + 7.5);
+    // Close and a little low, so the wolf fills the frame.
+    const goalPos = new THREE.Vector3(x, y + 6.5, z + 6);
     const goalLook = new THREE.Vector3(x, y + 0.8, z);
     if (!this.hasPose) {
       this.pos.copy(goalPos);

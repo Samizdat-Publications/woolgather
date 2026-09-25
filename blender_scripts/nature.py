@@ -1,4 +1,4 @@
-"""Nature props: trees, bushes, rocks, grass, flowers, reeds, logs.
+"""Nature props: trees, bushes, rocks, grass, flowers, heather, bracken, gorse, reeds, logs.
 
 Outputs public/assets/nature.glb with one top-level object per prop, named as the game looks
 them up. Origins sit at ground contact. Trees are kept moderate in height so they frame the
@@ -130,16 +130,61 @@ def flower(name, petal_hex, seed):
 
 
 def heather(name, seed):
-    # Muted, low clumps: heather should tint the hillside, not dot it with purple berries.
-    purple = W.mat("heather", "#94708f", 0.95)
+    # Low purple cushions in patches: heather is what makes the hillside read as highland.
+    purple = W.mat("heather", "#a0689e", 0.95)
+    purple2 = W.mat("heather_b", "#8a5a8e", 0.95)
     stem = W.mat("heather_green", "#5f6d42")
     p = W.Part(name)
-    for i in range(3):
-        a = i * 2.1
-        v = p.ico(stem, loc=(math.cos(a) * 0.2, math.sin(a) * 0.2, 0.08), radius=0.22, scale=(1, 1, 0.45), subdiv=1)
+    for i in range(4):
+        a = i * 1.6
+        d = 0.28 if i else 0.0
+        v = p.ico(stem, loc=(math.cos(a) * d, math.sin(a) * d, 0.08), radius=0.26, scale=(1, 1, 0.45), subdiv=1)
         p.jitter(v, 0.03, seed=seed + i)
-        v = p.ico(purple, loc=(math.cos(a) * 0.2, math.sin(a) * 0.2, 0.16), radius=0.17, scale=(1.1, 1.1, 0.45), subdiv=1)
-        p.jitter(v, 0.035, seed=seed + 10 + i, scale=3.0)
+        v = p.ico(purple if i % 2 == 0 else purple2, loc=(math.cos(a) * d, math.sin(a) * d, 0.18), radius=0.22, scale=(1.1, 1.1, 0.5), subdiv=1)
+        p.jitter(v, 0.04, seed=seed + 10 + i, scale=3.0)
+    return p.finish()
+
+
+def bracken(name, seed, frond="#7f8a3c", tip="#a4783c"):
+    """Bracken: a clump of arching fern fronds, green going bronze at the tips."""
+    m1 = W.mat(f"bracken_{frond}", frond, 0.9)
+    m2 = W.mat(f"bracken_tip_{tip}", tip, 0.9)
+    r = W.rng(seed)
+    p = W.Part(name)
+    for i in range(7):
+        a = i * (math.tau / 7) + r.uniform(-0.2, 0.2)
+        h = r.uniform(0.45, 0.7)
+        reach = r.uniform(0.45, 0.7)
+        mid = (math.cos(a) * reach * 0.45, math.sin(a) * reach * 0.45, h)
+        end = (math.cos(a) * reach, math.sin(a) * reach, h * 0.55)
+        p.limb(m1, (0, 0, 0), mid, 0.03, 0.02, seg=3)
+        p.limb(m2 if i % 2 else m1, mid, end, 0.02, 0.006, seg=3)
+        # Leaflets along the frond: flattened, so the clump reads as feathery from above.
+        for k in range(3):
+            t = 0.35 + k * 0.25
+            x = mid[0] + (end[0] - mid[0]) * (t - 0.35) / 0.65
+            y = mid[1] + (end[1] - mid[1]) * (t - 0.35) / 0.65
+            z = mid[2] + (end[2] - mid[2]) * (t - 0.35) / 0.65
+            p.ico(m1 if k < 2 else m2, loc=(x, y, z), radius=0.11 - k * 0.02, scale=(1.4, 0.7, 0.25), rot=(0, 0, a), subdiv=0)
+    return p.finish()
+
+
+def gorse(name, seed):
+    """Gorse: a spiky dark mound starred with yellow flowers."""
+    spine = W.mat("gorse", "#3f5a2c", 0.9)
+    spine2 = W.mat("gorse_b", "#4c6832", 0.9)
+    bloom = W.mat("gorse_bloom", "#f2c43a", 0.6)
+    r = W.rng(seed)
+    p = W.Part(name)
+    for i in range(3):
+        a = i * 2.2
+        v = p.ico(spine if i % 2 == 0 else spine2, loc=(math.cos(a) * 0.3, math.sin(a) * 0.28, 0.4), radius=r.uniform(0.42, 0.55), scale=(1, 1, 0.85), subdiv=1)
+        p.jitter(v, 0.12, seed=seed * 10 + i, scale=2.5)
+    for i in range(16):
+        a = r.uniform(0, math.tau)
+        el = r.uniform(0.15, 1.2)
+        rad = 0.62
+        p.ico(bloom, loc=(math.cos(a) * rad * math.cos(el * 0.6), math.sin(a) * rad * math.cos(el * 0.6), 0.35 + math.sin(el) * 0.42), radius=0.07, subdiv=0)
     return p.finish()
 
 
@@ -195,6 +240,9 @@ def main():
         rock("rock_a", 7, "#958d7a", (1.0, 0.85, 0.62)),
         rock("rock_b", 8, "#827a69", (1.0, 0.7, 0.5), moss=False),
         rock("rock_c", 9, "#a09682", (0.8, 0.9, 0.75)),
+        bracken("bracken_a", 21),
+        bracken("bracken_b", 22, frond="#8a7a3a", tip="#b0683a"),
+        gorse("gorse", 23),
         grass("grass_a", 10),
         grass("grass_b", 11),
         flower("flower_white", "#f5f2e8", 12),

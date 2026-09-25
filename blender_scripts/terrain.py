@@ -179,6 +179,8 @@ GRASS_B = "#8fab5d"
 GRASS_DRY = "#b0aa68"
 GRASS_LUSH = "#5a8a4a"
 WORN = "#9c9a6a"
+MUD = "#7a6440"
+STRAW = "#c8b068"
 HEATHER = "#86697f"
 BED_C = "#7b7560"
 DIRT = "#b39463"
@@ -202,10 +204,21 @@ def color(x, z, h):
     n = fbm(x / 22.0, z / 22.0, 2, 3.3)
     c = mix(lin(GRASS_A), lin(GRASS_B), 0.5 + n * 0.8)
     c = mix(c, lin(GRASS_DRY), smoothstep(0.25, 0.7, fbm(x / 45.0, z / 45.0, 2, 8.8)))
-    # Highland heather on the western hillside.
+    # Highland heather: the western hillside, and in patches along every slope near the rim.
+    heat = 0.0
     if x < -48:
-        heat = smoothstep(-48, -70, x) * smoothstep(-0.05, 0.5, fbm(x / 21.0, z / 21.0, 2, 4.4))
-        c = mix(c, lin(HEATHER), heat * 0.7)
+        heat = smoothstep(-48, -70, x)
+    if inside(x, z, BOUND):
+        heat = max(heat, 1 - smoothstep(6, 18, poly_dist(x, z, BOUND, True)))
+    heat *= smoothstep(-0.05, 0.5, fbm(x / 21.0, z / 21.0, 2, 4.4))
+    c = mix(c, lin(HEATHER), heat * 0.7)
+    # Relief shading, so the knolls and slopes read from above: crests drier and lighter, hollows
+    # darker and lusher, and the valley floor a touch darker than the hills around it.
+    curv = h - (height(x + 3, z) + height(x - 3, z) + height(x, z + 3) + height(x, z - 3)) / 4
+    c = mix(c, lin(GRASS_DRY), smoothstep(0.04, 0.35, curv) * 0.4)
+    c = mix(c, lin(GRASS_LUSH), smoothstep(0.04, 0.35, -curv) * 0.3)
+    shade = 0.88 + 0.22 * smoothstep(-1.0, 7.0, h) - 0.12 * smoothstep(0.05, 0.5, -curv)
+    c = (c[0] * shade, c[1] * shade, c[2] * shade, c[3])
     # Around rocks: bare, stony ground.
     for rx, rz, rr in LEVEL["rocks"]:
         dr = math.hypot(x - rx, z - rz)
@@ -220,7 +233,13 @@ def color(x, z, h):
     pd = poly_dist(x, z, PATH, False)
     c = mix(c, lin(WORN), (1 - smoothstep(1.0, 2.6, pd)) * 0.6)
     if rect_falloff(x, z, fcx - FOLD["halfW"], fcx + FOLD["halfW"], fcz - FOLD["halfD"], fcz + FOLD["halfD"], 1.5) > 0.5:
+        # Trampled fold floor: earth with muddy patches and scattered straw, and a worn track
+        # from the gate into the pen.
         c = mix(c, lin(FOLD_FLOOR), 0.8 + fbm(x / 3.0, z / 3.0, 1, 2.0) * 0.2)
+        c = mix(c, lin(MUD), smoothstep(0.1, 0.45, fbm(x / 2.2, z / 2.2, 2, 12.1)) * 0.7)
+        c = mix(c, lin(STRAW), smoothstep(0.2, 0.55, fbm(x / 1.3, z / 1.3, 2, 31.7)) * 0.65)
+        track = (1 - smoothstep(1.2, 2.6, abs(z - fcz))) * (1 - smoothstep(6.0, 10.0, x - (fcx - FOLD["halfW"])))
+        c = mix(c, lin(MUD), track * 0.55)
     c = mix(c, lin(YARD), rect_falloff(x, z, hx - FARM["halfW"] - 1.5, hx + FARM["halfW"] + 1.5, hz - FARM["halfD"] - 1.5, hz + FARM["halfD"] + 3.5, 2.5) * 0.85)
     if not inside(x, z, BOUND):
         db = poly_dist(x, z, BOUND, True)

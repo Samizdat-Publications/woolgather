@@ -288,10 +288,42 @@ def signpost():
     return p.finish()
 
 
+def field_wall(rng, name, broken=False):
+    """A 4 m section of old dry-stone field wall, centred on its origin along X. The game lays
+    sections end to end across the hillsides; the broken variant is half fallen, with stones
+    tumbled into the grass beside it."""
+    p = W.Part(name)
+    if broken:
+        stone_wall(p, (-2.0, 0), (2.0, 0), rng, height=0.62, thick=0.78)
+        mats = [W.mat(f"drystone_{c}", c, 0.95) for c in STONES]
+        for i in range(6):
+            side = 1 if i % 2 else -1
+            v = p.box(
+                rng.choice(mats),
+                loc=(rng.uniform(-1.8, 1.8), side * rng.uniform(0.6, 1.3), 0.14),
+                size=(rng.uniform(0.35, 0.6), rng.uniform(0.3, 0.45), rng.uniform(0.22, 0.3)),
+                rot=(rng.uniform(-0.3, 0.3), rng.uniform(-0.3, 0.3), rng.uniform(0, math.tau)),
+            )
+            p.jitter(v, 0.03, seed=rng.randint(0, 9999), scale=3.0)
+    else:
+        stone_wall(p, (-2.0, 0), (2.0, 0), rng, height=1.0, thick=0.75)
+    return p.finish()
+
+
 def main():
     W.reset()
     rng = W.rng(2024)
-    objs = [fold(rng), farmhouse(rng), bridge(rng), lantern(), hay_bale(), stepping_stones(rng), signpost()]
+    objs = [
+        fold(rng),
+        farmhouse(rng),
+        bridge(rng),
+        lantern(),
+        hay_bale(),
+        stepping_stones(rng),
+        signpost(),
+        field_wall(rng, "field_wall"),
+        field_wall(rng, "field_wall_broken", broken=True),
+    ]
     W.export_glb("structures.glb", objs)
     if "--preview" in W.args():
         layout = [(0, 0), (24, 2), (0, -24), (16, -18), (22, -18), (28, -24), (34, -18)]

@@ -388,3 +388,26 @@ Newest at the bottom. Record every non-obvious choice.
   as pale turquoise shallows over gravel with ripples running across, and the minimap labels
   FORD and BRIDGE. The sun bar carries a sun (then a moon) at the end of the fill: the sky the
   herding camera cannot show.
+- 2026-09-25 (M2 critic r15): dusk had near-black tree-shadow stripes across the whole valley
+  and ended darker than the night. The key light's angle is now clamped to at least 26 degrees
+  (the sky still shows the true low sun), shadows have a per-phase strength
+  (`light.shadow.intensity`, 0.4-0.6, never black), the terrain is smooth-shaded (flat facets made a
+  checkerboard under a low sun), and brightness falls steadily: grass luma about 0.36, 0.35,
+  0.34, 0.31 through the evening and about 0.16 at night. The terrain gets a tint from the mood
+  (kept to a whisper: a strong warm tint turned the sunset grass orange) and relief shading in
+  the Blender script (crests drier and lighter, hollows lusher and darker, the floor a touch darker
+  than the hills). A soft glow on the side of the frame the sun or moon lies on stands in for the
+  sky. The stream keeps its glints in every light.
+- 2026-09-25 (M2 critic r15): highland dressing: denser, brighter heather in patches along every
+  slope near the rim, bracken (two tints) and gorse with yellow flowers (new `nature.py` props),
+  and old dry-stone field walls laid along the rim from 4 m `field_wall` / `field_wall_broken`
+  sections (they collide and show on the minimap); the fold floor has mud, straw and a worn track
+  from the gate. The minimap moved to the bottom right so the farmhouse and gate stay in view.
+- 2026-09-25 (M2 critic r15): the wolf was rebuilt for a top-down read (light buff-grey, dark
+  saddle stripe, pale muzzle and chest, big dark ears splayed outwards, a bushy tail held out
+  straight) and drawn at 1.7x; its danger ring is slim and wide (frames it instead of covering it)
+  and stays a plain saturated red, which the grade leaves alone (an above-white HDR red was
+  tone-mapped to salmon). The dragged sheep hangs crosswise further out from the jaws; the inset
+  camera is closer. A reachable snatch shows the countdown in the banner and a picture labelled
+  "Snatch!" in the inset; an unreachable one gets one calm line ("too far to save it") and no
+  countdown or inset.

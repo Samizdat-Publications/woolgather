@@ -1,10 +1,14 @@
 import * as THREE from 'three';
 import { CAMERA } from '../game/config';
 import { damp } from '../game/math';
-import { createMoodValues, sampleMood, type MoodValues } from './daycycle';
+import { createMoodValues, sampleMood, SUN_MOON_SWAP, type MoodValues } from './daycycle';
 import { GradePass } from './grade';
 
 // Renderer, camera, key/fill lights, fog and the colour grade. Owns nothing gameplay related.
+
+const tmpV = new THREE.Vector3();
+const tmpC = new THREE.Color();
+const MOON_GLOW = new THREE.Color(0.62, 0.68, 0.95);
 
 export class Stage {
   readonly renderer: THREE.WebGLRenderer;
@@ -90,8 +94,17 @@ export class Stage {
     this.fog.color.copy(m.fog);
     this.fog.near = m.fogNear;
     this.fog.far = m.fogFar;
+    this.key.shadow.intensity = m.shadow;
     this.grade.hazeScale = this.titleShot ? 0 : 1;
     this.grade.apply(t, m.exposure);
+    // Sun-side glow: warm while the sun is up, faint silver from the moon later on.
+    const moon = t >= SUN_MOON_SWAP;
+    const dir = moon ? m.keyDir : m.sunDir;
+    tmpV.copy(this.camera.position).addScaledVector(dir, 800).project(this.camera);
+    const behind = tmpV.z > 1;
+    const glow = moon ? MOON_GLOW : tmpC.copy(m.sunGlow).lerp(m.skyHorizon, 0.4);
+    const amount = this.titleShot ? 0 : moon ? 0.07 : t < 0.3 ? 0.16 : t < 0.5 ? 0.16 + (t - 0.3) * 0.6 : 0.28 - (t - 0.5) * 1.2;
+    this.grade.setSun(behind ? -tmpV.x : tmpV.x, behind ? -tmpV.y : tmpV.y, glow, Math.max(0, amount));
     return m;
   }
 
@@ -146,10 +159,11 @@ export class Stage {
       this.camera.lookAt(f.x, f.y, f.z);
     }
 
-    // Shadow frustum rides along with the focus point. Low suns are clamped to 10 degrees so the
-    // shadow map never stretches across the whole valley.
+    // The key light rides along with the focus point. Its angle never drops below 26 degrees:
+    // a real low sun laid tree shadows across the whole valley in near-black stripes and barely
+    // lit flat ground. The sky still shows the true low sun; the light just stays playable.
     const kd = this.mood.keyDir;
-    const elev = Math.max(Math.asin(Math.min(1, Math.max(-1, kd.y))), THREE.MathUtils.degToRad(10));
+    const elev = Math.max(Math.asin(Math.min(1, Math.max(-1, kd.y))), THREE.MathUtils.degToRad(26));
     const horiz = Math.hypot(kd.x, kd.z) || 1;
     const dx = (kd.x / horiz) * Math.cos(elev);
     const dz = (kd.z / horiz) * Math.cos(elev);

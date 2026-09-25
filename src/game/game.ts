@@ -259,9 +259,11 @@ export class Game {
       let rank = 0;
       let text = '';
       if (w.state === 'drag') {
-        // The same countdown as the top banner: seconds until the sheep is lost in the trees.
+        // The banner carries the countdown; the inset is the picture. Nothing to show if Pip
+        // cannot get there in time.
+        if (this.dragFeasible === false) continue;
         rank = 3;
-        text = `Snatch! ${Math.max(1, Math.ceil(sim.dragEta(w)))} s to the trees`;
+        text = 'Snatch!';
       } else if (w.state === 'charge') {
         rank = 2;
         text = 'Wolf charging a straggler!';
@@ -450,6 +452,8 @@ export class Game {
   private dragHint = false;
   /** Whether Pip can reach the current snatch in time (null when there is none). */
   private dragFeasible: boolean | null = null;
+  /** An out-of-reach snatch has been announced. */
+  private lossNoted = false;
   /** Wolves already announced as stalking. */
   private stalkWarned = new Set<number>();
 
@@ -503,15 +507,21 @@ export class Game {
         this.ui.hint(inRange ? 'Bark (Space) now to make it let go!' : 'Bark (Space) or run into the wolf to make it let go');
       } else if (this.dragFeasible) {
         this.ui.alert(`A wolf has a sheep ${place}! ${secs} s to save it`);
-        this.ui.hint('Sprint (Shift) towards it, then bark (Space) to make it let go');
+        this.ui.hint('Run at it (Shift to sprint), then bark (Space)!');
       } else {
-        this.ui.alert(`A wolf is taking a sheep ${place}`);
-        this.ui.hint('Too far to save it in time: keep the rest of the flock together');
+        // Out of reach: one calm line, no countdown and no inset (see trackSnatch).
+        this.ui.alert(null);
+        if (!this.lossNoted) {
+          this.lossNoted = true;
+          this.ui.toast(`A wolf is taking a sheep ${place}: too far to save it`, 'warn');
+        }
+        this.ui.hint('Keep the rest of the flock together');
       }
       this.dragHint = true;
       this.tipUntil = 0;
     } else {
       this.dragFeasible = null;
+      this.lossNoted = false;
       this.ui.alert(null);
       if (this.dragHint) {
         this.dragHint = false;

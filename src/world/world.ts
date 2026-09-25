@@ -17,9 +17,12 @@ const WHITE = new THREE.Color(1, 1, 1);
 /** How much light falls on flat ground: sky fill plus the key light at its elevation. */
 function groundLight(m: MoodValues) {
   const lum = (c: THREE.Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
-  return lum(m.hemiSky) * m.hemiIntensity + lum(m.keyColor) * m.keyIntensity * Math.max(0.05, m.keyDir.y);
+  // The key light never drops below 26 degrees (see Stage.updateCamera).
+  return lum(m.hemiSky) * m.hemiIntensity + lum(m.keyColor) * m.keyIntensity * Math.max(0.44, m.keyDir.y);
 }
 const GOLDEN_GROUND = groundLight(sampleMood(0, createMoodValues()));
+/** Terrain colour tint, shared by the ground and path shaders (set from the mood each frame). */
+const GROUND_TINT = { value: new THREE.Color(1, 1, 1) };
 
 interface Placement {
   x: number;
@@ -107,6 +110,7 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         uTint: { value: new THREE.Color('#ffc88c') },
         uTintAmt: { value: 0.2 },
         uFord: { value: new THREE.Vector3(ford.x, ford.z, ford.r) },
+        uGlint: { value: 0.2 },
       },
     ]),
     vertexShader: `
@@ -123,7 +127,7 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
     fragmentShader: `
       uniform float uTime;
       uniform vec3 uDeep, uShallow, uSky, uFoam, uTint;
-      uniform float uLight, uTintAmt;
+      uniform float uLight, uTintAmt, uGlint;
       uniform vec3 uFord;
       varying vec2 vUv;
       varying vec2 vWorld;
@@ -153,10 +157,11 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         vec2 p = vec2(vUv.x * 7.0 - uTime * 0.55, vUv.y * 3.0);
         float n = vnoise(p * vec2(1.0, 2.2)) * 0.6 + vnoise(p * vec2(2.3, 4.1) + 7.0) * 0.4;
         float glint = smoothstep(0.66, 0.8, n) * (1.0 - smoothstep(0.75, 1.0, across));
-        col += uSky * glint * 0.2;
         col = mix(col, uFoam, smoothstep(0.84, 0.98, across) * 0.35);
-        // Unlit water has to follow the light on the valley floor or it glows at dusk.
+        // Unlit water has to follow the light on the valley floor or it glows at dusk; the sky's
+        // sparkle on the ripples stays bright in every light (moonlit glints at night).
         col *= uLight;
+        col += uSky * glint * uGlint;
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -228,13 +233,31 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   const rng = new Rng(9001);
   const g = (x: number, z: number) => terrain.ground(x, z);
 
-  // Ground.
+  // Ground. Smooth shading (flat facets turned into a checkerboard under a low sun), and a tint
+  // multiplied into its colours that warms the grass at sunset and cools it at night.
   const ground = a.terrain;
   ground.receiveShadow = true;
+  const tinted: THREE.MeshLambertMaterial[] = [];
+  const tint = (o: THREE.Object3D, smooth: boolean) => {
+    const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | undefined;
+    if (!m || !m.isMeshLambertMaterial || tinted.includes(m)) return;
+    tinted.push(m);
+    if (smooth) m.flatShading = false;
+    m.onBeforeCompile = (shader) => {
+      shader.uniforms.uGround = GROUND_TINT;
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform vec3 uGround;')
+        .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= uGround;');
+    };
+    m.customProgramCacheKey = () => (smooth ? 'wg-ground-smooth' : 'wg-ground');
+    m.needsUpdate = true;
+  };
+  ground.traverse((o) => tint(o, true));
   root.add(ground);
   a.path.traverse((o) => {
     o.castShadow = false;
     o.receiveShadow = true;
+    tint(o, false);
   });
   root.add(a.path);
 
@@ -351,13 +374,44 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   const meadow = (x: number, z: number) => x > -40 && grassTest(x, z) && Math.sin(x * 0.11) * Math.cos(z * 0.13) > 0.1;
   root.add(instance(a.nature.get('flower_white')!, scatter(260, meadow, [0.9, 1.3]), { shadow: false }).group);
   root.add(instance(a.nature.get('flower_yellow')!, scatter(260, meadow, [0.9, 1.3]), { shadow: false }).group);
-  const hill = (x: number, z: number) => x < -48 && grassTest(x, z);
-  root.add(instance(a.nature.get('heather')!, scatter(170, hill, [0.9, 1.5]), { shadow: false }).group);
+  // Highland ground cover: heather, bracken and gorse in patches on the far bank and along every
+  // slope near the rim, where the grass gives way to the hill.
+  const patch = (x: number, z: number, k: number) => Math.sin(x * 0.083 + k) * Math.cos(z * 0.097 - k * 0.7) + Math.sin((x + z) * 0.041 + k * 2.1) * 0.5;
+  const upland = (x: number, z: number) => x < -48 || level.boundaryDistance(x, z) < 18;
+  const hill = (x: number, z: number) => upland(x, z) && grassTest(x, z) && patch(x, z, 0.3) > 0.1;
+  root.add(instance(a.nature.get('heather')!, scatter(460, hill, [0.9, 1.6]), { shadow: false }).group);
+  const fern = (x: number, z: number) => upland(x, z) && grassTest(x, z) && patch(x, z, 2.2) > 0.35;
+  root.add(instance(a.nature.get('bracken_a')!, scatter(170, fern, [0.9, 1.4]), { shadow: false }).group);
+  root.add(instance(a.nature.get('bracken_b')!, scatter(150, fern, [0.9, 1.4]), { shadow: false }).group);
+  const gorseSpot = (x: number, z: number) => level.boundaryDistance(x, z) < 14 && grassTest(x, z) && patch(x, z, 4.1) > 0.45;
+  root.add(instance(a.nature.get('gorse')!, scatter(70, gorseSpot, [0.8, 1.3])).group);
   const bank = (x: number, z: number) => {
     const d = level.streamQuery(x, z).d;
     return d > level.streamHalf - 0.2 && d < level.streamHalf + 1.6 && pointInPolygon(x, z, level.boundary) && !level.crossingAt(x, z) && level.streamQuery(x, z).d > 0;
   };
   root.add(instance(a.nature.get('reeds')!, scatter(170, bank, [0.8, 1.3]), { shadow: false }).group);
+
+  // Old field walls: 4 m sections laid end to end along each line, some half fallen.
+  const wallSpots: Placement[] = [];
+  const brokenSpots: Placement[] = [];
+  for (const line of L.fieldWalls) {
+    for (let i = 0; i < line.length - 1; i++) {
+      const [ax, az] = line[i];
+      const [bx, bz] = line[i + 1];
+      const len = Math.hypot(bx - ax, bz - az);
+      const n = Math.max(1, Math.round(len / 4));
+      const rot = -Math.atan2(bz - az, bx - ax);
+      for (let k = 0; k < n; k++) {
+        const t = (k + 0.5) / n;
+        const x = ax + (bx - ax) * t;
+        const z = az + (bz - az) * t;
+        const spot = { x, y: g(x, z) - 0.06, z, rot: rot + rng.range(-0.03, 0.03), scale: 1 };
+        (rng.next() < 0.3 ? brokenSpots : wallSpots).push(spot);
+      }
+    }
+  }
+  if (wallSpots.length) root.add(instance(a.structures.get('field_wall')!, wallSpots).group);
+  if (brokenSpots.length) root.add(instance(a.structures.get('field_wall_broken')!, brokenSpots).group);
 
   // Logs and stumps on the forest floor just outside the valley.
   const floorSpots = (n: number) => scatter(n, (x, z) => !pointInPolygon(x, z, level.boundary) && level.boundaryDistance(x, z) > 2 && level.boundaryDistance(x, z) < 8, [0.9, 1.2]);
@@ -426,6 +480,8 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   // Water brightness follows the light falling on flat ground, relative to golden hour; its tint
   // is the sky it reflects: the horizon's gold and rose, then the moonlit sky.
   wu.uLight.value = Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
+  wu.uGlint.value = 0.2 + 0.12 * mood.night;
+  GROUND_TINT.value.copy(mood.ground);
   wu.uTint.value.copy(mood.skyHorizon).lerp(mood.hemiSky, mood.night);
   // Blue by day; the sky's colour takes over from the sunset on.
   wu.uTintAmt.value = 0.1 + 0.45 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;

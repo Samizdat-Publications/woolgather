@@ -9,7 +9,7 @@ import type { Terrain } from './terrain';
 // procedural animation can move them (milestone 3 adds the full motion).
 
 // Characters are drawn larger than life so they read from the herding camera's height.
-export const SCALE = { dog: 1.85, sheep: 1.42, wolf: 1.5 };
+export const SCALE = { dog: 1.85, sheep: 1.42, wolf: 1.7 };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
 
 /**
@@ -198,9 +198,6 @@ export class Actors {
     // prototypes, so every clone shares them.
     addOutline(a.sheep, 0x2a2230, 0.04, ['body', 'head']);
     addOutline(a.wolf, 0xff6a3d, 0.045);
-    a.wolf.traverse((o) => {
-      if (o.userData.outline) ((o as THREE.Mesh).material as THREE.MeshBasicMaterial).color.setRGB(1.8, 0.3, 0.1);
-    });
   }
 
   private whiteMats: THREE.MeshLambertMaterial[] = [];
@@ -268,11 +265,11 @@ export class Actors {
       let v = this.wolves.get(w.id);
       if (!v) {
         const r = rig(this.a.wolf, SCALE.wolf);
-        // A thick, pulsing danger ring that hugs the ground under every hunting wolf.
-        const danger = new GroundRing(this.a.fx.get('thick_ring')!, 0xff4a30, this.terrain, 0.1);
-        // Brighter than white in the HDR scene target, so it stays a hot red-orange after tone
-        // mapping and skips the colour grade (see grade.ts) at every hour.
-        danger.mesh.material.color.setRGB(2.2, 0.36, 0.16);
+        // A slim, wide danger ring that hugs the ground around every hunting wolf: it frames the
+        // animal instead of covering it.
+        const danger = new GroundRing(this.a.fx.get('bark_ring')!, 0xff4a30, this.terrain, 0.1);
+        // A plain saturated red-orange: strong enough in colour that the grade leaves it alone at
+        // every hour (pushing it above white made the tone mapping wash it to salmon).
         // Warm eye-shine that reads from the herding camera once the light goes.
         const glow = new THREE.Sprite(this.glowMat);
         glow.scale.setScalar(0.7);
@@ -287,8 +284,8 @@ export class Actors {
       v.rig.root.rotation.y = w.facing;
       const pulse = 0.5 + 0.5 * Math.sin(this.time * 7);
       v.danger.mesh.visible = w.state !== 'flee';
-      if (v.danger.mesh.visible) v.danger.place(w.x, w.z, 2 + 0.25 * pulse);
-      v.danger.mesh.material.opacity = 0.55 + 0.35 * pulse;
+      if (v.danger.mesh.visible) v.danger.place(w.x, w.z, 2.9 + 0.2 * pulse);
+      v.danger.mesh.material.opacity = 0.6 + 0.3 * pulse;
     }
     for (const [id, v] of this.wolves) {
       if (!seen.has(id)) {

@@ -214,3 +214,15 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Moonlit night with dark shadows and a lit lantern; the wolf ring keeps its colour](m2-assets-r15-late-dusk.png)
 *Moonlit night with dark shadows and a lit lantern; the wolf ring keeps its colour*
 
+
+## m2-assets-r17 (2026-09-25)
+
+![Highland dressing: heather, bracken, gorse and an old field wall; the rebuilt wolf](m2-assets-r17-wolf.png)
+*Highland dressing: heather, bracken, gorse and an old field wall; the rebuilt wolf*
+
+![A reachable snatch: countdown in the banner, the picture in the inset](m2-assets-r17-snatch.png)
+*A reachable snatch: countdown in the banner, the picture in the inset*
+
+![Night: the danger ring keeps its red, the lantern pools light](m2-assets-r17-late-dusk.png)
+*Night: the danger ring keeps its red, the lantern pools light*
+
