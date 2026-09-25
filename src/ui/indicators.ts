@@ -18,6 +18,8 @@ export interface Marker {
   onScreenOnly?: boolean;
   /** Also float the icon over the thing while it is in view (the loudest alerts). */
   iconOnScreen?: boolean;
+  /** Greyed and still: nothing can be done about it (a snatch too far away to save). */
+  muted?: boolean;
 }
 
 const v = new THREE.Vector3();
@@ -73,7 +75,7 @@ export class Indicators {
       this.root.appendChild(e);
       this.els.set(m.id, e);
     }
-    e.className = `ind ind-${m.kind}`;
+    e.className = `ind ind-${m.kind}${m.muted ? ' muted' : ''}`;
     return e;
   }
 
@@ -81,6 +83,7 @@ export class Indicators {
     const w = window.innerWidth;
     const h = window.innerHeight;
     const seen = new Set<string>();
+    const edge: { e: HTMLElement; x: number; y: number }[] = [];
     for (const m of markers) {
       seen.add(m.id);
       const e = this.el(m);
@@ -139,9 +142,36 @@ export class Indicators {
       nx *= k;
       ny *= k;
       const [px, py] = avoidHud(((nx + 1) / 2) * w, ((1 - ny) / 2) * h, w);
-      e.style.transform = `translate(${px}px, ${py}px)`;
+      edge.push({ e, x: px, y: py });
       (e.querySelector('.ind-arrow') as HTMLElement).style.transform = `rotate(${ang}rad)`;
     }
+    // Markers landing on the same stretch of edge slide apart along it instead of stacking.
+    const GAP = 52;
+    for (let it = 0; it < 4; it++) {
+      for (let i = 0; i < edge.length; i++) {
+        for (let j = i + 1; j < edge.length; j++) {
+          const a = edge[i];
+          const b = edge[j];
+          let dx = b.x - a.x;
+          let dy = b.y - a.y;
+          let d = Math.hypot(dx, dy);
+          if (d >= GAP) continue;
+          if (d < 0.5) {
+            // Exactly on top of each other: part along the edge they sit on.
+            const side = a.x < 80 || a.x > w - 80;
+            dx = side ? 0 : 1;
+            dy = side ? 1 : 0;
+            d = 1;
+          }
+          const push = (GAP - Math.min(d, GAP)) / 2;
+          a.x -= (dx / d) * push;
+          a.y -= (dy / d) * push;
+          b.x += (dx / d) * push;
+          b.y += (dy / d) * push;
+        }
+      }
+    }
+    for (const m of edge) m.e.style.transform = `translate(${Math.min(w - 30, Math.max(30, m.x))}px, ${Math.min(h - 30, Math.max(30, m.y))}px)`;
     for (const [id, e] of this.els) {
       if (!seen.has(id)) {
         e.remove();

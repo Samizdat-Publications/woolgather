@@ -20,8 +20,11 @@ const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
  */
 export function addOutline(root: THREE.Object3D, color: THREE.ColorRepresentation, width: number, parts?: string[]) {
   const mat = new THREE.MeshBasicMaterial({ color, side: THREE.BackSide });
+  // The width is a uniform the caller may change (userData.width.value).
+  const uWidth = { value: width };
+  mat.userData.width = uWidth;
   mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uOutline = { value: width };
+    shader.uniforms.uOutline = uWidth;
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float uOutline;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * uOutline;')
@@ -49,6 +52,7 @@ export function addOutline(root: THREE.Object3D, color: THREE.ColorRepresentatio
     shell.receiveShadow = false;
     m.add(shell);
   }
+  return mat;
 }
 
 export interface Rig {
@@ -218,9 +222,10 @@ export class Actors {
     private terrain: Terrain,
   ) {
     this.dog = rig(a.collie, SCALE.dog);
-    // Two outlines: a thin dark ink line against pale ground, and outside it a friendly sky-blue
-    // one (the counterpart of the wolves' ember) that finds him on rose, violet and night ground.
-    addOutline(this.dog.root, 0x8fd8ff, 0.06);
+    // A thin dark ink line like the sheep and wolves have; after dark a soft moonlit halo grows
+    // outside it, so the black dog never sinks into the night ground (by day a bright halo read
+    // as a game's selection ring).
+    this.dogHalo = addOutline(this.dog.root, 0xb4ccf0, 0.034);
     addOutline(this.dog.root, 0x1c2030, 0.032);
     this.root.add(this.dog.root);
     // A chevron in front of Pip, pointing where he faces: it finds him in a crowd and cannot be
@@ -233,6 +238,22 @@ export class Actors {
     this.zoneUnder = new GroundRing(a.fx.get('thin_ring')!, 0x231c2b, terrain, 0.07);
     this.zone = new GroundRing(a.fx.get('dashed_ring')!, 0xfff4d6, terrain);
     this.root.add(this.zoneUnder.mesh, this.zone.mesh);
+    // The ring is brightest on the side facing the sheep inside its reach: it shows which way
+    // they will be pushed, and stays quiet everywhere else.
+    const ZF = this.zoneFocus;
+    this.zone.mesh.material.onBeforeCompile = (shader) => {
+      shader.uniforms.uFocus = ZF;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying vec2 vRingXZ;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvRingXZ = position.xz;');
+      shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec4 uFocus;\nvarying vec2 vRingXZ;').replace(
+        '#include <opaque_fragment>',
+        `#include <opaque_fragment>
+        vec2 rd = vRingXZ - uFocus.xy;
+        float facing = max(0.0, dot(rd / max(length(rd), 0.001), normalize(uFocus.zw + vec2(0.0, 0.0001))));
+        gl_FragColor.a *= mix(1.0, 0.55 + 1.2 * facing * facing, clamp(length(uFocus.zw), 0.0, 1.0));`,
+      );
+    };
 
     a.wolf.traverse((o) => {
       const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | undefined;
@@ -243,7 +264,9 @@ export class Actors {
     //   out, so they stay white and grey under the coral sunset and the moon.
     // - A rim light: silhouettes catch the sky, faintly by day and silver by moonlight, so the
     //   animals stand off the ground at dusk and at night.
-    const neutral = new Set(['wool', 'coat_white', 'coat_black', 'wolf_grey', 'wolf_light', 'wolf_dark', 'wolf_saddle']);
+    // The wolves' slate coat keeps its cool colour (it stands off the warm ground by hue); only
+    // their pale muzzle and chest are kept neutral.
+    const neutral = new Set(['wool', 'coat_white', 'coat_black', 'wolf_light']);
     const noKeep = { value: 0 };
     for (const proto of [a.sheep, a.collie, a.wolf]) {
       proto.traverse((o) => {
@@ -280,6 +303,14 @@ export class Actors {
 
   private whiteMats: THREE.MeshLambertMaterial[] = [];
   private charMats: THREE.MeshLambertMaterial[] = [];
+  private dogHalo: THREE.MeshBasicMaterial;
+  /** Ring focus: Pip's position (xy) and the pull towards the sheep in reach (zw, length = strength). */
+  private zoneFocus = { value: new THREE.Vector4() };
+  private focusX = 0;
+  private focusZ = 0;
+  private dogSteps = 0;
+  /** Footfalls of running animals since the last sync, for dust (read by the game each frame). */
+  readonly footfalls: { x: number; z: number; dx: number; dz: number; size: number }[] = [];
   /** How much of the light's colour is removed from white wool and coat (0 = none). */
   private whiteKeep = { value: 0.3 };
   /** Rim light colour (times strength) on every character. */
@@ -290,6 +321,15 @@ export class Actors {
     this.time += dt;
     const d = sim.dog;
     const night = mood.night;
+    this.footfalls.length = 0;
+    const step = (x: number, z: number, vx: number, vz: number, size: number) => {
+      const sp = Math.hypot(vx, vz) || 1;
+      this.footfalls.push({ x: x - (vx / sp) * 0.7, z: z - (vz / sp) * 0.7, dx: vx / sp, dz: vz / sp, size });
+    };
+    // Pip's moonlit halo grows in with the dark.
+    const halo = Math.min(1, Math.max(0, (night - 0.3) / 0.4));
+    this.dogHalo.visible = halo > 0.02;
+    this.dogHalo.userData.width.value = 0.034 + 0.022 * halo;
     // An orange-gold key light is taken out of white wool (orange sheep read as dirty), but the
     // rose sunset's pink is left on it: sixteen pink-lit sheep are the sunset. By moonlight the
     // fleece may cool a little.
@@ -324,21 +364,45 @@ export class Actors {
       }
     }
     animateDog(this.dog, this.dogAnim, d, dt, this.time, lookAt);
+    if (this.dogAnim.steps !== this.dogSteps) {
+      this.dogSteps = this.dogAnim.steps;
+      if (d.speed > 8 && !d.inWater) step(d.x, d.z, d.vx, d.vz, 1);
+    }
     this.marker.place(d.x + Math.sin(d.facing) * 1.9, d.z + Math.cos(d.facing) * 1.9, 0.62, -d.facing);
 
     this.zoneR += (sim.dogThreatRadius - this.zoneR) * (1 - Math.exp(-8 * dt));
     // The dashes creep round slowly, so the ring reads as Pip's and alive, not as a ground mark.
     this.zone.place(d.x, d.z, this.zoneR, this.time * 0.12);
     this.zoneUnder.place(d.x, d.z, this.zoneR + 0.3);
-    this.zone.mesh.material.color.set(d.creeping ? 0x8fd0ff : d.sprinting ? 0xffffff : 0xfff4d6);
+    this.zone.mesh.material.color.set(d.creeping ? 0x8fd0ff : 0xfff4d6);
     const reach = this.zoneR + 9;
-    const near = sim.sheep.some(
-      (s) => s.state !== 'folded' && s.state !== 'lost' && s.state !== 'grabbed' && (s.x - d.x) ** 2 + (s.z - d.z) ** 2 < reach * reach,
-    );
-    // Always readable (the how-to points at it), stronger with sheep about or while creeping, and
-    // at full strength for the first seconds of the day while its label explains it.
+    let near = false;
+    let fx = 0;
+    let fz = 0;
+    for (const s of sim.sheep) {
+      if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed') continue;
+      const dx = s.x - d.x;
+      const dz = s.z - d.z;
+      const dd = dx * dx + dz * dz;
+      if (dd >= reach * reach) continue;
+      near = true;
+      // Nearer sheep pull harder; the ring lights up towards the flock's side.
+      const w = 1 - Math.sqrt(dd) / reach;
+      const l = Math.sqrt(dd) || 1;
+      fx += (dx / l) * w;
+      fz += (dz / l) * w;
+    }
+    const fl = Math.hypot(fx, fz);
+    const pull = fl > 0.05 ? Math.min(1, fl) : 0;
+    const ease = 1 - Math.exp(-6 * dt);
+    this.focusX += ((fl > 0.05 ? (fx / fl) * pull : 0) - this.focusX) * ease;
+    this.focusZ += ((fl > 0.05 ? (fz / fl) * pull : 0) - this.focusZ) * ease;
+    this.zoneFocus.value.set(d.x, d.z, this.focusX, this.focusZ);
+    // Always readable (the how-to points at it), stronger with sheep about or while creeping,
+    // quieter at a sprint (when it is widest), and at full strength for the first seconds of the
+    // day while its label explains it.
     const intro = sim.elapsed < 20 ? 1 : 0;
-    const want = Math.max(intro * 0.42, near ? (d.creeping ? 0.42 : d.sprinting ? 0.36 : 0.3) : 0.16);
+    const want = Math.max(intro * 0.42, near ? (d.creeping ? 0.4 : d.sprinting ? 0.22 : 0.3) : 0.14);
     this.zoneA += (want - this.zoneA) * (1 - Math.exp(-5 * dt));
     this.zone.mesh.material.opacity = this.zoneA;
     this.zoneUnder.mesh.material.opacity = this.zoneA * 0.4;
@@ -359,7 +423,11 @@ export class Actors {
       // its dark face and legs show.
       r.root.position.set(s.x, h(s.x, s.z) + (grabbed ? 0.35 : 0), s.z);
       r.root.rotation.set(0, s.facing, grabbed ? 0.6 : 0);
-      animateSheep(r, this.sheepAnim[i], s, dt, this.time);
+      const st = this.sheepAnim[i];
+      const before = st.steps;
+      animateSheep(r, st, s, dt, this.time);
+      // A bolting flock kicks up dust, one puff for every other footfall of each sheep.
+      if (st.steps !== before && st.steps % 2 === 0 && (s.state === 'flee' || s.state === 'panic') && s.speed > 4.5 && !s.inWater) step(s.x, s.z, s.vx, s.vz, 0.85);
     });
 
     for (const m of this.eyeMats) m.emissiveIntensity = 0.6 + 3.5 * night;
@@ -395,7 +463,9 @@ export class Actors {
       const y = h(w.x, w.z);
       v.rig.root.position.set(w.x, y, w.z);
       v.rig.root.rotation.y = w.facing;
+      const wSteps = v.anim.steps;
       animateWolf(v.rig, v.anim, w, dt, this.time);
+      if (v.anim.steps !== wSteps && (w.state === 'charge' || w.state === 'flee' || w.state === 'drag') && w.speed > 5 && !w.inWater) step(w.x, w.z, w.vx, w.vz, 1);
       // Each state has its own look, loudest for the wolf that has a sheep: stalking is a calm
       // ring and a faint tether; a charge a bigger, faster ring with the tether and the prey
       // marked; a carry the biggest, fastest ring and an alarm ring rippling out from it.

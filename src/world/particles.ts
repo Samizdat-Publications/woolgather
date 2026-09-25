@@ -3,8 +3,12 @@ import type { Assets } from './assets';
 import type { Terrain } from './terrain';
 
 // Particle effects: soft dust and spray puffs (camera-facing points that swell and fade), pooled
-// meshes from the Blender fx set for splash drops, wool tufts and the hearts over sheep that reach
-// the fold (they fade by shrinking), expanding bark rings, and fireflies at dusk.
+// meshes from the Blender fx set for splash drops, wool tufts and the gold hearts over sheep that
+// reach the fold (they fade by shrinking), expanding bark rings, and fireflies at dusk.
+
+/** Dust by daylight and after dark (kicked-up dirt is lit by the same light as the ground). */
+const DUST_DAY = new THREE.Color('#d8c294');
+const DUST_NIGHT = new THREE.Color('#57536a');
 
 interface P {
   x: number;
@@ -175,9 +179,10 @@ function glowTexture() {
   c.width = c.height = 32;
   const g = c.getContext('2d')!;
   const grad = g.createRadialGradient(16, 16, 0, 16, 16, 16);
-  grad.addColorStop(0, 'rgba(255,255,230,1)');
-  grad.addColorStop(0.3, 'rgba(230,255,140,0.7)');
-  grad.addColorStop(1, 'rgba(180,255,90,0)');
+  grad.addColorStop(0, 'rgba(255,255,235,1)');
+  grad.addColorStop(0.18, 'rgba(250,255,170,0.95)');
+  grad.addColorStop(0.45, 'rgba(210,255,120,0.35)');
+  grad.addColorStop(1, 'rgba(170,255,90,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 32, 32);
   const t = new THREE.CanvasTexture(c);
@@ -240,6 +245,10 @@ class SoftPuffs {
     this.points.renderOrder = 4;
   }
 
+  get color() {
+    return this.points.material.uniforms.uColor.value as THREE.Color;
+  }
+
   add(x: number, y: number, z: number, vx: number, vy: number, vz: number, size: number, life: number, alpha: number, grow = 1.8) {
     if (this.items.length >= this.max) this.items.shift();
     this.items.push({ x, y, z, vx, vy, vz, age: 0, life, size, grow, alpha });
@@ -297,11 +306,18 @@ export class Particles {
     private terrain: Terrain,
     fireflySpots: { x: number; z: number }[],
   ) {
-    this.dustPool = new SoftPuffs(200, '#e2d2ab');
+    this.dustPool = new SoftPuffs(240, DUST_DAY);
     this.sprayPool = new SoftPuffs(80, '#e8f4ff');
     this.dropPool = new Pool(a.fx.get('splash_drop')!, 120);
     this.tuftPool = new Pool(a.fx.get('wool_tuft')!, 60);
     this.heartPool = new Pool(a.fx.get('heart')!, 16, true);
+    // Gold hearts (red belongs to the wolves), marked as a character for the grade so they keep
+    // their colour in any light.
+    const heartMat = new THREE.MeshBasicMaterial({ color: 0xffd27a });
+    heartMat.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.a = 0.0;');
+    };
+    this.heartPool.mesh.material = heartMat;
     for (const p of [this.dropPool, this.tuftPool, this.heartPool]) this.root.add(p.mesh);
     this.root.add(this.dustPool.points, this.sprayPool.points);
     for (let i = 0; i < 6; i++) {
@@ -342,7 +358,7 @@ export class Particles {
             vec4 mv = modelViewMatrix * vec4(p, 1.0);
             float blink = pow(max(0.0, sin(uTime * (0.9 + fract(phase) * 0.8) + phase)), 3.0);
             vA = uNight * blink;
-            gl_PointSize = uScale * 0.35 / -mv.z * (0.6 + blink * 0.6);
+            gl_PointSize = uScale * 0.75 / -mv.z * (0.7 + blink * 0.5);
             gl_Position = projectionMatrix * mv;
           }`,
         fragmentShader: `
@@ -358,19 +374,20 @@ export class Particles {
     this.root.add(this.flies);
   }
 
-  /** Paw or hoof dust kicked up at (x, z): a soft puff that swells and fades. */
+  /** A footfall's dust at (x, z): a small puff that hugs the ground and is gone in under half a second. */
   dust(x: number, z: number, dirX = 0, dirZ = 0, size = 1) {
-    const y = this.terrain.surface(x, z) + 0.45;
+    const y = this.terrain.surface(x, z) + 0.25;
     this.dustPool.add(
-      x + (Math.random() - 0.5) * 1.2,
+      x + (Math.random() - 0.5) * 0.5,
       y,
-      z + (Math.random() - 0.5) * 1.2,
-      -dirX * 1.2 + (Math.random() - 0.5) * 1.2,
-      0.6 + Math.random() * 0.5,
-      -dirZ * 1.2 + (Math.random() - 0.5) * 1.2,
-      (1.4 + Math.random() * 0.9) * size,
-      0.8 + Math.random() * 0.4,
-      0.55,
+      z + (Math.random() - 0.5) * 0.5,
+      -dirX * 0.7 + (Math.random() - 0.5) * 0.5,
+      0.15 + Math.random() * 0.2,
+      -dirZ * 0.7 + (Math.random() - 0.5) * 0.5,
+      (0.6 + Math.random() * 0.3) * size,
+      0.32 + Math.random() * 0.14,
+      0.5,
+      1.7,
     );
   }
 
@@ -458,6 +475,7 @@ export class Particles {
   }
 
   update(dt: number, camera: THREE.Camera, time: number, night: number) {
+    this.dustPool.color.copy(DUST_DAY).lerp(DUST_NIGHT, night);
     this.dustPool.update(dt, camera);
     this.sprayPool.update(dt, camera);
     this.dropPool.update(dt, this.terrain, camera);

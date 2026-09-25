@@ -263,6 +263,7 @@ export class Game {
       this.indicators.update(this.stage.camera, this.markers(sim));
       this.ui.fadeMap(this.behindMap(sim));
       this.ui.fadePanels(this.subjectsOnScreen(sim));
+      this.ui.clearOf(this.threatsOnScreen(sim), rawDt);
     }
     else this.indicators.clear();
     if (sim && this.mode === 'playing') this.trackSnatch(sim, dt);
@@ -491,7 +492,7 @@ export class Game {
     // The wolf-cam inset stands in for the edge marker of the hunt it is showing.
     const shown = this.wolfCam.visible ? sim.wolves.find((w) => w.id === this.insetWolf && w.state !== 'gone') : undefined;
     for (const s of sim.sheep) {
-      if (s.state === 'grabbed' && shown?.target !== s) out.push({ id: `g${s.id}`, kind: 'grab', x: s.x, y: h(s.x, s.z) + 1, z: s.z, iconOnScreen: true });
+      if (s.state === 'grabbed' && shown?.target !== s) out.push({ id: `g${s.id}`, kind: 'grab', x: s.x, y: h(s.x, s.z) + 1, z: s.z, iconOnScreen: true, muted: this.dragFeasible === false });
     }
     for (const w of sim.wolves) {
       if ((w.state === 'stalk' || w.state === 'charge') && w !== shown) out.push({ id: `w${w.id}`, kind: 'wolf', x: w.x, y: h(w.x, w.z) + 1, z: w.z });
@@ -564,24 +565,19 @@ export class Game {
         }
       }
     }
-    // Dust behind anything running: Pip at a sprint, bolting sheep, charging wolves.
+    // A puff of dust for each footfall of anything running (Pip at a gallop, a bolting flock, a
+    // charging or fleeing wolf), taken from the gaits so the dust keeps time with the feet.
+    for (const f of this.actors.footfalls) p.dust(f.x, f.z, f.dx, f.dz, f.size);
+    this.actors.footfalls.length = 0;
+    // A sheep dragged along the ground scuffs up dust and sheds wool.
     this.dustT += dt;
-    if (this.dustT < 0.08) return;
+    if (this.dustT < 0.1) return;
     this.dustT = 0;
-    const kick = (x: number, z: number, vx: number, vz: number, size: number) => {
-      const sp = Math.hypot(vx, vz) || 1;
-      p.dust(x - (vx / sp) * 0.8, z - (vz / sp) * 0.8, vx / sp, vz / sp, size);
-    };
-    if (d.sprinting && d.speed > 6 && !d.inWater) kick(d.x, d.z, d.vx, d.vz, 1);
-    for (const s of sim.sheep) {
-      if ((s.state === 'flee' || s.state === 'panic') && s.speed > 5 && !s.inWater && Math.random() < 0.35) kick(s.x, s.z, s.vx, s.vz, 0.8);
-    }
     for (const w of sim.wolves) {
-      if ((w.state === 'charge' || w.state === 'flee') && w.speed > 6 && !w.inWater) kick(w.x, w.z, w.vx, w.vz, 1.1);
-      if (w.state === 'drag' && w.target) {
-        if (Math.random() < 0.5) kick(w.target.x, w.target.z, w.vx, w.vz, 1.2);
-        if (Math.random() < 0.35) p.tufts(w.target.x, w.target.z, 2);
-      }
+      if (w.state !== 'drag' || !w.target) continue;
+      const sp = Math.hypot(w.vx, w.vz) || 1;
+      if (Math.random() < 0.6) p.dust(w.target.x - (w.vx / sp) * 0.9, w.target.z - (w.vz / sp) * 0.9, w.vx / sp, w.vz / sp, 1.2);
+      if (Math.random() < 0.3) p.tufts(w.target.x, w.target.z, 2);
     }
   }
 
@@ -672,6 +668,24 @@ export class Game {
   }
 
   /** Screen positions (CSS pixels) of Pip, the loose sheep and the hunting wolves in view. */
+  /** Screen points of the wolves in view and the sheep they carry (the banner keeps clear of them). */
+  private threatsOnScreen(sim: Sim) {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const out: { x: number; y: number }[] = [];
+    const add = (x: number, z: number) => {
+      tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
+      if (tmpV.z > 1 || Math.abs(tmpV.x) > 1 || Math.abs(tmpV.y) > 1) return;
+      out.push({ x: ((tmpV.x + 1) / 2) * w, y: ((1 - tmpV.y) / 2) * h });
+    };
+    for (const wf of sim.wolves) {
+      if (wf.state === 'gone' || wf.state === 'flee') continue;
+      add(wf.x, wf.z);
+      if (wf.state === 'drag' && wf.target) add(wf.target.x, wf.target.z);
+    }
+    return out;
+  }
+
   private subjectsOnScreen(sim: Sim) {
     const w = window.innerWidth;
     const h = window.innerHeight;

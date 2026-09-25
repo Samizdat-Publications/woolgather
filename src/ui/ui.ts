@@ -160,6 +160,8 @@ export class Ui {
     this.renderToast();
   }
   private toastKind = 'info';
+  /** How far the message banner has stepped down out of a wolf's way (px). */
+  private toastDrop = 0;
   private toastText = '';
   private alertText: string | null = null;
   private alertSub = '';
@@ -249,6 +251,27 @@ export class Ui {
   /** The latch prompt has shrunk to its chip. */
   get promptIsChip() {
     return $('.hud-prompt', this.root).classList.contains('chip');
+  }
+
+  /**
+   * The message banner steps down out of the way of a wolf under it: the danger on screen is never
+   * covered by the words about it. `points` are the wolves' (and their prey's) screen positions.
+   */
+  clearOf(points: { x: number; y: number }[], dt: number) {
+    const el = $('.toast', this.root);
+    let want = 0;
+    if (!el.hidden) {
+      const r = el.getBoundingClientRect();
+      const top = r.top - this.toastDrop;
+      const bottom = r.bottom - this.toastDrop;
+      for (const p of points) {
+        if (p.x > r.left - 60 && p.x < r.right + 60 && p.y > top - 70 && p.y < bottom + 60) want = Math.max(want, p.y + 70 - top);
+      }
+    }
+    want = Math.min(want, window.innerHeight * 0.3);
+    this.toastDrop += (want - this.toastDrop) * (1 - Math.exp(-(want > this.toastDrop ? 14 : 4) * dt));
+    if (this.toastDrop < 0.5) this.toastDrop = 0;
+    el.style.setProperty('--toast-drop', `${Math.round(this.toastDrop)}px`);
   }
 
   /** HUD panels go see-through while Pip, a sheep or a wolf is behind them (screen points). */

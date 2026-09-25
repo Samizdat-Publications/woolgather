@@ -672,3 +672,37 @@ Newest at the bottom. Record every non-obvious choice.
   dragged; wolves have a dark ink outline like the sheep and Pip (the ember outline melted into
   the amber ground; the ring says danger); Pip's ring stays white or blue (orange and red belong
   to the wolves) and is quieter; the herding camera sits a little closer (zoom 1.08).
+- 2026-09-25 (M3 critic r3, one major: the evening light only a tint on a flat ground plane, the
+  golden hour a hazy olive with olive-grey shade, no sky, a stream like a road, a flat grey-lavender
+  night): the grade gained a bloom (the brightest things glow: sunlit fleece, glints, lamps and
+  windows; a bright pass and blurs at a quarter and an eighth of the resolution, seven small
+  passes), the sky's own colour glowing along the top edge of the frame (the horizon just out of
+  shot, warmest on the sun's side) and soft light shafts slanting in from a low sun. The golden
+  hour is a saturated amber gold: a stronger key over a lower fill, the lit grass pushed towards
+  gold and brighter (OKLCH L 0.66, hue 96, chroma 0.13; it was L 0.55, hue 110, an olive), the
+  shade a clear teal-blue. The zone blend moved from turning hues round the colour wheel to
+  straight lines in OKLab: green grass sits almost opposite the evening's violet, so neighbouring
+  pixels turned opposite ways round the wheel and drew large pink patches beside blue ones (the
+  "blotches"); the shadow band is also much wider, so open ground never flips between the shade's
+  colour and the light's. After sunset only strongly coloured warm light counts as lamp light
+  (the beige yard by the fold was kept warm as a big pink patch), warm pixels too faint for it shed
+  their colour instead of turning pink, and the ground's own colour fades further before the
+  violet; the lantern pools are 15 m across instead of 26. Night: a stronger moon over a dimmer
+  fill, crisper shadows, blue-silver lit ground against violet-indigo shade. The stream reflects
+  the bright evening sky in its slow streaks at the sky's own brightness (from sunset on it holds
+  more light than the ground, as water does), with glints from the sunset on.
+- 2026-09-25 (M3 critic r3 minors): wolves are slate blue-grey with a charcoal saddle, ears, paws
+  and tail tip and a pale cream muzzle, cheeks, throat and belly (a hue apart from the warm
+  ground; the warm grey-brown coat sank into it), and slink belly-low with the head level when
+  stalking. The message banner steps down out of the way of a wolf (or the sheep it carries) on
+  screen. Pip lost the sky-blue halo by day (it read as a strategy game's selection ring) and gets
+  a soft moonlit one only after dark. His reach ring is quieter at a sprint and brightest on the
+  side facing the sheep inside it. Dust is one small ground-hugging puff per footfall, timed from
+  the gaits, gone in under half a second, tan by day and dark by night (the big puffs read as soap
+  bubbles and smoke); hearts are gold (red is the wolves' colour); fireflies are bigger with a
+  bright core and halo. Edge markers that land on the same stretch of edge slide apart, and a
+  snatch too far away to save turns its marker grey and still.
+- 2026-09-25: the Blender MCP server was down (its Blender GUI was not running, and other Blender
+  windows on the desktop belong to the user's other work), so the characters re-export ran the
+  same `characters.py` in a headless Blender from the shell, exactly as `npm run assets` does,
+  rather than opening a new Blender window on the user's desktop.

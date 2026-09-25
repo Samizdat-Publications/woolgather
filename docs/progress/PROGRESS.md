@@ -418,3 +418,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![A snatch: the dragged sheep sheds wool under the wolf's alarm ring](m3-feel-r3-snatch.png)
 *A snatch: the dragged sheep sheds wool under the wolf's alarm ring*
 
+
+## m3-feel-r4 (2026-09-25)
+
+![Round 4: the golden hour as saturated amber gold with teal-blue shade, bloom on the fleece](m3-feel-r4-herding.png)
+*Round 4: the golden hour as saturated amber gold with teal-blue shade, bloom on the fleece*
+
+![A slate-grey wolf stalks the flock under the rose sunset, violet shade across the valley](m3-feel-r4-wolf.png)
+*A slate-grey wolf stalks the flock under the rose sunset, violet shade across the valley*
+
+![A snatch in the close-up: the slate wolf with the sheep crosswise in its jaws](m3-feel-r4-snatch.png)
+*A snatch in the close-up: the slate wolf with the sheep crosswise in its jaws*
+
+![Nightfall: moonlit ground with violet shade, lantern light at the fold, markers spread along the edge](m3-feel-r4-night.png)
+*Nightfall: moonlit ground with violet shade, lantern light at the fold, markers spread along the edge*
+

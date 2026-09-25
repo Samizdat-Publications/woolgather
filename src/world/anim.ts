@@ -34,6 +34,8 @@ export class AnimState {
   hop = 0;
   hopT = 99;
   lift = 0;
+  /** Footfalls so far (two per stride), for dust. */
+  steps = 0;
   prevState = '';
   seed = Math.random() * 100;
   rest: RestPose | null = null;
@@ -61,7 +63,9 @@ function gait(r: Rig, st: AnimState, speed: number, dt: number, legLen: number, 
   if (s > 0.05) {
     const stride = 4 * legLen * Math.max(0.2, Math.sin(Math.max(st.amp, 0.2)));
     const f = clamp(s / stride, 0.6, 4.6);
+    const before = Math.floor(st.phase * 2);
     st.phase += Math.sign(speed) * f * dt;
+    if (Math.floor(st.phase * 2) !== before) st.steps++;
   }
   const trotW = (1 - st.walk) * (1 - st.gallop);
   const walkW = st.walk * (1 - st.gallop);
@@ -75,8 +79,8 @@ function gait(r: Rig, st: AnimState, speed: number, dt: number, legLen: number, 
 }
 
 /** Crouch: drop the body and shorten the legs so the feet stay on the ground. */
-function crouch(r: Rig, p: RestPose, amount: number, bob: number) {
-  const drop = amount * 0.2 * p.hipH;
+function crouch(r: Rig, p: RestPose, amount: number, bob: number, depth = 0.2) {
+  const drop = amount * depth * p.hipH;
   r.body.position.y = p.bodyY - drop + bob;
   const k = (p.hipH - drop) / p.hipH;
   for (const l of r.legs) l.scale.y = k;
@@ -161,13 +165,14 @@ export function animateWolf(r: Rig, st: AnimState, w: Wolf, dt: number, time: nu
   const stalking = w.state === 'stalk';
   const dragging = w.state === 'drag';
   const fleeing = w.state === 'flee';
-  st.crouch = damp(st.crouch, stalking ? 0.75 : dragging ? 0.45 : 0, 5, dt);
+  // A stalking wolf slinks: belly low, legs folded, head level with its back.
+  st.crouch = damp(st.crouch, stalking ? 1 : dragging ? 0.45 : 0, 5, dt);
   const bob = st.amp * (1 - st.gallop) * 0.03 * Math.abs(Math.sin(TAU * st.phase)) + st.gallop * 0.05 * Math.sin(TAU * st.phase + 1.2);
-  crouch(r, p, st.crouch, bob);
+  crouch(r, p, st.crouch, bob, 0.3);
   r.body.rotation.x = st.gallop * 0.14 * Math.sin(TAU * st.phase) - (dragging ? 0.1 : 0);
   if (r.head) {
     // Low and forward when stalking, braced down gripping the prey while dragging.
-    const want = stalking ? 0.28 : dragging ? 0.5 : w.state === 'charge' ? 0.12 : 0;
+    const want = stalking ? 0.38 : dragging ? 0.5 : w.state === 'charge' ? 0.12 : 0;
     r.head.rotation.x = damp(r.head.rotation.x, want, 6, dt) + (dragging ? 0.05 * Math.sin(time * 9) : 0);
   }
   for (const e of r.ears) e.rotation.x = damp(e.rotation.x, w.state === 'charge' || fleeing ? -0.6 : stalking ? 0.15 : 0, 8, dt);
