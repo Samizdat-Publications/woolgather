@@ -187,3 +187,30 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Post-process grade: blue-violet moonlit night](m2-assets-r13-late-night.png)
 *Post-process grade: blue-violet moonlit night*
 
+
+## m2-assets-r14 (2026-09-25)
+
+![Lower three-quarter camera; Pip starts in profile, facing the flock](m2-assets-r14-start.png)
+*Lower three-quarter camera; Pip starts in profile, facing the flock*
+
+![One countdown for a snatch: banner and inset agree](m2-assets-r14-snatch.png)
+*One countdown for a snatch: banner and inset agree*
+
+![Measured colour arc: rose sunset at daytime brightness](m2-assets-r14-late-sunset.png)
+*Measured colour arc: rose sunset at daytime brightness*
+
+![Blue-violet night with rim-lit animals and a lit lantern](m2-assets-r14-late-night.png)
+*Blue-violet night with rim-lit animals and a lit lantern*
+
+
+## m2-assets-r15 (2026-09-25)
+
+![Light carries the colour: gold grass, violet shadows, a hot danger ring](m2-assets-r15-wolf.png)
+*Light carries the colour: gold grass, violet shadows, a hot danger ring*
+
+![Honest advice when a snatch is out of reach](m2-assets-r15-snatch.png)
+*Honest advice when a snatch is out of reach*
+
+![Moonlit night with dark shadows and a lit lantern; the wolf ring keeps its colour](m2-assets-r15-late-dusk.png)
+*Moonlit night with dark shadows and a lit lantern; the wolf ring keeps its colour*
+

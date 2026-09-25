@@ -23,6 +23,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1622; col
 .sunbar { position: relative; width: 220px; height: 8px; background: #3b2f4f; border-radius: 4px; margin-bottom: 4px; }
 .sunbar-fill { height: 100%; background: var(--gold); border-radius: 4px; }
 .sunbar-fill.dusk { background: #9a7ed0; }
+.sunbar-sun { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: radial-gradient(circle, #fff7d0 0 35%, #f2b45a 55%, rgba(242, 180, 90, 0) 72%); pointer-events: none; }
+.sunbar-sun.moon { width: 12px; height: 12px; margin: -6px 0 0 -6px; background: transparent; box-shadow: inset -4px 1px 0 0 #e6ebff; }
 .sunbar-mark { position: absolute; top: -4px; width: 4px; height: 16px; margin-left: -2px; border-radius: 2px; background: #ff5a3c; box-shadow: 0 0 0 2px rgba(20, 16, 26, 0.6); }
 .wolf-label { font-size: 12px; opacity: 0.85; }
 .wolf-label.out { color: #ff9a7a; opacity: 1; font-weight: 700; }

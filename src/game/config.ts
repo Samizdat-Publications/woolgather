@@ -117,8 +117,10 @@ export const WOLF = {
 };
 
 export const CAMERA = {
-  fov: 40,
-  offset: { x: 0, y: 34, z: 25.5 },
+  // A little lower and narrower than straight overhead: less lean on trees at the screen edges and
+  // a three-quarter view of the animals, with about the same ground in view as before.
+  fov: 34,
+  offset: { x: 0, y: 36, z: 32 },
   lookAhead: 0.4,
   followRate: 4.5,
 };

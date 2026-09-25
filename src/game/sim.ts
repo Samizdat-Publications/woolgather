@@ -129,7 +129,7 @@ export class Sim {
       vx: 0,
       vz: 0,
       r: DOG.radius,
-      facing: Math.PI, // facing north (-Z); facing angle is atan2(vx, vz)
+      facing: 0, // set below, towards the nearest flock; facing angle is atan2(vx, vz)
       speed: 0,
       stamina: DOG.staminaMax,
       staminaDelay: 0,
@@ -193,6 +193,11 @@ export class Sim {
     }
     this.total = this.sheep.length;
     this.target = this.total - this.preset.targetMissing;
+    // Pip starts side-on to the camera, looking at the nearest flock: that is where to go first,
+    // and a collie reads best in profile.
+    let near = this.sheep[0];
+    for (const s of this.sheep) if (Math.hypot(s.x - dx, s.z - dz) < Math.hypot(near.x - dx, near.z - dz)) near = s;
+    if (near) this.dog.facing = Math.atan2(near.x - dx, near.z - dz);
   }
 
   /** 0 at golden hour, 1 at nightfall. */
@@ -902,7 +907,7 @@ export class Sim {
         tx = dx / dl;
         tz = dz / dl;
         // The sheep struggles for a moment before the wolf gets it moving: time for Pip to react.
-        speed = WOLF.dragSpeed * spd * clamp((w.stateT - 0.4) / 1.2, 0.2, 1);
+        speed = this.dragSpeedFor(w) * clamp((w.stateT - 0.4) / 1.2, 0.2, 1);
         const s = w.target;
         // The sheep hangs from the wolf's jaws, slightly behind its nose.
         s.x = w.x + Math.sin(w.facing) * 1.1;
@@ -951,6 +956,43 @@ export class Sim {
       if (w.state === 'drag') w.facing = dampAngle(w.facing, Math.atan2(-w.vx, -w.vz), 4, dt);
       else if (w.speed > 0.3) w.facing = dampAngle(w.facing, Math.atan2(w.vx, w.vz), 10, dt);
     }
+  }
+
+  /**
+   * How fast a wolf drags its prey: slower the further Pip is (a heavy sheep and a long way to
+   * go), so a snatch across the valley can still be answered.
+   */
+  dragSpeedFor(w: Wolf) {
+    const d = this.dog;
+    const far = Math.hypot(w.x - d.x, w.z - d.z);
+    return WOLF.dragSpeed * this.preset.wolfSpeedScale * lerp(1, 0.55, clamp((far - 25) / 60, 0, 1));
+  }
+
+  /** Seconds until a dragged sheep is lost: the wolf's way to the loss line in the trees. */
+  dragEta(w: Wolf) {
+    const L = this.level;
+    const inside = L.insideValley(w.x, w.z);
+    const left = inside ? L.boundaryDistance(w.x, w.z) + WOLF.lostDepth : Math.max(0, WOLF.lostDepth - L.boundaryDistance(w.x, w.z));
+    const tussle = Math.max(0, 1.6 - w.stateT) * 0.6;
+    return left / this.dragSpeedFor(w) + tussle;
+  }
+
+  /**
+   * Seconds Pip needs to get within barking range of (x, z): sprinting while his stamina lasts,
+   * then at a walk, plus a moment to wade if the stream is in the way.
+   */
+  rescueEta(x: number, z: number) {
+    const d = this.dog;
+    const L = this.level;
+    let dist = Math.max(0, Math.hypot(x - d.x, z - d.z) - DOG.barkWolfRadius * 0.85);
+    const sideA = L.streamQuery(d.x, d.z).nx;
+    const sideB = L.streamQuery(x, z).nx;
+    const wade = Math.sign(sideA) !== Math.sign(sideB) ? 1 : 0;
+    const sprintFor = d.sprintLock ? 0 : d.stamina / DOG.staminaDrain;
+    const sprintDist = sprintFor * DOG.sprintSpeed;
+    if (dist <= sprintDist) return dist / DOG.sprintSpeed + wade;
+    dist -= sprintDist;
+    return sprintFor + dist / DOG.walkSpeed + wade;
   }
 
   // ---------------------------------------------------------------- rules

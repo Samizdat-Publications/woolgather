@@ -80,10 +80,12 @@ export class Minimap {
     const b = L.bridge;
     c.fillStyle = '#b08658';
     c.fillRect(this.px(b.x - b.len / 2), this.pz(b.z - b.w / 2), b.len * this.scale, b.w * this.scale);
-    c.fillStyle = 'rgba(210, 200, 170, 0.9)';
-    c.beginPath();
-    c.arc(this.px(L.ford.x), this.pz(L.ford.z), L.ford.r * this.scale * 0.8, 0, Math.PI * 2);
-    c.fill();
+    // The ford: a pale band across the stream, labelled, since it is the second way over.
+    c.save();
+    c.translate(this.px(L.ford.x), this.pz(L.ford.z));
+    c.fillStyle = 'rgba(190, 236, 222, 0.95)';
+    c.fillRect(-L.ford.r * this.scale * 1.1, -L.ford.r * this.scale * 0.55, L.ford.r * this.scale * 2.2, L.ford.r * this.scale * 1.1);
+    c.restore();
     // Trees and rocks as faint small dots so they never read as sheep.
     c.fillStyle = 'rgba(50, 80, 50, 0.3)';
     for (const t of L.trees) {
@@ -110,11 +112,13 @@ export class Minimap {
     c.strokeStyle = 'rgba(30, 36, 26, 0.7)';
     c.fillStyle = 'rgba(255, 250, 235, 0.72)';
     for (const [name, x, z] of [
-      ['FAR BANK', -72, 42],
+      ['FAR BANK', -74, 28],
       ['GROVE', 52, -52],
       ['MEADOW', -8, 26],
       ['ROCKS', 8, 58],
       ['FARM', 80, 8],
+      ['FORD', -44, 52],
+      ['BRIDGE', -35, -11],
     ] as const) {
       c.strokeText(name, this.px(x), this.pz(z));
       c.fillText(name, this.px(x), this.pz(z));
@@ -132,6 +136,12 @@ export class Minimap {
       c.lineTo(this.px(s.bx), this.pz(s.bz));
       c.stroke();
     }
+  }
+
+  /** Dim the map with the evening so it never becomes the brightest thing on a night screen. */
+  setNight(night: number) {
+    const f = `brightness(${(1 - 0.45 * night).toFixed(2)}) saturate(${(1 - 0.35 * night).toFixed(2)})`;
+    if (this.canvas.style.filter !== f) this.canvas.style.filter = f;
   }
 
   draw(sim: Sim | null, time: number) {

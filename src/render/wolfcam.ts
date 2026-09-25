@@ -1,21 +1,30 @@
 import * as THREE from 'three';
 
-// Picture-in-picture view of a snatch happening away from Pip: a second camera renders the
-// wolf and its prey into a small scissored viewport while the drag is under way, so the player
-// sees the danger instead of reading about it.
+// Picture-in-picture view of a hunt happening away from Pip: a second camera renders the wolf
+// and its prey into a small scissored viewport of the scene target, so the player sees the danger
+// instead of reading about it. The frame sits at mid-height on the side of the screen the threat
+// is on, so it also points the way.
 
 export const INSET = {
   w: 248,
   h: 156,
-  left: 16,
-  /** Sits just above the stamina and bark meters in the bottom-left corner. */
-  bottom: 74,
+  margin: 16,
 };
 const W = INSET.w;
 const H = INSET.h;
 
+export type InsetSide = 'left' | 'right';
+
+/** Where the inset frame is on screen, in CSS pixels from the top-left (for HUD layout). */
+export function insetRect(side: InsetSide, vw: number, vh: number) {
+  const x = side === 'left' ? INSET.margin : vw - INSET.margin - W;
+  const y = Math.round((vh - H) / 2);
+  return { x, y, w: W, h: H };
+}
+
 export class WolfCam {
   readonly camera = new THREE.PerspectiveCamera(36, W / H, 0.5, 260);
+  side: InsetSide = 'left';
   private frame: HTMLElement;
   private label: HTMLElement;
   private active = false;
@@ -33,10 +42,15 @@ export class WolfCam {
     hudRoot.appendChild(this.frame);
   }
 
-  /** Follow a snatch at (x, y, z). Call every frame while it matters; `text` labels the inset. */
-  track(x: number, y: number, z: number, text: string, dt: number) {
+  /**
+   * Follow a hunt at (x, y, z). Call every frame while it matters; `text` labels the inset and
+   * `side` is the side of the screen the threat lies towards.
+   */
+  track(x: number, y: number, z: number, text: string, side: InsetSide, dt: number) {
     this.follow(x, y, z, dt);
     this.label.textContent = text;
+    // Only switch sides when the inset appears, so it never jumps across the screen mid-hunt.
+    if (!this.visible) this.side = side;
     this.active = true;
     this.linger = 1.4;
   }
@@ -72,12 +86,15 @@ export class WolfCam {
     return this.linger > 0;
   }
 
-  /** Draw the inset into the frame's corner of `target` (the grade pass's scene target). */
+  /** Draw the inset into its part of `target` (the grade pass's scene target). */
   render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, target: THREE.WebGLRenderTarget) {
     if (!this.visible) return;
-    // Render-target viewports are in its own pixels (canvas pixels, not CSS pixels).
+    const vw = renderer.domElement.clientWidth;
+    const vh = renderer.domElement.clientHeight;
+    const r = insetRect(this.side, vw, vh);
+    // Render-target viewports are in its own pixels, measured from the bottom.
     const pr = renderer.getPixelRatio();
-    target.viewport.set(INSET.left * pr, INSET.bottom * pr, W * pr, H * pr);
+    target.viewport.set(r.x * pr, (vh - r.y - H) * pr, W * pr, H * pr);
     target.scissor.copy(target.viewport);
     target.scissorTest = true;
     renderer.setRenderTarget(target);
@@ -92,8 +109,8 @@ export class WolfCam {
     renderer.setRenderTarget(target);
     this.frame.style.width = `${W}px`;
     this.frame.style.height = `${H}px`;
-    this.frame.style.left = `${INSET.left}px`;
-    this.frame.style.bottom = `${INSET.bottom}px`;
+    this.frame.style.left = `${r.x}px`;
+    this.frame.style.top = `${r.y}px`;
   }
 
   hide() {

@@ -1,6 +1,7 @@
 import { DIFFICULTIES, DOG, type Difficulty } from '../game/config';
 import type { Level } from '../game/level';
 import type { Outcome, Sim } from '../game/sim';
+import { moodTime, SUN_MOON_SWAP } from '../render/daycycle';
 import { MARKER_ICONS } from './indicators';
 import { Minimap } from './minimap';
 
@@ -35,11 +36,11 @@ export class Ui {
       <div class="hud" hidden>
         <div class="hud-counts">
           <div class="count-home"><span class="n-home">0</span><span class="of">/ <span class="n-total">0</span> home</span></div>
-          <div class="count-need">need <span class="n-need">0</span><span class="count-stars"></span></div>
+          <div class="count-need">need <span class="n-need">0</span> to win<span class="count-stars"></span></div>
           <div class="count-spare"></div>
         </div>
         <div class="hud-time">
-          <div class="sunbar"><div class="sunbar-fill"></div><div class="sunbar-mark"></div></div>
+          <div class="sunbar"><div class="sunbar-fill"></div><div class="sunbar-mark"></div><div class="sunbar-sun"></div></div>
           <div class="time-label">Nightfall in <span class="t-left">0:00</span></div>
           <div class="wolf-label"></div>
         </div>
@@ -216,7 +217,7 @@ export class Ui {
     const spareEl = $('.count-spare', this.root);
     const lostTxt = sim.lost > 0 ? ` · lost ${sim.lost}` : '';
     const hurry = !sim.targetMet && sim.timeLeft < 90;
-    const spareTxt = spare > 0 ? `can lose ${spare} more` : 'no sheep to spare!';
+    const spareTxt = spare > 0 ? `${spare} sheep to spare` : 'no sheep to spare!';
     spareEl.textContent = sim.targetMet
       ? `target met${lostTxt}`
       : hurry
@@ -247,6 +248,10 @@ export class Ui {
     timeEl.classList.toggle('late', sim.timeLeft < 60);
     timeEl.classList.toggle('critical', sim.timeLeft < 20);
     ($('.sunbar-fill', this.root) as HTMLElement).style.width = `${(1 - sim.t) * 100}%`;
+    // The sky the camera cannot show: a sun riding the end of the bar, a moon once it has set.
+    const sun = $('.sunbar-sun', this.root);
+    sun.style.left = `${(1 - sim.t) * 100}%`;
+    sun.classList.toggle('moon', moodTime(sim.t, ws) >= SUN_MOON_SWAP);
     const d = sim.dog;
     const st = $('.stamina-fill', this.root);
     st.style.width = `${(d.stamina / DOG.staminaMax) * 100}%`;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Level } from '../game/level';
 import { pointInPolygon, Rng } from '../game/math';
-import type { MoodValues } from '../render/daycycle';
+import { createMoodValues, sampleMood, type MoodValues } from '../render/daycycle';
 import type { Assets } from './assets';
 import type { Terrain } from './terrain';
 
@@ -13,6 +13,13 @@ const tmpS = new THREE.Vector3();
 const tmpP = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0);
 const WHITE = new THREE.Color(1, 1, 1);
+
+/** How much light falls on flat ground: sky fill plus the key light at its elevation. */
+function groundLight(m: MoodValues) {
+  const lum = (c: THREE.Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  return lum(m.hemiSky) * m.hemiIntensity + lum(m.keyColor) * m.keyIntensity * Math.max(0.05, m.keyDir.y);
+}
+const GOLDEN_GROUND = groundLight(sampleMood(0, createMoodValues()));
 
 interface Placement {
   x: number;
@@ -61,38 +68,30 @@ function instance(proto: THREE.Object3D, spots: Placement[], opts: { shadow?: bo
   return { group, meshes };
 }
 
-// Screen-door fade for trees between the camera and the action (keeps shadows, no sorting).
+// Fade for trees between the camera and the action. Alpha-to-coverage on the multisampled scene
+// target gives a soft see-through without sorting (a screen-door dither read as a checkerboard),
+// and the tree keeps its shadow.
 const fadeCache = new Map<THREE.Material, THREE.Material>();
 function fadeMaterial(src: THREE.Material) {
   const hit = fadeCache.get(src);
   if (hit) return hit;
   const m = src.clone();
+  m.alphaToCoverage = true;
   m.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nattribute float instanceFade;\nvarying float vFade;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFade = instanceFade;');
     shader.fragmentShader = shader.fragmentShader
-      .replace(
-        '#include <common>',
-        `#include <common>
-        varying float vFade;
-        const float BAYER[16] = float[16](0., 8., 2., 10., 12., 4., 14., 6., 3., 11., 1., 9., 15., 7., 13., 5.);`,
-      )
-      .replace(
-        '#include <clipping_planes_fragment>',
-        `#include <clipping_planes_fragment>
-        if (vFade < 0.999) {
-          ivec2 q = ivec2(mod(gl_FragCoord.xy, 4.0));
-          if (vFade * 16.0 <= BAYER[q.x + q.y * 4] + 0.5) discard;
-        }`,
-      );
+      .replace('#include <common>', '#include <common>\nvarying float vFade;')
+      .replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.a = vFade;');
   };
-  m.customProgramCacheKey = () => 'wg-fade';
+  m.customProgramCacheKey = () => 'wg-fade-a2c';
   fadeCache.set(src, m);
   return m;
 }
 
-function waterMaterial() {
+/** Stream surface. `ford` (x, z, radius) is drawn as a wide band of pale shallow water. */
+function waterMaterial(ford: { x: number; z: number; r: number }) {
   return new THREE.ShaderMaterial({
     fog: true,
     side: THREE.DoubleSide,
@@ -105,15 +104,18 @@ function waterMaterial() {
         uSky: { value: new THREE.Color('#e8d6b0') },
         uFoam: { value: new THREE.Color('#eef6f8') },
         uLight: { value: 1 },
-        uTint: { value: new THREE.Color('#7e86bc') },
-        uNight: { value: 0 },
+        uTint: { value: new THREE.Color('#ffc88c') },
+        uTintAmt: { value: 0.2 },
+        uFord: { value: new THREE.Vector3(ford.x, ford.z, ford.r) },
       },
     ]),
     vertexShader: `
       varying vec2 vUv;
+      varying vec2 vWorld;
       #include <fog_pars_vertex>
       void main() {
         vUv = uv;
+        vWorld = (modelMatrix * vec4(position, 1.0)).xz;
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         #include <fog_vertex>
@@ -121,8 +123,10 @@ function waterMaterial() {
     fragmentShader: `
       uniform float uTime;
       uniform vec3 uDeep, uShallow, uSky, uFoam, uTint;
-      uniform float uLight, uNight;
+      uniform float uLight, uTintAmt;
+      uniform vec3 uFord;
       varying vec2 vUv;
+      varying vec2 vWorld;
       #include <fog_pars_fragment>
       float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float vnoise(vec2 p) {
@@ -134,17 +138,25 @@ function waterMaterial() {
       void main() {
         float across = abs(vUv.y - 0.5) * 2.0;
         vec3 col = mix(uDeep, uShallow, smoothstep(0.15, 1.0, across));
+        // The stream mirrors the sky: gold, then rose, then violet (at its own brightness).
+        const vec3 LW = vec3(0.2126, 0.7152, 0.0722);
+        // The ford: pale turquoise shallows over a gravel bed, with ripples running across, so it
+        // reads as a place a flock can wade (the rest of the stream stays deep).
+        float fd = length(vWorld - uFord.xy) / uFord.z;
+        float shallow = 1.0 - smoothstep(0.8, 1.3, fd);
+        float gravel = vnoise(vWorld * 3.1) * 0.6 + vnoise(vWorld * 7.3 + 3.0) * 0.4;
+        vec3 bed = mix(vec3(0.16, 0.38, 0.36), vec3(0.34, 0.5, 0.42), gravel);
+        float ripple = smoothstep(0.6, 0.95, sin(vWorld.y * 2.6 + vWorld.x * 0.8 - uTime * 2.2) * 0.5 + 0.5);
+        col = mix(col, bed + ripple * 0.12, shallow * 0.8);
+        col = mix(col, uTint * (dot(col, LW) / max(dot(uTint, LW), 0.001)), uTintAmt);
         // Broken glints drifting downstream: noise stretched along the flow, not regular waves.
         vec2 p = vec2(vUv.x * 7.0 - uTime * 0.55, vUv.y * 3.0);
         float n = vnoise(p * vec2(1.0, 2.2)) * 0.6 + vnoise(p * vec2(2.3, 4.1) + 7.0) * 0.4;
         float glint = smoothstep(0.66, 0.8, n) * (1.0 - smoothstep(0.75, 1.0, across));
         col += uSky * glint * 0.2;
         col = mix(col, uFoam, smoothstep(0.84, 0.98, across) * 0.35);
+        // Unlit water has to follow the light on the valley floor or it glows at dusk.
         col *= uLight;
-        // By night the stream goes slate grey with a hint of the moonlit sky instead of staying
-        // daytime blue (the colour grade adds the blue back).
-        float lum = dot(col, vec3(0.3, 0.55, 0.15));
-        col = mix(col, mix(vec3(lum), uTint * lum * 1.6, 0.25), uNight * 0.9);
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -228,7 +240,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
 
   // Stream.
   const water = a.water as unknown as THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>;
-  water.material = waterMaterial();
+  water.material = waterMaterial(level.ford);
   water.receiveShadow = false;
   water.castShadow = false;
   root.add(water);
@@ -411,9 +423,12 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   wu.uTime.value = time;
   // Glints are sky colour washed towards white, so sunset hues read as sparkle, not blotches.
   wu.uSky.value.copy(mood.skyHorizon).lerp(WHITE, 0.55);
-  wu.uLight.value = 0.38 + 0.62 * (1 - mood.night);
-  wu.uTint.value.copy(mood.hemiSky);
-  wu.uNight.value = mood.night;
+  // Water brightness follows the light falling on flat ground, relative to golden hour; its tint
+  // is the sky it reflects: the horizon's gold and rose, then the moonlit sky.
+  wu.uLight.value = Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
+  wu.uTint.value.copy(mood.skyHorizon).lerp(mood.hemiSky, mood.night);
+  // Blue by day; the sky's colour takes over from the sunset on.
+  wu.uTintAmt.value = 0.1 + 0.45 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
   const su = w.sky.material.uniforms;
   su.uTop.value.copy(mood.skyTop);
   su.uHorizon.value.copy(mood.skyHorizon);
@@ -424,7 +439,8 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   w.sky.position.copy(camera.position);
   for (const m of w.glowMaterials) m.emissiveIntensity = 0.15 + 1.6 * mood.night;
   for (const m of w.stoneMaterials) m.emissiveIntensity = 0.75 * mood.night;
-  w.lanternLight.intensity = 14 * Math.max(0, mood.night - 0.15);
+  // The fold lantern is the one warm light at night: strong enough to pool on the grass.
+  w.lanternLight.intensity = 32 * Math.max(0, mood.night - 0.15);
 
   // Trees standing between the camera and anything that matters fade to a dither.
   const k = 1 - Math.exp(-6 * dt);
@@ -434,8 +450,8 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
     let dirty = false;
     for (let i = 0; i < f.spots.length; i++) {
       const s = f.spots[i];
-      // The canopy covers ground up to ~0.75 * height north of the trunk from this camera angle.
-      const reach = f.height * s.scale * 0.8;
+      // From the ~48 degree camera the canopy covers ground up to about its height north of the trunk.
+      const reach = f.height * s.scale * 0.95;
       let hide = false;
       for (const p of focus) {
         const dz = s.z - p.z;
@@ -446,8 +462,8 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
         }
       }
       const cur = attr.getX(i);
-      // Mostly gone: a denser dither read as a dark checkered ghost of the tree.
-      const want = hide ? 0.16 : 1;
+      // A faint ghost of the tree stays, so the player knows it is there.
+      const want = hide ? 0.25 : 1;
       if (Math.abs(cur - want) > 0.005) {
         const next = cur + (want - cur) * k;
         for (const m of f.meshes) (m.geometry.getAttribute('instanceFade') as THREE.InstancedBufferAttribute).setX(i, next);

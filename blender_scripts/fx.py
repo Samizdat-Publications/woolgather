@@ -87,6 +87,7 @@ def main():
         ring("bark_ring", 0.86, 1.0),
         ring("thick_ring", 0.66, 1.0),
         ring("soft_ring", 0.97, 1.0, 96),
+        ring("thin_ring", 0.985, 1.0, 128),
         moon(),
         heart(),
         small("wool_tuft", "#f4efe2", 0.12, 1),

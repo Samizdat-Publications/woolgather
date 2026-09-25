@@ -341,3 +341,50 @@ Newest at the bottom. Record every non-obvious choice.
   following the same wolf while it lingers. The camera leads the frame the way the flock moves
   and keeps an 8 m margin at the bottom, above the meters and hints. The latch prompt drops the
   objective toast it completes.
+- 2026-09-25: repo pushed to a private GitHub repo, Samizdat-Publications/woolgather (standing
+  preference recorded in the user's memory: commit at milestones and push without asking).
+- 2026-09-25 (M2 critic r13): the colour arc was measured instead of eyeballed:
+  `tests/colorprobe.py` reads grass, path and water (hue, luma, saturation) from lookdev shots at
+  the bridge. Before: grass luma fell to 55-63% of daytime after the wolves came out and went
+  mustard (hue 43, sat 0.81), the path went red, night grass was teal (hue 189), and the unlit
+  stream stayed 1.4-1.5x brighter than the grass. The grade now works with a luminance-preserving
+  three-point colour ramp per phase (shadow, mid, highlight colours) plus a gain: grass holds
+  75-80% of its daytime luma through sunset and turns rose-orange (hue 26), then rose (17), then
+  blue-violet at night (233); whites and strongly saturated signal colours (danger ring, gate
+  beacon) are left out of the ramp. The sunset key is salmon rather than orange. The stream
+  mirrors the sky (horizon colour by dusk, moonlit sky at night) at its own brightness and dims
+  with the light on flat ground (sky fill plus key times its elevation, relative to golden hour),
+  so it stays about as bright as the grass beside it.
+- 2026-09-25 (M2 critic r13): characters get a rim light in their shader (faint warm by day,
+  silver by moonlight) so sheep, Pip and wolves stand off the ground at night.
+- 2026-09-25 (M2 critic r13): snatches use one number everywhere: seconds until the sheep is lost
+  (`Sim.dragEta`), in the banner and the inset. `Sim.rescueEta` estimates Pip's time to barking
+  range (sprint while stamina lasts, then walk, plus a second to wade); if he cannot make it the
+  hint says "Too far to save it in time: keep the rest of the flock together" instead of asking
+  for the impossible (with hysteresis so the advice does not flicker). Drags slow down the further
+  Pip is (to 55% beyond 85 m). Wolves are announced when they start stalking (a wolf after Pip's
+  own flock only once it is in view); a dragging wolf is pulled into the frame from up to 52 m.
+  The wolf cam opens at mid-height on the side of the screen the threat is on.
+- 2026-09-25 (M2 critic r13): camera lowered and narrowed (fov 34, offset 0/36/32, about 48
+  degrees): less lean on trees at the edges, a three-quarter view of the animals, the same ground
+  in view. Pip starts facing the nearest flock. Faded trees use alpha-to-coverage on the 4x MSAA
+  target instead of a Bayer screen door (it read as a checkerboard). Counter reads "need 13 to
+  win" and "3 sheep to spare"; the start objective toast is gone (the counter says it); the gate
+  beacon is labelled "Enter: latch the gate"; the minimap dims at night; the wolf tip needs a wolf
+  on screen.
+- 2026-09-25 (M2 critic r14): recolouring the grass itself read as mud (rose phase) and a flat
+  filter (night). The light now carries the colour and the grade only splits it: a strong key
+  against a lower, cooler sky fill (real contrast, frame luma P5-P95 spread 72-83 instead of 60);
+  a golden-peach sunset key so lit grass stays gold (hue 57, not brown 32); the grade replaces the
+  colour of the darkest tones with violet (sunset) or blue (night) and of the brightest with peach
+  or silver, at each pixel's own brightness, leaving midtones alone; the whole-frame ramp is only
+  strong at night. Night is a strong cool-white moon over a dim fill (dark shadows, moonlit tops)
+  and the fold lantern is bright enough to pool. Signal colours are judged before grading (chroma
+  above ~0.5) and skip it; the wolves' danger ring and outline are pushed above white in the HDR
+  target so they stay hot red-orange at night.
+- 2026-09-25 (M2 critic r14): Pip's reach ring is a hairline (`thin_ring`) at about half the
+  opacity. The gold ground ring at the gate is gone (Enter works from anywhere): the fold marker
+  moves to the gatepost and reads "Enter: latch the gate". The ford is drawn in the water shader
+  as pale turquoise shallows over gravel with ripples running across, and the minimap labels
+  FORD and BRIDGE. The sun bar carries a sun (then a moon) at the end of the fill: the sky the
+  herding camera cannot show.
