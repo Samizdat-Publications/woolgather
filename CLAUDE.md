@@ -535,3 +535,21 @@ Newest at the bottom. Record every non-obvious choice.
   says the rest); the gatepost label waits until the latch banner has shrunk to its chip; the
   minimap fades over the farmhouse; the results card sits on the left, opaque, with the fold and
   its flock framed beside it.
+- 2026-09-25 (M2 critic r24, one major: the wolves came out in the day's brightest gold and the
+  ground never turned rose): the sun now drops behind the western ridge at the red notch, over
+  15 s around the wolves' arrival (a visible event: a lower, pinker, dimmer key light, longer
+  shadows from a lower sun angle, darker pines), and the rose holds until 40 s before nightfall
+  (the violet twilight was 75 s). The valley floor takes the rose light itself: its colour turns
+  at its own brightness towards dusty rose ('#d4aab4', 58%, the path 22%), so the pink sun makes
+  rose instead of khaki-brown, while grass tufts, bushes, trees, rocks, sheep and water keep
+  their own colours; the shade goes violet. Measured at the bridge: grass rose 359-349, shade
+  violet 319-327, water lilac, frame mean saturation 0.40-0.45. The golden hour's shade is cooler
+  (it sheds half its olive before the blue), hill shading darkens far slopes only a little (strong
+  darkening read as dirt with nothing casting it), the ford's edge is soft and the glints finer.
+- 2026-09-25 (M2 critic r24): sheep are drawn at 1.9x (a flock, not cotton balls beside the dog)
+  and Pip at 2.2x; the wolf is tawny grey-brown with buff (never white) markings, longer legs and
+  a low head, so it cannot be taken for the black and white collie; a snatched sheep is dragged
+  on the ground beside the wolf's shoulder. The wolf-cam inset is for snatches only and always in
+  one place, under the counter at the top left (its arrow and distance point the way). The
+  minimap is 240x192 with bigger labels and dots, and only goes see-through while Pip or a loose
+  sheep is under it (never for the fold or the farmhouse).

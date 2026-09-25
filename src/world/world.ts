@@ -23,6 +23,10 @@ function groundLight(m: MoodValues) {
 const GOLDEN_GROUND = groundLight(sampleMood(0, createMoodValues()));
 /** Terrain colour tint, shared by the ground and path shaders (set from the mood each frame). */
 const GROUND_TINT = { value: new THREE.Color(1, 1, 1) };
+/** Dusty rose the valley floor turns towards in the sunset, and how far (the path goes less far). */
+const ROSE = { value: new THREE.Color('#d4aab4') };
+const ROSE_AMT = { value: 0 };
+const ROSE_AMT_PATH = { value: 0 };
 /** Direction the hill shading is lit from (the sun, then the moon), level with the horizon. */
 const HILL_DIR = { value: new THREE.Vector3(-1, 0, 0) };
 const LAVENDER = new THREE.Color('#c8b4e8');
@@ -177,7 +181,7 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         // The ford: pale turquoise shallows over a gravel bed, with ripples running across, so it
         // reads as a place a flock can wade (the rest of the stream stays deep).
         float fd = length(vWorld - uFord.xy) / uFord.z;
-        float shallow = 1.0 - smoothstep(0.8, 1.3, fd);
+        float shallow = (1.0 - smoothstep(0.55, 1.45, fd)) * (0.75 + 0.25 * vnoise(vWorld * 0.9));
         float gravel = vnoise(vWorld * 3.1) * 0.6 + vnoise(vWorld * 7.3 + 3.0) * 0.4;
         vec3 bed = mix(vec3(0.16, 0.38, 0.36), vec3(0.34, 0.5, 0.42), gravel);
         float ripple = smoothstep(0.6, 0.95, sin(vWorld.y * 2.6 + vWorld.x * 0.8 - uTime * 2.2) * 0.5 + 0.5);
@@ -187,12 +191,12 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         // near the banks, the deep middle keeping some of its own dark colour, so it still reads as
         // water (a flat mirror read as a painted road).
         float sheen = vnoise(vec2(vUv.x * 1.6 - uTime * 0.18, vUv.y * 4.0)) * 0.6 + vnoise(vec2(vUv.x * 4.5 - uTime * 0.3, vUv.y * 9.0) + 3.0) * 0.4;
-        float refl = uReflect * (0.35 + 0.65 * smoothstep(0.1, 0.85, across)) * (0.55 + 0.45 * smoothstep(0.3, 0.75, sheen));
+        float refl = uReflect * (0.2 + 0.8 * smoothstep(0.2, 0.9, across)) * (0.5 + 0.5 * smoothstep(0.3, 0.75, sheen));
         col = mix(col, uTint * 0.95, refl);
         // Thin glints streaking downstream: noise stretched along the flow, fine across it.
         vec2 p = vec2(vUv.x * 3.0 - uTime * 0.55, vUv.y * 11.0);
         float n = vnoise(p) * 0.6 + vnoise(p * vec2(2.1, 1.7) + 7.0) * 0.4;
-        float glint = smoothstep(0.74, 0.86, n) * (1.0 - smoothstep(0.7, 0.95, across)) * 0.8;
+        float glint = smoothstep(0.8, 0.9, n) * (1.0 - smoothstep(0.6, 0.9, across)) * 0.7;
         // Foam only as a thin line where the water meets the bank.
         col = mix(col, uFoam, smoothstep(0.9, 0.99, across) * 0.25);
         // Unlit water has to follow the light on the valley floor or it glows at dusk; the sky's
@@ -279,7 +283,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   const ground = a.terrain;
   ground.receiveShadow = true;
   const tinted: THREE.MeshLambertMaterial[] = [];
-  const tint = (o: THREE.Object3D, smooth: boolean) => {
+  const tint = (o: THREE.Object3D, smooth: boolean, path = false) => {
     const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | undefined;
     if (!m || !m.isMeshLambertMaterial || tinted.includes(m)) return;
     tinted.push(m);
@@ -287,21 +291,25 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
     m.onBeforeCompile = (shader) => {
       shader.uniforms.uGround = GROUND_TINT;
       shader.uniforms.uHillDir = HILL_DIR;
+      shader.uniforms.uRose = ROSE;
+      shader.uniforms.uRoseAmt = path ? ROSE_AMT_PATH : ROSE_AMT;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying vec3 vWorldN;')
         .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvWorldN = normalize(mat3(modelMatrix) * objectNormal);');
       shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform vec3 uGround;\nuniform vec3 uHillDir;\nvarying vec3 vWorldN;')
+        .replace('#include <common>', '#include <common>\nuniform vec3 uGround;\nuniform vec3 uHillDir;\nuniform vec3 uRose;\nuniform float uRoseAmt;\nvarying vec3 vWorldN;')
         .replace(
           '#include <color_fragment>',
           `#include <color_fragment>
           diffuseColor.rgb *= uGround;
+          float lum = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+          diffuseColor.rgb = mix(diffuseColor.rgb, uRose * (lum / dot(uRose, vec3(0.2126, 0.7152, 0.0722))), uRoseAmt);
           vec3 hl = normalize(uHillDir * 0.8 + vec3(0.0, 0.6, 0.0));
           float hs = dot(normalize(vWorldN), hl) - hl.y;
-          diffuseColor.rgb *= clamp(1.0 + 1.3 * hs, 0.6, 1.35);`,
+          diffuseColor.rgb *= clamp(1.0 + (hs > 0.0 ? 1.1 : 0.45) * hs, 0.84, 1.3);`,
         );
     };
-    m.customProgramCacheKey = () => (smooth ? 'wg-ground-smooth' : 'wg-ground');
+    m.customProgramCacheKey = () => (smooth ? 'wg-ground-smooth' : path ? 'wg-ground-path' : 'wg-ground');
     m.needsUpdate = true;
   };
   ground.traverse((o) => tint(o, true));
@@ -309,7 +317,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   a.path.traverse((o) => {
     o.castShadow = false;
     o.receiveShadow = true;
-    tint(o, false);
+    tint(o, false, true);
   });
   root.add(a.path);
 
@@ -564,9 +572,13 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   wu.uLight.value = 0.9 * Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
   wu.uGlint.value = 0.2 + 0.12 * mood.night;
   GROUND_TINT.value.copy(mood.ground);
+  // Rose from the moment the sun drops behind the ridge, easing off into the violet twilight.
+  const rose = Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.5 * Math.min(1, Math.max(0, (mood.t - 0.62) / 0.26)));
+  ROSE_AMT.value = 0.58 * rose;
+  ROSE_AMT_PATH.value = 0.22 * rose;
   HILL_DIR.value.set(mood.keyDir.x, 0, mood.keyDir.z).normalize();
   wu.uTint.value.copy(mood.skyHorizon).lerp(LAVENDER, 0.5).lerp(INDIGO, mood.night);
-  wu.uReflect.value = 0.7 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.6 * mood.night);
+  wu.uReflect.value = 0.55 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.6 * mood.night);
   // From sunset the stream mirrors the sky: rose, then lilac, then the moonlit indigo.
   wu.uTintAmt.value = 0.06 + 0.42 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
   const su = w.sky.material.uniforms;

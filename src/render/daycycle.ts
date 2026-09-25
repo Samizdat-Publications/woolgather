@@ -41,8 +41,8 @@ const KEYS: Mood[] = [
   { t: 0.25, elev: 15, azim: 252, keyColor: '#ffc684', keyIntensity: 4.0, hemiSky: '#a6b4e6', hemiGround: '#74814c', hemiIntensity: 1.0, fog: '#f2cc98', fogNear: 78, fogFar: 250, skyTop: '#6f8cc4', skyHorizon: '#fbb878', sunGlow: '#ffd08a', exposure: 1.12, night: 0, shadow: 0.58, ground: '#fff6ea' },
   // Sunset, when the wolves come out: a low pink-coral sun under a rose sky with a lavender fill;
   // the grass turns gold under it and the pink falls on the fleece, stone and water.
-  { t: 0.45, elev: 10, azim: 259, keyColor: '#ffc4a8', keyIntensity: 4.4, hemiSky: '#8a6cd8', hemiGround: '#5c5070', hemiIntensity: 1.0, fog: '#e79a8c', fogNear: 72, fogFar: 240, skyTop: '#565c9e', skyHorizon: '#ff8f8a', sunGlow: '#ff9460', exposure: 1.14, night: 0.1, shadow: 0.55, ground: '#fff2e6' },
-  { t: 0.6, elev: 6, azim: 264, keyColor: '#ffbca8', keyIntensity: 3.9, hemiSky: '#8666d4', hemiGround: '#58506c', hemiIntensity: 1.0, fog: '#c890a4', fogNear: 66, fogFar: 232, skyTop: '#474a90', skyHorizon: '#e87c96', sunGlow: '#ff7860', exposure: 1.12, night: 0.2, shadow: 0.55, ground: '#fff0ea' },
+  { t: 0.45, elev: 10, azim: 259, keyColor: '#ffbcac', keyIntensity: 3.9, hemiSky: '#9072d8', hemiGround: '#5c5070', hemiIntensity: 0.95, fog: '#e79a8c', fogNear: 72, fogFar: 240, skyTop: '#565c9e', skyHorizon: '#ff8f8a', sunGlow: '#ff9460', exposure: 1.12, night: 0.1, shadow: 0.6, ground: '#fff2e6' },
+  { t: 0.6, elev: 6, azim: 264, keyColor: '#ffb2b0', keyIntensity: 3.5, hemiSky: '#8c6cd4', hemiGround: '#58506c', hemiIntensity: 1.0, fog: '#c890a4', fogNear: 66, fogFar: 232, skyTop: '#474a90', skyHorizon: '#e87c96', sunGlow: '#ff7860', exposure: 1.1, night: 0.2, shadow: 0.6, ground: '#fff0ea' },
   // The sun drops below the hills as the last 75 seconds begin; the key light is almost off while
   // sun and moon swap, so shadows never visibly swing.
   { t: 0.628, elev: 2, azim: 267, keyColor: '#e890a8', keyIntensity: 0.05, hemiSky: '#a890cc', hemiGround: '#564e66', hemiIntensity: 1.35, fog: '#a07aa0', fogNear: 62, fogFar: 224, skyTop: '#383c84', skyHorizon: '#d0708a', sunGlow: '#e8788e', exposure: 1.12, night: 0.28, shadow: 0.4, ground: '#faeef6' },
@@ -62,19 +62,20 @@ const KEYS: Mood[] = [
 const SUNSET = 0.45;
 /** Mood at the end of the golden hour, just before the sun drops. */
 const GOLDEN = 0.3;
-/** Seconds the gold takes to turn to rose: from just before the wolves come out until their
- * first minute is nearly over. */
-const TURN_BEFORE = 15;
-const TURN_AFTER = 45;
-/** Seconds before nightfall when the deep dusk begins, and when night itself starts falling. */
-const DUSK_SECONDS = 75;
+/** Seconds the sun takes to drop behind the western ridge, around the moment the wolves come
+ * out (the red notch on the sun bar): a visible event, not a slow drift. */
+const TURN_BEFORE = 5;
+const TURN_AFTER = 10;
+/** Seconds before nightfall when the violet twilight begins, and when night itself starts falling:
+ * the rose holds for most of the wolves' time. */
+const DUSK_SECONDS = 40;
 const NIGHTFALL_SECONDS = 3;
 
 /**
  * Map day progress to mood progress, whatever the difficulty's wolf start time and day length:
- * golden light until the wolves are due, a quick visible drop into sunset as they come out, a
- * long rose afterglow, a deep rose-violet dusk for the last 75 seconds, and night proper only in
- * the final seconds, at nightfall.
+ * golden light until the wolves are due, the sun dropping behind the ridge as they come out, a
+ * long rose sunset, a violet twilight for the last 40 seconds, and night proper only in the final
+ * seconds, at nightfall.
  */
 export function moodTime(t: number, wolfStart: number, dayLength = 300) {
   t = clamp(t, 0, 1);

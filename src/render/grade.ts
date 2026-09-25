@@ -11,7 +11,7 @@ import { clamp } from '../game/math';
 // way towards the phase's colour for its tone (shadows, midtones, highlights) along the colour
 // wheel, with the chroma eased towards the phase's own:
 //   gold      untouched grass, cool blue shadows, cream highlights
-//   sunset    green-olive grass under a rose-gold sun, magenta-violet shade, pink whites
+//   sunset    rose light on the valley floor, violet shade, pink whites, materials apart
 //   twilight  colour fading from the ground: mauve in the moonlight, indigo in the shade
 //   night     violet-indigo ground and shadows, silver moonlit tops, warm windows
 // Strongly saturated signal colours (the wolves' danger ring and outline, Pip's marker, lamp
@@ -72,13 +72,14 @@ interface GradeKey {
 
 const KEYS: GradeKey[] = [
   // Golden hour: the lights carry it; the grade only cools the shadows and creams the whites.
-  { t: 0.0, sat: 0.8, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.8, spare: 0.55, warm: 0, shadow: [255, 0.06, 0.3], mid: [100, 0.11, 0], high: [75, 0.05, 0.2], protect: 0.2, gain: 1.0, contrast: 1.38, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.24, vignette: 0.16 },
-  { t: 0.3, sat: 0.82, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.75, spare: 0.55, warm: 0, shadow: [262, 0.06, 0.35], mid: [85, 0.11, 0.1], high: [65, 0.06, 0.25], protect: 0.2, gain: 1.02, contrast: 1.38, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.26, vignette: 0.18 },
-  // Sunset, as the wolves come out: light, not paint. The grass stays a warm green-olive under
-  // the rose-gold sun; the magenta-violet goes into the shade and the sky light; the pink is on
-  // the fleece, stone and path, the water mirrors the rose and lavender sky.
-  { t: 0.45, sat: 0.95, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.3, spare: 0.6, warm: 0, shadow: [312, 0.075, 0.6], mid: [98, 0.1, 0.16], high: [20, 0.05, 0.4], protect: 0.17, gain: 1.06, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.2 },
-  { t: 0.6, sat: 0.95, zones: [0.32, 0.48, 0.68, 0.84], greyKeep: 1, shadeKeep: 0.28, spare: 0.6, warm: 0, shadow: [316, 0.075, 0.62], mid: [92, 0.1, 0.18], high: [10, 0.05, 0.45], protect: 0.16, gain: 1.06, contrast: 1.3, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.24 },
+  { t: 0.0, sat: 0.8, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.5, spare: 0.55, warm: 0, shadow: [262, 0.06, 0.45], mid: [100, 0.11, 0], high: [75, 0.05, 0.2], protect: 0.2, gain: 1.0, contrast: 1.38, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.24, vignette: 0.16 },
+  { t: 0.3, sat: 0.82, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.5, spare: 0.55, warm: 0, shadow: [268, 0.065, 0.48], mid: [85, 0.11, 0.1], high: [65, 0.06, 0.25], protect: 0.2, gain: 1.02, contrast: 1.38, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.26, vignette: 0.18 },
+  // Sunset, as the wolves come out: the sun behind the western ridge, the valley floor in rose
+  // light (world.ts turns it at its own brightness so the pink sun makes rose, not khaki) with the
+  // grass tufts, trees, rocks and water keeping their own colours; the shade violet, the whites
+  // pink, the stream mirroring the sky.
+  { t: 0.45, sat: 0.95, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.3, spare: 0.6, warm: 0, shadow: [298, 0.08, 0.64], mid: [15, 0.06, 0.1], high: [12, 0.045, 0.35], protect: 0.17, gain: 1.14, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.2 },
+  { t: 0.6, sat: 0.95, zones: [0.32, 0.48, 0.68, 0.84], greyKeep: 1, shadeKeep: 0.28, spare: 0.6, warm: 0, shadow: [300, 0.08, 0.66], mid: [10, 0.06, 0.12], high: [6, 0.045, 0.4], protect: 0.16, gain: 1.12, contrast: 1.3, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.24 },
   // Twilight under the rising moon, closing in: the ground's own colour fades (as it does to the
   // eye in low light), moonlit ground mauve, shade indigo, silver tops; the frame darkens.
   { t: 0.74, sat: 0.45, zones: [0.3, 0.44, 0.62, 0.8], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.4, warm: 0.8, shadow: [308, 0.11, 0.75], mid: [324, 0.09, 0.72], high: [300, 0.035, 0.45], protect: 0.13, gain: 0.98, contrast: 1.36, pivot: 0.24, haze: '#b87ab0', hazeAmt: 0.26, vignette: 0.32 },

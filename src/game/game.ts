@@ -273,12 +273,6 @@ export class Game {
         if (this.dragFeasible === false) continue;
         rank = 3;
         text = 'Snatch!';
-      } else if (w.state === 'charge') {
-        rank = 2;
-        text = 'Wolf charging!';
-      } else if (Math.hypot(w.x - s.x, w.z - s.z) < 16) {
-        rank = 1;
-        text = 'Wolf stalking';
       }
       if (rank && (!best || rank > best.rank)) best = { x: w.x, z: w.z, text, rank, id: w.id, heading: w.facing };
     }
@@ -296,11 +290,10 @@ export class Game {
   private insetWolf = -1;
 
   /**
-   * Where the wolf-cam inset docks for a threat at (x, z) off screen: on the screen edge the
-   * threat lies beyond, level with where the line from the middle of the screen towards it
-   * crosses that edge, between the HUD panels, and slid along the edge until it covers neither Pip,
-   * the sheep near him nor the fold gate. Returns the frame's top-left and the threat's (off
-   * screen) position for the arrow.
+   * Where the wolf-cam inset goes for a snatch at (x, z) off screen: always the same place, under
+   * the counter at the top left, so the eye knows where to look (its arrow points the way); it only
+   * slides down the edge while Pip or the sheep near him would be under it. Returns the frame's
+   * top-left and the threat's (off screen) position for the arrow.
    */
   private insetDock(sim: Sim, x: number, z: number) {
     const w = window.innerWidth;
@@ -313,17 +306,9 @@ export class Game {
       const ny = behind ? -tmpV.y : tmpV.y;
       return { x: ((nx + 1) / 2) * w, y: ((1 - ny) / 2) * h, behind };
     };
-    const t = toScreen(x, z);
-    const left = t.x < w / 2;
-    const dx = left ? INSET.margin : w - INSET.margin - INSET.w;
-    const colX = dx + INSET.w / 2;
-    const cx = w / 2;
-    const cy = h / 2;
-    const yc = Math.abs(t.x - cx) > 1 ? cy + ((t.y - cy) * (colX - cx)) / (t.x - cx) : t.y < cy ? 0 : h;
-    // Free band on that edge: under the counter (left) or the minimap (right), above the meters.
-    const top = left ? 124 : 196;
+    const dx = INSET.margin;
+    const top = 124;
     const bottom = h - 84 - INSET.h;
-    const clampY = (y: number) => Math.max(top, Math.min(bottom, y));
     const keep: { x: number; y: number }[] = [];
     const d = sim.dog;
     const add = (px: number, pz: number) => {
@@ -335,27 +320,11 @@ export class Game {
       if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed') continue;
       if ((s.x - d.x) ** 2 + (s.z - d.z) ** 2 < 30 * 30) add(s.x, s.z);
     }
-    const f = this.level.fold;
-    add(f.minX, f.cz);
     const pad = 26;
     const blocked = (y: number) => keep.some((p) => p.x > dx - pad && p.x < dx + INSET.w + pad && p.y > y - pad && p.y < y + INSET.h + pad);
-    let y = clampY(yc - INSET.h / 2);
-    // Stay where the frame already is if that is still clear, so it does not wander.
-    const prev = this.wolfCam.visible && Math.abs(this.wolfCam.rect.x - dx) < 1 ? this.wolfCam.rect.y : null;
-    if (prev !== null && !blocked(prev) && Math.abs(prev - y) < 140) y = prev;
-    else if (blocked(y)) {
-      for (let off = 20; off < h; off += 20) {
-        if (y - off >= top && !blocked(y - off)) {
-          y -= off;
-          break;
-        }
-        if (y + off <= bottom && !blocked(y + off)) {
-          y += off;
-          break;
-        }
-      }
-    }
-    return { x: dx, y, point: t };
+    let y = top;
+    for (let off = 0; off <= bottom - top && blocked(y); off += 20) y = top + off;
+    return { x: dx, y: Math.min(bottom, y), point: toScreen(x, z) };
   }
 
   /**
@@ -575,10 +544,10 @@ export class Game {
       const py = ((1 - tmpV.y) / 2) * h;
       return px > r.left - 24 && px < r.right + 24 && py > r.top - 24 && py < r.bottom + 24;
     };
-    const f = this.level.fold;
-    const farm = this.level.farmhouse;
-    if (under(f.cx, f.cz) || under(f.minX, f.cz) || under(sim.dog.x, sim.dog.z) || (farm && under(farm.x, farm.z))) return true;
-    return sim.sheep.some((s) => s.state !== 'lost' && under(s.x, s.z));
+    // Only an animal under the map makes it see-through: the fold and the farmhouse may sit under
+    // it (that is where the map gets read), people need to see Pip and the sheep.
+    if (under(sim.dog.x, sim.dog.z)) return true;
+    return sim.sheep.some((s) => s.state !== 'lost' && s.state !== 'folded' && under(s.x, s.z));
   }
 
   /** Screen positions (CSS pixels) of Pip, the loose sheep and the hunting wolves in view. */

@@ -55,8 +55,6 @@ export class Level {
   readonly trees: TreeDef[] = [];
   readonly stream: Pt[] = valley.stream.points as unknown as Pt[];
   readonly streamHalf = valley.stream.halfWidth;
-  /** Centre of the farmhouse (for keeping HUD panels off it). */
-  farmhouse: { x: number; z: number } | null = null;
   readonly dens: Pt[] = valley.wolfDens as unknown as Pt[];
 
   // Fold interior (x/z extents), gate line and a point just outside the gate for AI and the bot.
@@ -135,7 +133,6 @@ export class Level {
     }
 
     const fh = valley.farmhouse;
-    this.farmhouse = { x: fh.center[0], z: fh.center[1] };
     this.rects.push({
       minX: fh.center[0] - fh.halfW,
       maxX: fh.center[0] + fh.halfW,

@@ -909,9 +909,10 @@ export class Sim {
         // The sheep struggles for a moment before the wolf gets it moving: time for Pip to react.
         speed = this.dragSpeedFor(w) * clamp((w.stateT - 0.4) / 1.2, 0.2, 1);
         const s = w.target;
-        // The sheep hangs crosswise from the wolf's jaws, just behind its nose.
-        s.x = w.x + Math.sin(w.facing) * 1.6;
-        s.z = w.z + Math.cos(w.facing) * 1.6;
+        // The sheep is dragged crosswise by the scruff, its whole body on the ground beside the
+        // wolf's shoulder, so the snatch reads as a drag (it was lost under the wolf's head).
+        s.x = w.x + Math.sin(w.facing) * 1.9 + Math.cos(w.facing) * 1.5;
+        s.z = w.z + Math.cos(w.facing) * 1.9 - Math.sin(w.facing) * 1.5;
         s.vx = w.vx;
         s.vz = w.vz;
         s.facing = w.facing + Math.PI * 0.5;

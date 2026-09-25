@@ -307,3 +307,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Nightfall: the lantern and the farmhouse windows](m2-assets-r24-late-night.png)
 *Nightfall: the lantern and the farmhouse windows*
 
+
+## m2-assets-r25 (2026-09-25)
+
+![Golden hour with the bigger flock and the larger minimap](m2-assets-r25-herding.png)
+*Golden hour with the bigger flock and the larger minimap*
+
+![The sun drops behind the ridge as the wolves come out: rose light on the valley floor](m2-assets-r25-wolf.png)
+*The sun drops behind the ridge as the wolves come out: rose light on the valley floor*
+
+![The rose sunset holds: violet shade, the flock and bushes in their own colours](m2-assets-r25-late-sunset.png)
+*The rose sunset holds: violet shade, the flock and bushes in their own colours*
+
+![The last 40 seconds: violet twilight closing in](m2-assets-r25-late-dusk.png)
+*The last 40 seconds: violet twilight closing in*
+

@@ -9,7 +9,7 @@ import type { Terrain } from './terrain';
 // procedural animation can move them (milestone 3 adds the full motion).
 
 // Characters are drawn larger than life so they read from the herding camera's height.
-export const SCALE = { dog: 2.5, sheep: 1.42, wolf: 2.0 };
+export const SCALE = { dog: 2.2, sheep: 1.9, wolf: 2.0 };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
 
 /**
@@ -337,8 +337,9 @@ export class Actors {
       r.root.visible = s.state !== 'lost';
       if (!r.root.visible) return;
       const grabbed = s.state === 'grabbed';
-      r.root.position.set(s.x, h(s.x, s.z) + (grabbed ? 0.3 : 0), s.z);
-      r.root.rotation.set(0, s.facing, grabbed ? 0.5 : 0);
+      // A snatched sheep is dragged along the ground beside the wolf, tipped a little on its side.
+      r.root.position.set(s.x, h(s.x, s.z) + (grabbed ? 0.05 : 0), s.z);
+      r.root.rotation.set(0, s.facing, grabbed ? 0.28 : 0);
       if (r.head) r.head.rotation.x = s.state === 'graze' ? 0.75 : s.fear > 0.3 ? -0.15 : 0;
     });
 

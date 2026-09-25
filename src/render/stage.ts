@@ -184,8 +184,9 @@ export class Stage {
     // a real low sun laid tree shadows across the whole valley in near-black stripes and barely
     // lit flat ground. The sky still shows the true low sun; the light just stays playable.
     const kd = this.mood.keyDir;
-    // Relaxed through the dusk (down to 15 degrees) for the long, light shadows of the last minute.
-    const minElev = THREE.MathUtils.degToRad(26 - 11 * Math.min(1, Math.max(0, (this.mood.t - 0.6) / 0.14)));
+    // Lower once the sun drops behind the ridge (long sunset shadows), lower still in the dusk.
+    const tm = this.mood.t;
+    const minElev = THREE.MathUtils.degToRad(26 - 6 * Math.min(1, Math.max(0, (tm - 0.3) / 0.15)) - 5 * Math.min(1, Math.max(0, (tm - 0.6) / 0.14)));
     const elev = Math.max(Math.asin(Math.min(1, Math.max(-1, kd.y))), minElev);
     const horiz = Math.hypot(kd.x, kd.z) || 1;
     const dx = (kd.x / horiz) * Math.cos(elev);

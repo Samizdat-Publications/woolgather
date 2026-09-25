@@ -18,7 +18,7 @@ export class Minimap {
     this.canvas.className = 'minimap';
     this.ctx = this.canvas.getContext('2d')!;
     this.base = document.createElement('canvas');
-    this.resize(180, 144);
+    this.resize(240, 192);
   }
 
   resize(w: number, h: number) {
@@ -106,7 +106,7 @@ export class Minimap {
     }
     // Region names (the end card refers to these), set beside the grazing spots rather than on
     // them so the sheep dots never print over the words.
-    c.font = '600 9px system-ui, sans-serif';
+    c.font = '700 11.5px system-ui, sans-serif';
     c.textAlign = 'center';
     c.lineWidth = 2.5;
     c.strokeStyle = 'rgba(30, 36, 26, 0.7)';
@@ -157,7 +157,7 @@ export class Minimap {
       if (s.state === 'lost') continue;
       const grabbed = s.state === 'grabbed';
       c.beginPath();
-      c.arc(this.px(s.x), this.pz(s.z), grabbed ? 3.6 + Math.sin(time * 12) : s.state === 'folded' ? 2.2 : 3.1, 0, Math.PI * 2);
+      c.arc(this.px(s.x), this.pz(s.z), grabbed ? 4.6 + Math.sin(time * 12) : s.state === 'folded' ? 2.8 : 4, 0, Math.PI * 2);
       c.fillStyle = grabbed ? '#ff6b4a' : s.state === 'folded' ? '#f4e6c0' : '#ffffff';
       c.fill();
       c.lineWidth = 1.3;
@@ -168,7 +168,7 @@ export class Minimap {
     for (const w of sim.wolves) {
       if (w.state === 'gone') continue;
       c.beginPath();
-      c.arc(this.px(w.x), this.pz(w.z), 3.4, 0, Math.PI * 2);
+      c.arc(this.px(w.x), this.pz(w.z), 4.6, 0, Math.PI * 2);
       c.fillStyle = '#e0503c';
       c.fill();
       c.lineWidth = 1.6;
@@ -181,6 +181,7 @@ export class Minimap {
     c.save();
     c.translate(dx, dz);
     c.rotate(-d.facing + Math.PI);
+    c.scale(1.35, 1.35);
     c.beginPath();
     c.moveTo(0, -5.5);
     c.lineTo(4, 4);

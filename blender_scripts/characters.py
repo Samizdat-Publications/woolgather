@@ -120,16 +120,15 @@ def sheep():
 
 
 def wolf():
-    # Built to read from the herding camera, i.e. from above, at 40-60 px: a charcoal coat (darker
-    # than the rose and the violet ground alike) with a pale grey saddle, so the back shows a light
-    # patch in a dark body; a white muzzle and cheek mask that set the head apart; big upright
-    # ears; a thick brush of a tail in one colour; and legs splayed out from under a low, wide,
-    # skulking body, so four legs show from above.
+    # Built to read from the herding camera, i.e. from above, at 40-60 px: a tawny grey-brown coat
+    # with a grizzled saddle and buff (never white) muzzle, cheeks and legs, so it cannot be taken
+    # for the black and white collie; big upright ears; a thick brush of a tail in one colour; long
+    # legs splayed out from under the body, so four legs show from above; the head carried low.
     # (Earlier versions read as a foal, a dark smudge, a pale tube head-on and a hooded figure.)
-    grey = W.mat("wolf_grey", "#3c414c", 0.9)
-    light = W.mat("wolf_light", "#e6e2da", 0.9)
-    dark = W.mat("wolf_dark", "#2c3039", 0.85)
-    saddle = W.mat("wolf_saddle", "#8f949d", 0.9)
+    grey = W.mat("wolf_grey", "#6c6257", 0.9)
+    light = W.mat("wolf_light", "#b8a488", 0.9)
+    dark = W.mat("wolf_dark", "#433c36", 0.85)
+    saddle = W.mat("wolf_saddle", "#8c8072", 0.9)
     nose = W.mat("wolf_nose", "#111114", 0.5)
     glow = W.mat("wolf_eyes", "#ffc045", 0.4, emit="#ffb030", emit_strength=4.0)
 
@@ -144,7 +143,7 @@ def wolf():
     b.jitter(v, 0.02, seed=53)
     v = b.sphere(saddle, loc=(0, 0.14, 0.16), scale=(0.25, 0.52, 0.12), seg=8, rings=5)  # grizzled grey saddle
     b.jitter(v, 0.015, seed=55)
-    body = b.finish(parent=root, pivot=(0, 0, 0.56))
+    body = b.finish(parent=root, pivot=(0, 0, 0.62))
 
     h = W.Part("head")
     v = h.sphere(grey, loc=(0, -0.08, 0.03), scale=(0.22, 0.25, 0.19), seg=8, rings=6)
@@ -156,7 +155,7 @@ def wolf():
         # White cheek mask: a pale patch each side of the face, readable from above.
         v = h.ico(light, loc=(0.15 * sx, -0.12, -0.02), radius=0.1, scale=(0.9, 1.3, 0.8))
         h.jitter(v, 0.01, seed=56 + (sx > 0))
-    head = h.finish(parent=body, pivot=(0, -0.78, 0.16))
+    head = h.finish(parent=body, pivot=(0, -0.8, 0.06))
 
     eyes = W.Part("eyes")
     for sx in (1, -1):
@@ -182,9 +181,9 @@ def wolf():
     # four legs show from above. Pale lower legs catch the light.
     for sx, sy, name in ((1, -1, "leg_fl"), (-1, -1, "leg_fr"), (1, 1, "leg_bl"), (-1, 1, "leg_br")):
         L = W.Part(name)
-        L.limb(grey, (0, 0, 0.04), (0.1 * sx, 0, -0.24), 0.085, 0.06, seg=6)
-        L.limb(light, (0.1 * sx, 0, -0.24), (0.16 * sx, -0.02, -0.44), 0.06, 0.048, seg=6)
-        L.ico(dark, loc=(0.17 * sx, -0.05, -0.45), radius=0.065, scale=(1, 1.35, 0.55))
+        L.limb(grey, (0, 0, 0.04), (0.1 * sx, 0, -0.27), 0.085, 0.06, seg=6)
+        L.limb(light, (0.1 * sx, 0, -0.27), (0.16 * sx, -0.02, -0.5), 0.06, 0.048, seg=6)
+        L.ico(dark, loc=(0.17 * sx, -0.05, -0.51), radius=0.065, scale=(1, 1.35, 0.55))
         L.finish(parent=body, pivot=(0.24 * sx, 0.46 * sy if sy > 0 else -0.42, -0.1))
     return root
 
