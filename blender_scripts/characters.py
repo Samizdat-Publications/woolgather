@@ -125,10 +125,10 @@ def wolf():
     # a bushy tail carried low. Cool grey coat (lighter than the collie's blue-black), a pale grey
     # face and belly (not white), no ruff. (Earlier versions read as a foal, a dark smudge, a pale
     # tube, a hooded figure, a collie, a fox and, with a big faceted ruff, a boar.)
-    grey = W.mat("wolf_grey", "#6b717b", 0.9)
-    light = W.mat("wolf_light", "#c4c2bc", 0.9)
-    dark = W.mat("wolf_dark", "#454a53", 0.85)
-    saddle = W.mat("wolf_saddle", "#565b64", 0.9)
+    grey = W.mat("wolf_grey", "#8d8780", 0.9)
+    light = W.mat("wolf_light", "#d2cabd", 0.9)
+    dark = W.mat("wolf_dark", "#57524d", 0.85)
+    saddle = W.mat("wolf_saddle", "#6e6862", 0.9)
     nose = W.mat("wolf_nose", "#111114", 0.5)
     glow = W.mat("wolf_eyes", "#ffc045", 0.4, emit="#ffb030", emit_strength=4.0)
 

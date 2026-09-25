@@ -35,9 +35,9 @@ export const DIFFICULTIES: Record<Difficulty, DifficultyPreset> = {
     id: 'standard',
     label: 'Standard',
     blurb: 'The way the old shepherds tell it.',
-    dayLength: 450,
+    dayLength: 360,
     targetMissing: 3,
-    wolfStart: 0.36,
+    wolfStart: 0.33,
     maxWolves: 2,
     wolfRespawn: [16, 22],
     wolfSpeedScale: 1,
@@ -57,7 +57,7 @@ export const DIFFICULTIES: Record<Difficulty, DifficultyPreset> = {
 };
 
 export const DOG = {
-  radius: 0.55,
+  radius: 0.8,
   walkSpeed: 7.6,
   sprintSpeed: 12.5,
   creepSpeed: 3.0,
@@ -101,7 +101,7 @@ export const SHEEP = {
 };
 
 export const WOLF = {
-  radius: 0.7,
+  radius: 0.9,
   stalkSpeed: 4.6,
   chargeSpeed: 10.5,
   // Slow enough that Pip can reach a snatch from across the valley (sprint 12.5 m/s).

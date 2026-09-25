@@ -516,7 +516,8 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   // Warm light from the lanterns at the fold gate once dusk falls: the gate is the brightest,
   // warmest thing in the valley at night.
   const lanternLights = [lantern, lantern2].map((l) => {
-    const light = new THREE.PointLight(0xffc766, 0, 20, 1.5);
+    // Warm yellow-amber with a physical fall-off that fades to nothing (no painted disc).
+    const light = new THREE.PointLight(0xffc15a, 0, 26, 2);
     const lampPos = new THREE.Vector3();
     l.updateMatrixWorld(true);
     (l.getObjectByName('lantern_light') ?? l).getWorldPosition(lampPos);
@@ -588,7 +589,7 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   for (const m of w.glowMaterials) m.emissiveIntensity = 0.2 + 3.2 * mood.night;
   for (const m of w.stoneMaterials) m.emissiveIntensity = 0.75 * mood.night;
   // The fold lanterns are the warm lights at night: lit from the twilight, pooling on the grass.
-  for (const l of w.lanternLights) l.intensity = 30 * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
+  for (const l of w.lanternLights) l.intensity = 60 * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
 
   // Trees standing between the camera and anything that matters fade to a dither.
   const k = 1 - Math.exp(-6 * dt);

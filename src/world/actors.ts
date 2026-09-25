@@ -345,7 +345,7 @@ export class Actors {
     });
 
     for (const m of this.eyeMats) m.emissiveIntensity = 0.6 + 3.5 * night;
-    this.glowMat.opacity = 0.25 + 0.75 * night;
+    this.glowMat.opacity = Math.min(1, 0.45 + 0.9 * night);
 
     const seen = new Set<number>();
     for (const w of sim.wolves) {

@@ -191,6 +191,13 @@ export class Ui {
     $('.hud-map', this.root).classList.toggle('faded', on);
   }
 
+  /** Take a message down (showing or waiting) if it is still the given text. */
+  dropToast(text: string) {
+    if (this.toastText === text) this.toastT = 0;
+    this.toastQueue = this.toastQueue.filter((q) => q.text !== text);
+    this.renderToast();
+  }
+
   /** Drop a showing or waiting info toast (e.g. the day's objective once the target is met). */
   dropInfoToast() {
     if (this.toastKind === 'info') this.toastT = 0;

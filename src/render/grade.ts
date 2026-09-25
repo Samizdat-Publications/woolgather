@@ -78,15 +78,15 @@ const KEYS: GradeKey[] = [
   // stays green, cooler and duller as the sun sinks (apricot, then rose, over a cool sky fill);
   // the shade turns blue-violet, well apart in hue from the warm light; the pink is on the
   // fleece, stone and path; the haze and the stream carry the sky's rose.
-  { t: 0.45, sat: 0.9, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.35, spare: 0.6, warm: 0, shadow: [276, 0.08, 0.6], mid: [95, 0.1, 0], high: [10, 0.045, 0.35], protect: 0.17, gain: 1.1, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.2 },
-  { t: 0.6, sat: 0.85, zones: [0.32, 0.48, 0.68, 0.84], greyKeep: 1, shadeKeep: 0.35, spare: 0.6, warm: 0, shadow: [280, 0.08, 0.62], mid: [100, 0.1, 0], high: [4, 0.045, 0.4], protect: 0.16, gain: 1.08, contrast: 1.3, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.24 },
+  { t: 0.45, sat: 0.9, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.35, spare: 0.6, warm: 0, shadow: [292, 0.08, 0.66], mid: [95, 0.1, 0], high: [10, 0.045, 0.35], protect: 0.17, gain: 1.1, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.2 },
+  { t: 0.6, sat: 0.85, zones: [0.32, 0.48, 0.68, 0.84], greyKeep: 1, shadeKeep: 0.35, spare: 0.6, warm: 0, shadow: [296, 0.08, 0.68], mid: [100, 0.1, 0], high: [4, 0.045, 0.4], protect: 0.16, gain: 1.08, contrast: 1.3, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.24 },
   // Twilight under the rising moon, closing in: the colour drains from the ground (as it does to
   // the eye in low light) towards a cool blue-grey, the shade violet, the moonlit tops silver, and
   // the frame darker every second.
-  { t: 0.74, sat: 0.5, zones: [0.3, 0.44, 0.62, 0.8], greyKeep: 0.6, shadeKeep: 0.35, spare: 0.4, warm: 0.8, shadow: [302, 0.085, 0.7], mid: [300, 0.055, 0.58], high: [280, 0.03, 0.4], protect: 0.13, gain: 1.04, contrast: 1.32, pivot: 0.26, haze: '#b87ab0', hazeAmt: 0.24, vignette: 0.32 },
-  { t: 0.88, sat: 0.45, zones: [0.26, 0.4, 0.58, 0.78], greyKeep: 0.5, shadeKeep: 0.35, spare: 0.3, warm: 1, shadow: [298, 0.085, 0.72], mid: [296, 0.055, 0.62], high: [275, 0.03, 0.4], protect: 0.12, gain: 0.98, contrast: 1.34, pivot: 0.22, haze: '#7a5aa4', hazeAmt: 0.2, vignette: 0.38 },
+  { t: 0.74, sat: 0.5, zones: [0.3, 0.44, 0.62, 0.8], greyKeep: 0.6, shadeKeep: 0.35, spare: 0.4, warm: 0.8, shadow: [302, 0.085, 0.7], mid: [304, 0.065, 0.6], high: [285, 0.03, 0.4], protect: 0.13, gain: 1.04, contrast: 1.32, pivot: 0.26, haze: '#b87ab0', hazeAmt: 0.24, vignette: 0.32 },
+  { t: 0.88, sat: 0.45, zones: [0.26, 0.4, 0.58, 0.78], greyKeep: 0.5, shadeKeep: 0.35, spare: 0.3, warm: 1, shadow: [298, 0.085, 0.72], mid: [302, 0.065, 0.64], high: [282, 0.03, 0.4], protect: 0.12, gain: 0.98, contrast: 1.34, pivot: 0.22, haze: '#7a5aa4', hazeAmt: 0.2, vignette: 0.38 },
   // Night: blue-silver moonlight on the ground, violet-indigo shade, the lamps and windows warm.
-  { t: 1.0, sat: 0.4, zones: [0.24, 0.38, 0.56, 0.76], greyKeep: 0.4, shadeKeep: 0.35, spare: 0.2, warm: 1, shadow: [294, 0.085, 0.74], mid: [290, 0.055, 0.64], high: [268, 0.03, 0.4], protect: 0.11, gain: 0.92, contrast: 1.36, pivot: 0.2, haze: '#383c80', hazeAmt: 0.16, vignette: 0.44 },
+  { t: 1.0, sat: 0.4, zones: [0.24, 0.38, 0.56, 0.76], greyKeep: 0.4, shadeKeep: 0.35, spare: 0.2, warm: 1, shadow: [294, 0.085, 0.74], mid: [298, 0.065, 0.66], high: [278, 0.03, 0.4], protect: 0.11, gain: 0.92, contrast: 1.36, pivot: 0.2, haze: '#383c80', hazeAmt: 0.16, vignette: 0.44 },
 ];
 
 /** Display-space (sRGB) components of a hex colour. */
@@ -241,7 +241,7 @@ export class GradePass {
             // Signal colours keep their own; the animals keep most of theirs, so they stand out
             // from the ground by colour as well as by outline.
             // Lamp light after sunset: orange-yellow hues (OKLCH about 40-100 degrees) with some colour.
-            float lamp = uWarm * smoothstep(0.035, 0.07, chroma) * (1.0 - smoothstep(0.45, 0.8, abs(atan(sin(hue - 1.22), cos(hue - 1.22)))));
+            float lamp = uWarm * smoothstep(0.015, 0.09, chroma) * (1.0 - smoothstep(0.45, 0.8, abs(atan(sin(hue - 1.22), cos(hue - 1.22)))));
             ab = mix(ab, lab.yz, max(max(smoothstep(uProtect, uProtect + 0.05, chroma), character * 0.7), lamp));
             c = clamp(fromOklab(vec3(lab.x, ab)), 0.0, 1.0);
           }

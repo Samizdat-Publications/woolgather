@@ -184,10 +184,10 @@ export class Stage {
     // a real low sun laid tree shadows across the whole valley in near-black stripes and barely
     // lit flat ground. The sky still shows the true low sun; the light just stays playable.
     const kd = this.mood.keyDir;
-    // Lower once the sun drops behind the ridge (long sunset shadows); the moon that takes over in
-    // the twilight rides high, so walls never throw the fold into black.
+    // The moon that takes over in the twilight rides high, so walls never throw the fold into
+    // black; the sun's light never drops below 26 degrees (lower, every far slope was a dark pool).
     const tm = this.mood.t;
-    const minElev = THREE.MathUtils.degToRad(tm >= SUN_MOON_SWAP ? 38 : 26 - 6 * Math.min(1, Math.max(0, (tm - 0.3) / 0.15)));
+    const minElev = THREE.MathUtils.degToRad(tm >= SUN_MOON_SWAP ? 38 : 26);
     const elev = Math.max(Math.asin(Math.min(1, Math.max(-1, kd.y))), minElev);
     const horiz = Math.hypot(kd.x, kd.z) || 1;
     const dx = (kd.x / horiz) * Math.cos(elev);

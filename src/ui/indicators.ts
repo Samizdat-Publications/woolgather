@@ -86,7 +86,8 @@ export class Indicators {
       const behind = v.z > 1;
       let nx = behind ? -v.x : v.x;
       let ny = behind ? -v.y : v.y;
-      const onScreen = !behind && Math.abs(nx) < 0.92 && ny > -0.8 && ny < 0.66;
+      const inFrame = !behind && Math.abs(nx) < 1 && Math.abs(ny) < 1;
+      const onScreen = inFrame && Math.abs(nx) < 0.92 && ny > -0.8 && ny < 0.66;
       const label = e.querySelector('.ind-label') as HTMLElement;
       if (onScreen) {
         if (m.labelOnScreen) {
@@ -103,8 +104,20 @@ export class Indicators {
         e.hidden = true;
         continue;
       }
+      if (inFrame && m.kind !== 'fold') {
+        // Partly hidden under the HUD: the icon floats beside it (above it at the bottom, below
+        // it at the top), with no arrow, so it never covers the animal.
+        e.hidden = false;
+        e.classList.add('beside');
+        e.classList.remove('on-screen');
+        label.textContent = '';
+        const px = Math.min(w - 30, Math.max(30, ((nx + 1) / 2) * w));
+        const py = ((1 - ny) / 2) * h + (ny < 0 ? -58 : 58);
+        e.style.transform = `translate(${px}px, ${Math.min(h - 30, Math.max(30, py))}px)`;
+        continue;
+      }
       e.hidden = false;
-      e.classList.remove('on-screen');
+      e.classList.remove('on-screen', 'beside');
       label.textContent = '';
       // Push the point onto the screen edge along the ray from the centre.
       const ang = Math.atan2(-ny, nx);

@@ -591,3 +591,17 @@ Newest at the bottom. Record every non-obvious choice.
   map draws its labels over the moving dots; anything under the top or bottom HUD band gets an
   edge marker; markers drop below the minimap's real panel; the inset's arrow slides past its
   label.
+- 2026-09-25 (M2 critic r27, one major: the wolves never read as animals in the main view, the
+  red marker sitting on one at the bottom edge): markers now have three cases. Off screen: an
+  edge marker. In the frame but under a HUD band (the timer and banners at the top, the meters
+  and hints at the bottom): a small icon beside the animal (above it at the bottom, below it at
+  the top), never over its body. In the clear: nothing, its own ring and outline show it. A
+  stalking warning is taken down if its wolf stops stalking before the message ends. The wolf's
+  coat is a lighter, warmer grey-brown (clearly lighter than the dusk ground) with a pale face
+  and belly, and its eyes shine from the sunset on.
+- 2026-09-25 (M2 critic r27): the sunset keeps the sun's light at 26 degrees or higher (lower, every
+  far slope became a dark pool), a pinker key and much more lavender sky fill, violet shade; the
+  lanterns are warm yellow-amber with a physical fall-off (they painted pink discs), and the grade
+  keeps lamp light warm with a soft edge; the moonlight has a violet cast. Standard is now a
+  six-minute evening as pitched (two minutes of calm, four of wolves); Pip and the wolves collide
+  at their drawn size (Pip clipped the bridge rails); the loss card's title fits on one line.

@@ -352,3 +352,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Nightfall: blue-violet moonlight, darker, the lamps warm](m2-assets-r27-late-night.png)
 *Nightfall: blue-violet moonlight, darker, the lamps warm*
 
+
+## m2-assets-r28 (2026-09-25)
+
+![A stalking wolf under the counter gets its icon beside it, not on it](m2-assets-r28-wolf.png)
+*A stalking wolf under the counter gets its icon beside it, not on it*
+
+![The snatch close-up: the grey-brown wolf with the sheep in its jaws](m2-assets-r28-snatch.png)
+*The snatch close-up: the grey-brown wolf with the sheep in its jaws*
+
+![The gate lanterns glow warm and soft as the last minute starts](m2-assets-r28-late-dusk.png)
+*The gate lanterns glow warm and soft as the last minute starts*
+
+![Nightfall in blue-violet moonlight](m2-assets-r28-late-night.png)
+*Nightfall in blue-violet moonlight*
+

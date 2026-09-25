@@ -135,6 +135,7 @@ export class Game {
     this.warnedAt.clear();
     this.tipsShown.clear();
     this.stalkWarned.clear();
+    this.stalkToast = null;
     this.dragFeasible = null;
     this.ui.prompt(null);
     // The counter states the target; the first tip is about moving.
@@ -535,6 +536,8 @@ export class Game {
   private lossNoted = false;
   /** Wolves already announced as stalking. */
   private stalkWarned = new Set<number>();
+  /** The stalking warning on show, and whose it is. */
+  private stalkToast: { id: number; text: string } | null = null;
 
   /** Is the fold, Pip or a loose sheep under the minimap? Then it fades so they show through. */
   private behindMap(sim: Sim) {
@@ -663,7 +666,17 @@ export class Game {
       const nearPip = Math.hypot(s.x - d.x, s.z - d.z) < 26;
       if (nearPip ? !visible : Math.hypot(w.x - s.x, w.z - s.z) > 20) continue;
       this.stalkWarned.add(w.id);
-      this.ui.toast(nearPip ? `A wolf is stalking your flock! ${this.arrowTo(w.x, w.z)}` : `A wolf is stalking the sheep ${this.level.placeName(s.x, s.z)}! ${this.arrowTo(w.x, w.z)}`, 'warn');
+      const text = nearPip ? `A wolf is stalking your flock! ${this.arrowTo(w.x, w.z)}` : `A wolf is stalking the sheep ${this.level.placeName(s.x, s.z)}! ${this.arrowTo(w.x, w.z)}`;
+      this.ui.toast(text, 'warn');
+      this.stalkToast = { id: w.id, text };
+    }
+    if (this.stalkToast) {
+      const st = this.stalkToast;
+      const w = sim.wolves.find((o) => o.id === st.id);
+      if (!w || (w.state !== 'stalk' && w.state !== 'charge')) {
+        this.ui.dropToast(st.text);
+        this.stalkToast = null;
+      }
     }
     const wasGlowing = this.gateGlow;
     this.gateGlow = sim.targetMet && sim.free > 0 && !grabbed;

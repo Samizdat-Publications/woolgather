@@ -73,7 +73,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1622; col
 .end-screen, .pause-screen, .howto-screen { background: rgba(20, 16, 26, 0.3); }
 /* The results sit on the left, solid, so the fold and the flock inside it stay in view beside them. */
 .end-screen { align-items: flex-start; padding-left: max(24px, 5vw); background: linear-gradient(90deg, rgba(20, 16, 26, 0.45), rgba(20, 16, 26, 0) 60%); }
-.end-screen .card { background: rgb(28, 21, 36); max-width: min(560px, 90vw); }
+.end-screen .card { background: rgb(28, 21, 36); max-width: min(600px, 90vw); text-align: center; }
+.end-screen .end-title { font-size: 40px; white-space: nowrap; }
 /* The title shot of the valley stays visible: only the middle, behind the words, is darkened. */
 .title-screen { background: radial-gradient(ellipse 60% 55% at 50% 48%, rgba(20, 16, 26, 0.5), rgba(20, 16, 26, 0.05) 100%); }
 .screen h1 { font-size: 72px; margin: 0; }
@@ -103,6 +104,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1622; col
 .ind-wolf .ind-icon svg, .ind-grab .ind-icon svg { transform: rotate(-45deg); }
 .ind-label { position: absolute; left: 50%; top: -44px; transform: translateX(-50%); white-space: nowrap; font-weight: 700; text-shadow: 0 1px 3px #000; }
 .ind.on-screen .ind-arrow, .ind.on-screen .ind-icon { display: none; }
+.ind.beside .ind-arrow { display: none; }
 .ind-fold { color: var(--gold); }
 .ind-grab { color: #ff3b2a; animation: pulse 0.6s ease-in-out infinite alternate; }
 .ind-wolf { color: #ff5a3c; }
