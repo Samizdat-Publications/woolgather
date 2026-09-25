@@ -208,7 +208,8 @@ export class Game {
     if (sim) {
       mood = this.stage.applyMood(moodTime(sim.t, sim.preset.wolfStart, sim.preset.dayLength));
       this.actors.sync(sim, this.mode === 'paused' ? 0 : rawDt, mood, this.mode === 'playing');
-      this.ui.update(sim, this.mode === 'paused' ? 0 : rawDt, this.clock);
+      // Messages and the close-up run on game time (the same as real time outside tests).
+      this.ui.update(sim, this.mode === 'paused' ? 0 : dt, this.clock);
       this.ui.minimap.setMood(mood.t);
       if (this.mode === 'ended' && sim.outcome?.kind === 'win') {
         // Look at the fold while the gate closes, with the fold to the right of the results card.
@@ -237,7 +238,7 @@ export class Game {
     }
     else this.indicators.clear();
     if (sim && this.mode === 'playing') this.trackSnatch(sim, dt);
-    if (this.mode === 'playing' || this.mode === 'paused') this.wolfCam.update(this.mode === 'paused' ? 0 : rawDt);
+    if (this.mode === 'playing' || this.mode === 'paused') this.wolfCam.update(this.mode === 'paused' ? 0 : dt);
     else this.wolfCam.hide();
     hudState.insetVisible = this.wolfCam.visible;
     hudState.insetRect = this.wolfCam.rect;
@@ -390,6 +391,8 @@ export class Game {
       const reach = w.state === 'drag' ? 52 : 40;
       if ((w.x - d.x) ** 2 + (w.z - d.z) ** 2 > reach * reach) continue;
       growEss(w.x, w.z);
+      growEss(w.x - 5, w.z - 6);
+      growEss(w.x + 5, w.z + 3);
       // A stalking or charging wolf brings its prey into the frame too, so the player can see
       // which sheep it is after and where to cut in.
       if (w.target && (w.state === 'stalk' || w.state === 'charge') && (w.target.x - w.x) ** 2 + (w.target.z - w.z) ** 2 < 30 * 30) growEss(w.target.x, w.target.z);
@@ -611,6 +614,7 @@ export class Game {
     for (const s of [60, 30]) {
       if (sim.timeLeft <= s && !this.warnedAt.has(s)) {
         this.warnedAt.add(s);
+        if (sim.timeLeft < s - 4) continue;
         const what = sim.targetMet ? 'latch the gate or bring the rest in!' : `${Math.max(0, sim.target - sim.folded)} more sheep needed!`;
         this.ui.toast(s === 60 ? `One minute until nightfall: ${what}` : `Night falls in 30 seconds: ${what}`, 'danger');
       }

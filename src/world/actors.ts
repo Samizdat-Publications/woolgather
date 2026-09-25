@@ -9,7 +9,7 @@ import type { Terrain } from './terrain';
 // procedural animation can move them (milestone 3 adds the full motion).
 
 // Characters are drawn larger than life so they read from the herding camera's height.
-export const SCALE = { dog: 2.2, sheep: 1.9, wolf: 2.3 };
+export const SCALE = { dog: 2.4, sheep: 1.9, wolf: 2.3 };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
 
 /**

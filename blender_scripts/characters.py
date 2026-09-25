@@ -62,12 +62,12 @@ def collie():
         e = W.Part(name)
         e.limb(black, (0, 0, 0), (0.025 * sx, 0.0, 0.1), 0.05, 0.022, seg=5)
         e.limb(black, (0.025 * sx, 0.0, 0.1), (0.035 * sx, -0.055, 0.115), 0.022, 0.006, seg=5)
-        e.finish(parent=head, pivot=(0.085 * sx, -0.05, 0.17))
+        e.finish(parent=head, pivot=(0.11 * sx, -0.05, 0.17))
 
     t = W.Part("tail")
-    t.limb(black, (0, 0, 0), (0, 0.24, -0.16), 0.065, 0.06, seg=7)
-    t.limb(black, (0, 0.24, -0.16), (0, 0.36, -0.28), 0.06, 0.05, seg=7)
-    v = t.ico(white, loc=(0, 0.4, -0.32), radius=0.08, scale=(1, 1.6, 1))  # white tip
+    t.limb(black, (0, 0, 0), (0, 0.3, -0.16), 0.07, 0.065, seg=7)
+    t.limb(black, (0, 0.3, -0.16), (0, 0.48, -0.28), 0.065, 0.055, seg=7)
+    v = t.ico(white, loc=(0, 0.53, -0.32), radius=0.085, scale=(1, 1.7, 1))  # white tip
     t.jitter(v, 0.008, seed=5)
     t.finish(parent=body, pivot=(0, 0.45, 0.06))
 

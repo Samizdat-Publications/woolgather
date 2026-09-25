@@ -616,3 +616,13 @@ Newest at the bottom. Record every non-obvious choice.
   rows and swallowed stretches of it); lamp light keeps its warmth out to the pool's edge; sheep
   keep 2.4 m apart and vary a little in size; Pip's white glows a little after dark; the wolf is a
   touch heavier in the chest with a lower head and shorter legs and ears.
+- 2026-09-25 (M2 critic r29: no blockers, no majors for the first time since r13; five minors):
+  nightfall warnings only show while they are true (a clock that jumps past one skips it);
+  messages and the wolf-cam close-up run on game time (the 40x test run left both on screen long
+  after their moment); a hunting wolf is framed with ground to spare round it, off the corners
+  where the counter and minimap sit; the ground's bounce light is lighter, so the shaded faces of
+  trees, bushes and rocks are no darker than the shadows they cast; night has a lower sky fill
+  and crisper moon shadows; lamps are amber-orange and the grade keeps only orange-yellow lamp
+  light warm (lime grass under them was kept too); the stream has a deeper centre, lighter
+  shallows and a thin bright waterline, and no glints by day (a white stripe, then specks); Pip
+  is drawn at 2.4x with wider-set ears and a longer white-tipped tail.

@@ -382,3 +382,15 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![The last seconds at the fold, lamps warm to the edge](m2-assets-r29-late-night.png)
 *The last seconds at the fold, lamps warm to the edge*
 
+
+## m2-assets-r30 (2026-09-25)
+
+![Sunset drama: a snatch beside Pip while a second wolf stalks the flock at the bridge](m2-assets-r30-sunset.png)
+*Sunset drama: a snatch beside Pip while a second wolf stalks the flock at the bridge*
+
+![Night: the close-up keeps the wolf and its sheep in shot, the banner points the way](m2-assets-r30-night.png)
+*Night: the close-up keeps the wolf and its sheep in shot, the banner points the way*
+
+![The last seconds: amber lanterns, moonlit fold](m2-assets-r30-late-night.png)
+*The last seconds: amber lanterns, moonlit fold*
+

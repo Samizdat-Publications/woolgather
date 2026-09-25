@@ -133,8 +133,8 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
       {
         uTime: { value: 0 },
         // Deep teal, darker than the grass on its banks in every light.
-        uDeep: { value: new THREE.Color('#1d4f5c') },
-        uShallow: { value: new THREE.Color('#2e6a76') },
+        uDeep: { value: new THREE.Color('#164660') },
+        uShallow: { value: new THREE.Color('#3c7c88') },
         uSky: { value: new THREE.Color('#e8d6b0') },
         uFoam: { value: new THREE.Color('#eef6f8') },
         uLight: { value: 1 },
@@ -196,7 +196,7 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         float n = vnoise(p) * 0.6 + vnoise(p * vec2(2.1, 1.7) + 7.0) * 0.4;
         float glint = smoothstep(0.8, 0.9, n) * (1.0 - smoothstep(0.6, 0.9, across)) * 0.7;
         // Foam only as a thin line where the water meets the bank.
-        col = mix(col, uFoam, smoothstep(0.9, 0.99, across) * 0.25);
+        col = mix(col, uFoam, smoothstep(0.93, 0.995, across) * 0.55);
         // Unlit water has to follow the light on the valley floor or it glows at dusk; the sky's
         // sparkle on the ripples stays bright in every light (moonlit glints at night).
         col *= uLight;
@@ -523,7 +523,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   // warmest thing in the valley at night.
   const lanternLights = [lantern, lantern2].map((l) => {
     // Warm yellow-amber with a physical fall-off that fades to nothing (no painted disc).
-    const light = new THREE.PointLight(0xffc15a, 0, 26, 2);
+    const light = new THREE.PointLight(0xffa24a, 0, 26, 2);
     const lampPos = new THREE.Vector3();
     l.updateMatrixWorld(true);
     (l.getObjectByName('lantern_light') ?? l).getWorldPosition(lampPos);
@@ -577,11 +577,11 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   // Water brightness follows the light falling on flat ground, relative to golden hour; its tint
   // is the sky it reflects: the horizon's gold and rose, then the moonlit sky.
   wu.uLight.value = 0.9 * Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
-  wu.uGlint.value = 0.1 + 0.2 * mood.night;
+  wu.uGlint.value = 0.24 * mood.night;
   GROUND_TINT.value.copy(mood.ground);
   HILL_DIR.value.set(mood.keyDir.x, 0, mood.keyDir.z).normalize();
   wu.uTint.value.copy(mood.skyHorizon).lerp(LAVENDER, 0.65).lerp(INDIGO, mood.night);
-  wu.uReflect.value = 0.24 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.6 * mood.night);
+  wu.uReflect.value = 0.16 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.6 * mood.night);
   // From sunset the stream mirrors the sky: rose, then lilac, then the moonlit indigo.
   wu.uTintAmt.value = 0.06 + 0.42 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
   const su = w.sky.material.uniforms;
@@ -595,7 +595,7 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   for (const m of w.glowMaterials) m.emissiveIntensity = 0.2 + 3.2 * mood.night;
   for (const m of w.stoneMaterials) m.emissiveIntensity = 0.75 * mood.night;
   // The fold lanterns are the warm lights at night: lit from the twilight, pooling on the grass.
-  for (const l of w.lanternLights) l.intensity = 60 * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
+  for (const l of w.lanternLights) l.intensity = 45 * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
 
   // Trees standing between the camera and anything that matters fade to a dither.
   const k = 1 - Math.exp(-6 * dt);
