@@ -180,7 +180,7 @@ export class Ui {
     this.renderToast();
   }
 
-  /** Screen rectangle of the minimap panel. */
+  /** Screen rectangle of the minimap panel (null while the HUD is hidden). */
   mapRect() {
     const el = $('.hud-map', this.root);
     return el.offsetParent ? el.getBoundingClientRect() : null;

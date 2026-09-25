@@ -337,3 +337,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![The last seconds: moonlit lavender twilight, a lamp on each gatepost](m2-assets-r26-late-night.png)
 *The last seconds: moonlit lavender twilight, a lamp on each gatepost*
 
+
+## m2-assets-r27 (2026-09-25)
+
+![Sunset told by the light: green grass under warm sun, blue-violet shade](m2-assets-r27-late-sunset.png)
+*Sunset told by the light: green grass under warm sun, blue-violet shade*
+
+![A snatch named after the minimap's own places, the map pulsing there](m2-assets-r27-snatch.png)
+*A snatch named after the minimap's own places, the map pulsing there*
+
+![A minute to go: the gate lanterns lit, the charging wolf in frame](m2-assets-r27-late-dusk.png)
+*A minute to go: the gate lanterns lit, the charging wolf in frame*
+
+![Nightfall: blue-violet moonlight, darker, the lamps warm](m2-assets-r27-late-night.png)
+*Nightfall: blue-violet moonlight, darker, the lamps warm*
+

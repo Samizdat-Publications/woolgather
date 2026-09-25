@@ -31,13 +31,16 @@ export const MARKER_ICONS: Record<MarkerKind, string> = {
   note: '',
 };
 
-/** Set while the wolf-cam inset is up, and where it is. */
-export const hudState: { insetVisible: boolean; insetRect: ScreenRect | null } = { insetVisible: false, insetRect: null };
+/** Set while the wolf-cam inset is up, and where it is; and where the minimap panel is. */
+export const hudState: { insetVisible: boolean; insetRect: ScreenRect | null; mapRect: DOMRect | null } = { insetVisible: false, insetRect: null, mapRect: null };
 
 // Screen regions taken by HUD panels (top-left counts, top-right minimap, the timer and message
 // banner across the top middle, the wolf-cam inset), in CSS pixels.
 function avoidHud(px: number, py: number, w: number): [number, number] {
-  if (px > w - 250 && py < 215) py = 230;
+  const m = hudState.mapRect;
+  // Under the minimap panel: drop below it, clear of its edge.
+  if (m && px > m.left - 30 && py < m.bottom + 22) py = m.bottom + 36;
+  else if (!m && px > w - 250 && py < 215) py = 230;
   if (px < 190 && py < 135) py = 150;
   // The timer and banner across the top middle: slide along the edge past them rather than
   // dropping into the field, where a marker reads as an object in the world.
@@ -83,7 +86,7 @@ export class Indicators {
       const behind = v.z > 1;
       let nx = behind ? -v.x : v.x;
       let ny = behind ? -v.y : v.y;
-      const onScreen = !behind && Math.abs(nx) < 0.94 && Math.abs(ny) < 0.9;
+      const onScreen = !behind && Math.abs(nx) < 0.92 && ny > -0.8 && ny < 0.66;
       const label = e.querySelector('.ind-label') as HTMLElement;
       if (onScreen) {
         if (m.labelOnScreen) {

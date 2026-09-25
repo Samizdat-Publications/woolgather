@@ -69,7 +69,12 @@ export class WolfCam {
     const c = Math.cos(ang);
     const s = Math.sin(ang);
     const t = Math.min(Math.abs(W / 2 / (c || 1e-4)), Math.abs(H / 2 / (s || 1e-4)));
-    this.arrow.style.transform = `translate(${W / 2 + c * (t + 12) - 14}px, ${H / 2 + s * (t + 12) - 14}px) rotate(${ang}rad)`;
+    let ax = W / 2 + c * (t + 12);
+    const ay = H / 2 + s * (t + 12);
+    // Never over the label at the top left: slide the arrow along the top edge past it.
+    const lw = this.label.offsetWidth + 22;
+    if (ay < 12 && ax < lw) ax = lw;
+    this.arrow.style.transform = `translate(${ax - 14}px, ${ay - 14}px) rotate(${ang}rad)`;
     this.active = true;
     this.linger = 1.4;
   }

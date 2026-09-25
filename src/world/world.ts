@@ -23,10 +23,6 @@ function groundLight(m: MoodValues) {
 const GOLDEN_GROUND = groundLight(sampleMood(0, createMoodValues()));
 /** Terrain colour tint, shared by the ground and path shaders (set from the mood each frame). */
 const GROUND_TINT = { value: new THREE.Color(1, 1, 1) };
-/** Dusty rose the valley floor turns towards in the sunset, and how far (the path goes less far). */
-const ROSE = { value: new THREE.Color('#d4aab4') };
-const ROSE_AMT = { value: 0 };
-const ROSE_AMT_PATH = { value: 0 };
 /** Direction the hill shading is lit from (the sun, then the moon), level with the horizon. */
 const HILL_DIR = { value: new THREE.Vector3(-1, 0, 0) };
 const LAVENDER = new THREE.Color('#c8b4e8');
@@ -283,7 +279,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   const ground = a.terrain;
   ground.receiveShadow = true;
   const tinted: THREE.MeshLambertMaterial[] = [];
-  const tint = (o: THREE.Object3D, smooth: boolean, path = false) => {
+  const tint = (o: THREE.Object3D, smooth: boolean) => {
     const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | undefined;
     if (!m || !m.isMeshLambertMaterial || tinted.includes(m)) return;
     tinted.push(m);
@@ -291,25 +287,21 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
     m.onBeforeCompile = (shader) => {
       shader.uniforms.uGround = GROUND_TINT;
       shader.uniforms.uHillDir = HILL_DIR;
-      shader.uniforms.uRose = ROSE;
-      shader.uniforms.uRoseAmt = path ? ROSE_AMT_PATH : ROSE_AMT;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying vec3 vWorldN;')
         .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvWorldN = normalize(mat3(modelMatrix) * objectNormal);');
       shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform vec3 uGround;\nuniform vec3 uHillDir;\nuniform vec3 uRose;\nuniform float uRoseAmt;\nvarying vec3 vWorldN;')
+        .replace('#include <common>', '#include <common>\nuniform vec3 uGround;\nuniform vec3 uHillDir;\nvarying vec3 vWorldN;')
         .replace(
           '#include <color_fragment>',
           `#include <color_fragment>
           diffuseColor.rgb *= uGround;
-          float lum = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-          diffuseColor.rgb = mix(diffuseColor.rgb, uRose * (lum / dot(uRose, vec3(0.2126, 0.7152, 0.0722))), uRoseAmt);
           vec3 hl = normalize(uHillDir * 0.8 + vec3(0.0, 0.6, 0.0));
           float hs = dot(normalize(vWorldN), hl) - hl.y;
           diffuseColor.rgb *= clamp(1.0 + (hs > 0.0 ? 1.1 : 0.45) * hs, 0.84, 1.3);`,
         );
     };
-    m.customProgramCacheKey = () => (smooth ? 'wg-ground-smooth' : path ? 'wg-ground-path' : 'wg-ground');
+    m.customProgramCacheKey = () => (smooth ? 'wg-ground-smooth' : 'wg-ground');
     m.needsUpdate = true;
   };
   ground.traverse((o) => tint(o, true));
@@ -317,7 +309,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   a.path.traverse((o) => {
     o.castShadow = false;
     o.receiveShadow = true;
-    tint(o, false, true);
+    tint(o, false);
   });
   root.add(a.path);
 
@@ -580,13 +572,9 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   wu.uLight.value = 0.9 * Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
   wu.uGlint.value = 0.2 + 0.12 * mood.night;
   GROUND_TINT.value.copy(mood.ground);
-  // Rose from the moment the sun drops behind the ridge, easing off into the violet twilight.
-  const rose = Math.min(1, Math.max(0, (mood.t - 0.3) / 0.32)) * (1 - 0.5 * Math.min(1, Math.max(0, (mood.t - 0.62) / 0.26)));
-  ROSE_AMT.value = 0.52 * rose;
-  ROSE_AMT_PATH.value = 0.12 * rose;
   HILL_DIR.value.set(mood.keyDir.x, 0, mood.keyDir.z).normalize();
   wu.uTint.value.copy(mood.skyHorizon).lerp(LAVENDER, 0.65).lerp(INDIGO, mood.night);
-  wu.uReflect.value = 0.35 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.6 * mood.night);
+  wu.uReflect.value = 0.24 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.6 * mood.night);
   // From sunset the stream mirrors the sky: rose, then lilac, then the moonlit indigo.
   wu.uTintAmt.value = 0.06 + 0.42 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
   const su = w.sky.material.uniforms;

@@ -35,6 +35,17 @@ export interface TreeDef {
 
 const TRUNK_R: Record<TreeDef['kind'], number> = { pine: 0.75, oak: 1.05, birch: 0.45 };
 
+/** The valley's named places, as the minimap labels them and the banners speak of them. */
+export const PLACES: { name: string; phrase: string; x: number; z: number }[] = [
+  { name: 'FAR BANK', phrase: 'on the far bank', x: -74, z: 28 },
+  { name: 'GROVE', phrase: 'in the grove', x: 52, z: -52 },
+  { name: 'MEADOW', phrase: 'in the meadow', x: -8, z: 26 },
+  { name: 'ROCKS', phrase: 'by the rocks', x: 8, z: 58 },
+  { name: 'FARM', phrase: 'by the farm', x: 80, z: 8 },
+  { name: 'FORD', phrase: 'at the ford', x: -44, z: 52 },
+  { name: 'BRIDGE', phrase: 'by the bridge', x: -35, z: -11 },
+];
+
 export interface StreamHit {
   /** Distance from the stream centre line. */
   d: number;
@@ -156,12 +167,29 @@ export class Level {
    * Where in the valley a point is, in the words the minimap labels use ("in the grove"), so
    * warnings never depend on which way a compass word is measured.
    */
+  /**
+   * Where (x, z) is, in the words of the minimap's own labels, so a banner never names a place
+   * the map calls something else: at the bridge or the ford, by the fold, on the far bank (across
+   * the stream), or the nearest of the other labelled places.
+   */
   placeName(x: number, z: number) {
-    if (x < -44) return 'on the far bank';
-    if (z < -35) return 'in the grove';
-    if (z > 35) return x > 40 ? 'by the fold' : 'by the rocks';
-    if (x > 40) return 'by the farm';
-    return 'in the meadow';
+    const near = (p: { x: number; z: number }, r: number) => (x - p.x) ** 2 + (z - p.z) ** 2 < r * r;
+    const place = (name: string) => PLACES.find((p) => p.name === name)!;
+    if (near(place('BRIDGE'), 14)) return 'by the bridge';
+    if (near(place('FORD'), 13)) return 'at the ford';
+    if (this.inFold(x, z, -8)) return 'by the fold';
+    if (x < this.streamQuery(x, z).cx) return 'on the far bank';
+    let best = PLACES[0];
+    let bd = Infinity;
+    for (const p of PLACES) {
+      if (p.name === 'FAR BANK' || p.name === 'BRIDGE' || p.name === 'FORD') continue;
+      const d = (x - p.x) ** 2 + (z - p.z) ** 2;
+      if (d < bd) {
+        bd = d;
+        best = p;
+      }
+    }
+    return best.phrase;
   }
 
   inFold(x: number, z: number, margin = 0) {

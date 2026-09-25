@@ -96,7 +96,7 @@ def main():
         p5 = ys[int(len(ys) * 0.05)]
         p95 = ys[int(len(ys) * 0.95)]
         fmt = lambda t: f"{t[0]:4.0f} {t[1]:.3f} {t[2]:.2f}"
-        print(f"{n:8} {fmt(g):>17} {fmt(sh):>17} {fmt(p):>17} {fmt(w):>17} {w[1] / max(g[1], 1e-3):.2f} {p5:3.0f}-{p95:3.0f} ({p95 - p5:3.0f})  mean {mh * 360:4.0f} {ms:.2f} {mv:.2f}  mono {mono:.2f} rose {rosy:.2f}")
+        print(f"{n:8} {fmt(g):>17} {fmt(sh):>17} {fmt(p):>17} {fmt(w):>17} {w[1] / max(g[1], 1e-3):.2f} {p5:3.0f}-{p95:3.0f} ({p95 - p5:3.0f})  mean {mh * 360:4.0f} {ms:.2f} {mv:.2f}  mono {mono:.2f} rose {rosy:.2f}  Ymean {sum(ys) / len(ys):5.1f}")
 
 
 main()

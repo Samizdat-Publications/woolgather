@@ -574,3 +574,20 @@ Newest at the bottom. Record every non-obvious choice.
   arrow drawn over it; the snatch banner carries a direction arrow and the distance, the stalking
   toasts an arrow, and the snatch pulses on the minimap. Sheep collide at 1.05 m (their drawn
   size) and keep 3.1 m apart, so a bunch no longer melts into one lump.
+- 2026-09-25 (M2 critic r26, three majors: the ground recoloured in every phase and night
+  lighter than dusk, the wolf reading as a boar, alerts pointing at things not on screen): four
+  of the last five critics asked for the same thing, so the grass keeps its green (cooler and
+  duller as the light goes) and the evening is told by the light: an apricot then rose key over
+  a cool lavender-blue sky fill, blue-violet shade, the rose on the fleece, stone, path, haze and
+  stream; the rose repaint of the valley floor is gone. Brightness now falls steadily: mean luma
+  of the play area 110 at golden hour, 100 as the wolves come out, 86, 81, then 63 in the
+  twilight, 59, and 44 at night (the twilight had been brighter than the dusk). Twilight and
+  night are violet moonlight (the moon lavender-silver, the colour draining from the ground).
+- 2026-09-25 (M2 critic r26): the wolf's silhouette is a wolf's: lean and deep-chested, a long
+  narrow muzzle, two tall pointed ears, normal legs, a bushy tail carried low with a dark tip, a
+  cool grey coat with a pale grey face and belly, yellow eye-shine, and no ruff (the big faceted
+  ruff read as a boar). Banners name places with the minimap's own labels (by the bridge, at the
+  ford, by the fold, on the far bank, or the nearest of grove, meadow, rocks and farm), and the
+  map draws its labels over the moving dots; anything under the top or bottom HUD band gets an
+  edge marker; markers drop below the minimap's real panel; the inset's arrow slides past its
+  label.

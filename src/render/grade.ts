@@ -11,9 +11,9 @@ import { clamp } from '../game/math';
 // way towards the phase's colour for its tone (shadows, midtones, highlights) along the colour
 // wheel, with the chroma eased towards the phase's own:
 //   gold      untouched grass, cool blue shadows, cream highlights
-//   sunset    rose light on the valley floor, violet shade, pink whites, materials apart
-//   twilight  colour fading from the ground: mauve in the moonlight, indigo in the shade
-//   night     violet-indigo ground and shadows, silver moonlit tops, warm windows
+//   sunset    green grass under apricot then rose light, blue-violet shade, pink whites
+//   twilight  colour draining from the ground towards blue-grey, violet shade, silver tops
+//   night     blue-silver moonlit ground, violet-indigo shade, warm lamps and windows
 // Strongly saturated signal colours (the wolves' danger ring and outline, Pip's marker, lamp
 // light at night) are measured before any grading and keep their own colour, so a threat or a
 // lit window reads the same all evening, and the animals (marked in the target's alpha) keep
@@ -74,18 +74,19 @@ const KEYS: GradeKey[] = [
   // Golden hour: the lights carry it; the grade only cools the shadows and creams the whites.
   { t: 0.0, sat: 0.8, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.5, spare: 0.55, warm: 0, shadow: [262, 0.06, 0.45], mid: [100, 0.11, 0], high: [75, 0.05, 0.2], protect: 0.2, gain: 1.0, contrast: 1.38, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.24, vignette: 0.16 },
   { t: 0.3, sat: 0.82, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.5, spare: 0.55, warm: 0, shadow: [268, 0.065, 0.48], mid: [85, 0.11, 0.1], high: [65, 0.06, 0.25], protect: 0.2, gain: 1.02, contrast: 1.38, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.26, vignette: 0.18 },
-  // Sunset, as the wolves come out: the sun behind the western ridge, the valley floor in rose
-  // light (world.ts turns it at its own brightness so the pink sun makes rose, not khaki) with the
-  // grass tufts, trees, rocks and water keeping their own colours; the shade violet, the whites
-  // pink, the stream mirroring the sky.
-  { t: 0.45, sat: 0.95, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.22, spare: 0.6, warm: 0, shadow: [284, 0.085, 0.72], mid: [30, 0.06, 0.08], high: [12, 0.045, 0.35], protect: 0.17, gain: 1.2, contrast: 1.24, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.2 },
-  { t: 0.6, sat: 0.95, zones: [0.32, 0.48, 0.68, 0.84], greyKeep: 1, shadeKeep: 0.22, spare: 0.6, warm: 0, shadow: [286, 0.085, 0.74], mid: [14, 0.06, 0.1], high: [6, 0.045, 0.4], protect: 0.16, gain: 1.18, contrast: 1.24, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.24 },
-  // Twilight under the rising moon, closing in: the ground's own colour fades (as it does to the
-  // eye in low light), moonlit ground mauve, shade indigo, silver tops; the frame darkens.
-  { t: 0.74, sat: 0.45, zones: [0.3, 0.44, 0.62, 0.8], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.4, warm: 0.8, shadow: [308, 0.11, 0.75], mid: [324, 0.09, 0.72], high: [300, 0.035, 0.45], protect: 0.13, gain: 1.12, contrast: 1.36, pivot: 0.24, haze: '#b87ab0', hazeAmt: 0.26, vignette: 0.32 },
-  { t: 0.88, sat: 0.35, zones: [0.26, 0.4, 0.58, 0.78], greyKeep: 0.2, shadeKeep: 0.3, spare: 0.25, warm: 1, shadow: [302, 0.11, 0.76], mid: [312, 0.085, 0.74], high: [292, 0.03, 0.45], protect: 0.12, gain: 1.04, contrast: 1.36, pivot: 0.2, haze: '#7a5aa4', hazeAmt: 0.22, vignette: 0.38 },
-  // Night: violet-indigo ground, deeper indigo shade, silver moonlit tops, warm windows.
-  { t: 1.0, sat: 0.3, zones: [0.24, 0.38, 0.56, 0.76], greyKeep: 0.2, shadeKeep: 0.3, spare: 0.15, warm: 1, shadow: [296, 0.1, 0.78], mid: [304, 0.08, 0.76], high: [285, 0.03, 0.45], protect: 0.11, gain: 0.84, contrast: 1.36, pivot: 0.18, haze: '#383c80', hazeAmt: 0.18, vignette: 0.44 },
+  // Sunset, as the wolves come out: told by the light, not by repainting the ground. The grass
+  // stays green, cooler and duller as the sun sinks (apricot, then rose, over a cool sky fill);
+  // the shade turns blue-violet, well apart in hue from the warm light; the pink is on the
+  // fleece, stone and path; the haze and the stream carry the sky's rose.
+  { t: 0.45, sat: 0.9, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.35, spare: 0.6, warm: 0, shadow: [276, 0.08, 0.6], mid: [95, 0.1, 0], high: [10, 0.045, 0.35], protect: 0.17, gain: 1.1, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.2 },
+  { t: 0.6, sat: 0.85, zones: [0.32, 0.48, 0.68, 0.84], greyKeep: 1, shadeKeep: 0.35, spare: 0.6, warm: 0, shadow: [280, 0.08, 0.62], mid: [100, 0.1, 0], high: [4, 0.045, 0.4], protect: 0.16, gain: 1.08, contrast: 1.3, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.24 },
+  // Twilight under the rising moon, closing in: the colour drains from the ground (as it does to
+  // the eye in low light) towards a cool blue-grey, the shade violet, the moonlit tops silver, and
+  // the frame darker every second.
+  { t: 0.74, sat: 0.5, zones: [0.3, 0.44, 0.62, 0.8], greyKeep: 0.6, shadeKeep: 0.35, spare: 0.4, warm: 0.8, shadow: [302, 0.085, 0.7], mid: [300, 0.055, 0.58], high: [280, 0.03, 0.4], protect: 0.13, gain: 1.04, contrast: 1.32, pivot: 0.26, haze: '#b87ab0', hazeAmt: 0.24, vignette: 0.32 },
+  { t: 0.88, sat: 0.45, zones: [0.26, 0.4, 0.58, 0.78], greyKeep: 0.5, shadeKeep: 0.35, spare: 0.3, warm: 1, shadow: [298, 0.085, 0.72], mid: [296, 0.055, 0.62], high: [275, 0.03, 0.4], protect: 0.12, gain: 0.98, contrast: 1.34, pivot: 0.22, haze: '#7a5aa4', hazeAmt: 0.2, vignette: 0.38 },
+  // Night: blue-silver moonlight on the ground, violet-indigo shade, the lamps and windows warm.
+  { t: 1.0, sat: 0.4, zones: [0.24, 0.38, 0.56, 0.76], greyKeep: 0.4, shadeKeep: 0.35, spare: 0.2, warm: 1, shadow: [294, 0.085, 0.74], mid: [290, 0.055, 0.64], high: [268, 0.03, 0.4], protect: 0.11, gain: 0.92, contrast: 1.36, pivot: 0.2, haze: '#383c80', hazeAmt: 0.16, vignette: 0.44 },
 ];
 
 /** Display-space (sRGB) components of a hex colour. */

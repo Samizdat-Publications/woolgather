@@ -120,68 +120,68 @@ def sheep():
 
 
 def wolf():
-    # Built to read from the herding camera, i.e. from above, at 40-60 px: a charcoal-grey coat
-    # (lighter than the collie's blue-black, with no white on top, so the two never read alike),
-    # a pale belly, heavy chest and shoulders, a big head and muzzle, longish legs, smaller ears
-    # and a straight tail carried low. Grey, not tawny: a tawny coat with a pale muzzle read as a
-    # fox. (Earlier versions read as a foal, a dark smudge, a pale tube, a hooded figure, a
-    # collie and a fox.)
-    grey = W.mat("wolf_grey", "#5a5f68", 0.9)
-    light = W.mat("wolf_light", "#b9b7b1", 0.9)
-    dark = W.mat("wolf_dark", "#3b3f47", 0.85)
-    saddle = W.mat("wolf_saddle", "#474b53", 0.9)
+    # Built to read from the herding camera, i.e. from above, as a wolf's silhouette: a lean,
+    # deep-chested body, a long narrow muzzle, two tall pointed ears, legs of a normal length and
+    # a bushy tail carried low. Cool grey coat (lighter than the collie's blue-black), a pale grey
+    # face and belly (not white), no ruff. (Earlier versions read as a foal, a dark smudge, a pale
+    # tube, a hooded figure, a collie, a fox and, with a big faceted ruff, a boar.)
+    grey = W.mat("wolf_grey", "#6b717b", 0.9)
+    light = W.mat("wolf_light", "#c4c2bc", 0.9)
+    dark = W.mat("wolf_dark", "#454a53", 0.85)
+    saddle = W.mat("wolf_saddle", "#565b64", 0.9)
     nose = W.mat("wolf_nose", "#111114", 0.5)
     glow = W.mat("wolf_eyes", "#ffc045", 0.4, emit="#ffb030", emit_strength=4.0)
 
     root = W.empty("wolf")
     b = W.Part("body")
-    v = b.sphere(grey, loc=(0, 0.1, 0.0), scale=(0.36, 0.72, 0.26), seg=10, rings=7)
-    b.jitter(v, 0.02, seed=51)
-    # Heavy chest and shoulders: the wolf is front-heavy, the rump slighter.
-    v = b.ico(dark, loc=(0, -0.36, 0.08), radius=0.42, scale=(1.4, 1.0, 1.0), subdiv=1)
-    b.jitter(v, 0.045, seed=52, scale=4.0)
-    b.sphere(light, loc=(0, 0.04, -0.17), scale=(0.24, 0.55, 0.1), seg=8, rings=5)  # pale belly
-    v = b.ico(grey, loc=(0, -0.62, -0.04), radius=0.22, scale=(1.1, 0.8, 1.1))  # chest
-    b.jitter(v, 0.02, seed=53)
-    v = b.sphere(saddle, loc=(0, 0.16, 0.17), scale=(0.2, 0.55, 0.11), seg=8, rings=5)  # darker saddle
-    b.jitter(v, 0.015, seed=55)
-    body = b.finish(parent=root, pivot=(0, 0, 0.66))
+    v = b.sphere(grey, loc=(0, 0.1, 0.0), scale=(0.28, 0.72, 0.25), seg=12, rings=8)  # lean body
+    b.jitter(v, 0.015, seed=51)
+    # Deep chest: a keel below and ahead, not a mane on top.
+    v = b.sphere(grey, loc=(0, -0.36, -0.06), scale=(0.27, 0.34, 0.3), seg=10, rings=7)
+    b.jitter(v, 0.015, seed=52)
+    b.sphere(light, loc=(0, 0.02, -0.17), scale=(0.2, 0.52, 0.09), seg=8, rings=5)  # pale belly
+    v = b.sphere(light, loc=(0, -0.56, -0.08), scale=(0.17, 0.14, 0.2), seg=8, rings=5)  # pale throat
+    b.jitter(v, 0.01, seed=53)
+    v = b.sphere(saddle, loc=(0, 0.1, 0.16), scale=(0.18, 0.6, 0.1), seg=8, rings=5)  # darker back
+    b.jitter(v, 0.01, seed=55)
+    body = b.finish(parent=root, pivot=(0, 0, 0.62))
 
     h = W.Part("head")
-    v = h.sphere(grey, loc=(0, -0.09, 0.03), scale=(0.26, 0.29, 0.22), seg=8, rings=6)  # big head
-    h.jitter(v, 0.012, seed=54)
-    h.limb(grey, (0, -0.2, -0.02), (0, -0.66, -0.08), 0.15, 0.085, seg=7)  # long, heavy muzzle
-    h.ico(nose, loc=(0, -0.67, -0.07), radius=0.06)
-    h.ico(light, loc=(0, -0.26, -0.13), radius=0.11, scale=(1.2, 1.5, 0.7))  # pale jaw
+    v = h.sphere(grey, loc=(0, -0.08, 0.03), scale=(0.2, 0.24, 0.18), seg=10, rings=7)
+    h.jitter(v, 0.01, seed=54)
+    h.limb(light, (0, -0.18, -0.01), (0, -0.66, -0.07), 0.1, 0.05, seg=8)  # long narrow pale muzzle
+    h.ico(nose, loc=(0, -0.67, -0.06), radius=0.048)
     for sx in (1, -1):
-        v = h.ico(grey, loc=(0.18 * sx, -0.1, -0.02), radius=0.11, scale=(0.9, 1.2, 0.9))  # cheek ruff
-        h.jitter(v, 0.01, seed=56 + (sx > 0))
-    head = h.finish(parent=body, pivot=(0, -0.84, 0.08))
+        v = h.ico(light, loc=(0.11 * sx, -0.16, -0.03), radius=0.075, scale=(0.9, 1.3, 0.8))  # pale cheeks
+        h.jitter(v, 0.008, seed=56 + (sx > 0))
+    head = h.finish(parent=body, pivot=(0, -0.8, 0.12))
 
     eyes = W.Part("eyes")
     for sx in (1, -1):
-        eyes.ico(glow, loc=(0.1 * sx, -0.26, 0.1), radius=0.04, scale=(1.2, 0.8, 0.8))
+        eyes.ico(glow, loc=(0.09 * sx, -0.23, 0.09), radius=0.036, scale=(1.2, 0.8, 0.8))
     eyes.finish(parent=head, pivot=(0, 0, 0))
 
-    # Smaller ears, set wide on the big head.
+    # Two tall pointed ears, upright.
     for sx, name in ((1, "ear_l"), (-1, "ear_r")):
         e = W.Part(name)
-        e.cyl(dark, loc=(0, 0, 0.13), r1=0.12, r2=0.01, depth=0.28, seg=4, rot=(0, 0.35 * sx, 0))
-        e.finish(parent=head, pivot=(0.15 * sx, 0.0, 0.16))
+        e.cyl(dark, loc=(0, 0, 0.18), r1=0.12, r2=0.008, depth=0.4, seg=4, rot=(0, 0.22 * sx, 0))
+        e.finish(parent=head, pivot=(0.1 * sx, -0.02, 0.15))
 
-    # A straight tail carried low behind, not a fox's brush.
+    # A bushy tail carried low, in one colour with a darker tip.
     t = W.Part("tail")
-    t.limb(grey, (0, 0, 0), (0, 0.4, -0.3), 0.12, 0.13, seg=8)
-    t.limb(dark, (0, 0.4, -0.3), (0, 0.62, -0.5), 0.13, 0.08, seg=8)
+    t.limb(grey, (0, 0, 0), (0, 0.36, -0.22), 0.12, 0.19, seg=8)
+    t.limb(grey, (0, 0.36, -0.22), (0, 0.62, -0.48), 0.19, 0.14, seg=8)
+    v = t.ico(dark, loc=(0, 0.66, -0.54), radius=0.13, scale=(1, 1.2, 1.2))
+    t.jitter(v, 0.015, seed=57)
     t.finish(parent=body, pivot=(0, 0.76, 0.08))
 
-    # Longish legs splayed a little from under the body, so four legs show from above.
+    # Legs of a normal length, set a little wide so four show from above.
     for sx, sy, name in ((1, -1, "leg_fl"), (-1, -1, "leg_fr"), (1, 1, "leg_bl"), (-1, 1, "leg_br")):
         L = W.Part(name)
-        L.limb(grey, (0, 0, 0.04), (0.08 * sx, 0, -0.3), 0.09, 0.065, seg=6)
-        L.limb(grey, (0.08 * sx, 0, -0.3), (0.12 * sx, -0.02, -0.56), 0.065, 0.05, seg=6)
-        L.ico(dark, loc=(0.13 * sx, -0.05, -0.57), radius=0.068, scale=(1, 1.35, 0.55))
-        L.finish(parent=body, pivot=(0.24 * sx, 0.46 * sy if sy > 0 else -0.42, -0.1))
+        L.limb(grey, (0, 0, 0.04), (0.04 * sx, 0, -0.28), 0.08, 0.058, seg=6)
+        L.limb(grey, (0.04 * sx, 0, -0.28), (0.06 * sx, -0.02, -0.5), 0.058, 0.045, seg=6)
+        L.ico(dark, loc=(0.065 * sx, -0.05, -0.51), radius=0.06, scale=(1, 1.35, 0.55))
+        L.finish(parent=body, pivot=(0.2 * sx, 0.46 * sy if sy > 0 else -0.4, -0.1))
     return root
 
 

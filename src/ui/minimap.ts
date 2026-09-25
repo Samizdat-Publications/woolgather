@@ -1,4 +1,4 @@
-import type { Level } from '../game/level';
+import { PLACES, type Level } from '../game/level';
 import type { Sim } from '../game/sim';
 
 // Top-down valley map: fold, stream, every sheep, wolves and Pip. Redrawn every frame (cheap).
@@ -104,25 +104,6 @@ export class Minimap {
       c.fillStyle = '#d8c7a6';
       c.fillRect(this.px(r.minX), this.pz(r.minZ), (r.maxX - r.minX) * this.scale, (r.maxZ - r.minZ) * this.scale);
     }
-    // Region names (the end card refers to these), set beside the grazing spots rather than on
-    // them so the sheep dots never print over the words.
-    c.font = '700 11.5px system-ui, sans-serif';
-    c.textAlign = 'center';
-    c.lineWidth = 2.5;
-    c.strokeStyle = 'rgba(30, 36, 26, 0.7)';
-    c.fillStyle = 'rgba(255, 250, 235, 0.72)';
-    for (const [name, x, z] of [
-      ['FAR BANK', -74, 28],
-      ['GROVE', 52, -52],
-      ['MEADOW', -8, 26],
-      ['ROCKS', 8, 58],
-      ['FARM', 80, 8],
-      ['FORD', -44, 52],
-      ['BRIDGE', -35, -11],
-    ] as const) {
-      c.strokeText(name, this.px(x), this.pz(z));
-      c.fillText(name, this.px(x), this.pz(z));
-    }
     // Fold
     const f = L.fold;
     c.fillStyle = 'rgba(246, 220, 150, 0.95)';
@@ -203,6 +184,23 @@ export class Minimap {
     c.strokeStyle = '#231c2b';
     c.lineWidth = 1.2;
     c.stroke();
+    c.restore();
+    this.drawLabels(c);
+  }
+
+  /** Place names over everything else, so no dot ever hides a name a banner uses. */
+  private drawLabels(c: CanvasRenderingContext2D) {
+    c.save();
+    c.font = '700 11.5px system-ui, sans-serif';
+    c.textAlign = 'center';
+    c.lineWidth = 3;
+    c.lineJoin = 'round';
+    c.strokeStyle = 'rgba(30, 36, 26, 0.85)';
+    c.fillStyle = 'rgba(255, 250, 235, 0.92)';
+    for (const p of PLACES) {
+      c.strokeText(p.name, this.px(p.x), this.pz(p.z));
+      c.fillText(p.name, this.px(p.x), this.pz(p.z));
+    }
     c.restore();
   }
 }

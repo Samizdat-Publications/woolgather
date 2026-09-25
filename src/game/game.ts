@@ -240,6 +240,7 @@ export class Game {
     else this.wolfCam.hide();
     hudState.insetVisible = this.wolfCam.visible;
     hudState.insetRect = this.wolfCam.rect;
+    hudState.mapRect = this.ui.mapRect();
     this.stage.render((r, target) => {
       // Tree cut-outs are placed for the main view only.
       treeHoles(false);
