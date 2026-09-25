@@ -109,3 +109,39 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Moonlit night at the end of the day](m1-greybox-final-late-night.png)
 *Moonlit night at the end of the day*
 
+
+## m2-assets-a (2026-09-24)
+
+![First Blender pass: models in, but the warm-on-warm light turned the valley olive](m2-assets-a-t0_35.png)
+*First Blender pass: models in, but the warm-on-warm light turned the valley olive*
+
+
+## m2-assets-b (2026-09-24)
+
+![Blender valley: lush palette, crisp dirt path, stone fold, hay, flowers and grass tufts](m2-assets-b-t0.png)
+*Blender valley: lush palette, crisp dirt path, stone fold, hay, flowers and grass tufts*
+
+![Golden hour with a cool sky fill keeps the grass green](m2-assets-b-t0_35.png)
+*Golden hour with a cool sky fill keeps the grass green*
+
+
+## m2-assets-r5 (2026-09-25)
+
+![Blender collie and flock under golden light](m2-assets-r5-herding.png)
+*Blender collie and flock under golden light*
+
+![Driving the far-bank flock over the Blender bridge](m2-assets-r5-bridge.png)
+*Driving the far-bank flock over the Blender bridge*
+
+![Wolf cam inset shows a snatch happening out of sight](m2-assets-r5-snatch.png)
+*Wolf cam inset shows a snatch happening out of sight*
+
+
+## m2-assets-r6 (2026-09-25)
+
+![Pip with a cream outline and white collar, readable at any hour](m2-assets-r6-herding.png)
+*Pip with a cream outline and white collar, readable at any hour*
+
+![Wolf cam with an escape timer: metres left to the trees](m2-assets-r6-snatch.png)
+*Wolf cam with an escape timer: metres left to the trees*
+

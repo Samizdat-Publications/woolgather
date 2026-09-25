@@ -220,3 +220,48 @@ Newest at the bottom. Record every non-obvious choice.
   Pip/tree/bridge/farmhouse models and valley hills (M2), sky, colour grade and tree occlusion fade
   (M3). A greybox is primitive shapes by definition, so art complaints are treated as out of scope
   for M1; the critic loop continues on the same criterion from M2 onwards.
+- 2026-09-24 (M2): asset families built through the MCP (Popen'd background Blender), previews
+  rendered with EEVEE into docs/assets/ for visual QA before the game sees them. Outputs: collie,
+  sheep, wolf, nature (17 props), structures (fold with hinged gate leaves, farmhouse, bridge,
+  lantern, hay, stepping stones, signpost), terrain (+ path ribbon, water ribbon, heightfield,
+  meta), fx (sky dome, rings, moon, heart, tufts). ~1.8 MB total.
+- 2026-09-24 (M2): terrain exported smooth (shared vertices, 0.7 MB instead of 3.4 MB flat) and
+  rendered faceted with three's flatShading. The dirt path is its own ragged-edged ribbon mesh;
+  vertex-colour paths on a 2 m grid looked like a blurry smear.
+- 2026-09-24 (M2): glTF multi-material parts load as groups of single-material meshes, so props
+  are instanced as one InstancedMesh per material (all ~480 trees cost ~9 draw calls). Materials
+  are converted to flat Lambert. Trees between the camera and Pip/sheep/wolves fade with a 4x4
+  Bayer screen-door dither driven by a per-instance attribute (critic: "pines are an opaque wall").
+- 2026-09-24 (M2): the flight-zone ring re-projects the Blender ring mesh onto the terrain every
+  frame so it hugs hillsides. Characters render at 1.4-1.6x life size to read from the camera.
+- 2026-09-24 (M2): golden-hour light rebalanced to a warm key against a cool sky fill; the
+  warm-on-warm setup turned the valley olive. Grass palette made lusher.
+- 2026-09-24 (M2): on a win the fold's gate leaves swing shut and the camera turns to the fold;
+  the end card follows 1.2 s later (critic M1 r9: latching had no visible payoff).
+- 2026-09-25 (M2 critic r2): the stream was invisible (water ribbon faces pointed down: new bmesh
+  faces have no valid normal until normal_update(), so the flip check never fired). Fixed in
+  Blender, water shader also double-sided; streaks replaced by stretched value-noise glints.
+- 2026-09-25 (M2 critic r2): wolves only ever showed as icons and two snatches resolved 6 s apart
+  at opposite ends of the valley. Now: one snatch at a time (others wait at a distance while a
+  sheep is being dragged, plus an 8-12 s breather after each snatch), and a "wolf cam" inset
+  (second camera, scissored viewport, only while a drag happens out of Pip's sight) shows the
+  wolf and its prey with distance and direction.
+- 2026-09-25 (M2 critic r2): the sun bar marks when wolves come out and turns violet after; a
+  second line counts down to the wolves, then reads "the wolves are out". The warning line says
+  "hurry: N more before dark" when under 90 s remain.
+- 2026-09-25 (M2 critic r2): colour script via two compositor layers over the canvas
+  (soft-light warmth + `color`-blend violet hue that grows through dusk), plus a vignette. Cheap
+  (no extra render pass) and makes amber -> rose -> violet readable. Moonlight made near-neutral so
+  grey rocks stop going navy. Heather toned down (muted, fewer, flatter clumps).
+- 2026-09-25 (M2 critic r2): flight ring hidden outside play; tutorial line clears when the latch
+  prompt shows; end card prints the star thresholds.
+- 2026-09-25 (M2 r3): an idle Pip still got 7 sheep home. Undisturbed sheep now graze around the
+  spot they last settled (a weak tether that moves with them whenever they are driven), and the
+  fold only pulls sheep that are being driven. Idle runs now finish with 0 home.
+- 2026-09-25 (M2 critic r5): Pip gets an unlit cream inverted-hull outline (smooth normals rebuilt
+  with mergeVertices so the shell has no cracks), a white collar and a lighter back, and draws at
+  1.85x. The wolf cam now picks up a wolf lining up a straggler before the grab, and during a drag
+  reads "N m to the trees" as an escape timer; it moved to the upper left, away from the fold.
+  Hard is a 330 s evening (wolves from 82 s) so skilled play still meets them. Sheep radius 0.8 m
+  and separation 2.5 m so the flock never merges into one lump. End card sits on a panel; a
+  partial win is titled "Home before dark".

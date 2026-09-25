@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CAMERA } from '../game/config';
 import { damp } from '../game/math';
-import { createMoodValues, sampleMood, type MoodValues } from './daycycle';
+import { createMoodValues, sampleGrade, sampleMood, type Grade, type MoodValues } from './daycycle';
 
 // Renderer, camera, key/fill lights and the fog. Owns nothing gameplay related.
 
@@ -25,6 +25,11 @@ export class Stage {
   private glanceT = 0;
   private glanceDur = 1;
   private pixelRatioCap = 2;
+  /** Compositor colour grade (soft-light) and vignette layered between the canvas and the UI. */
+  private gradeEl: HTMLDivElement;
+  private hueEl: HTMLDivElement;
+  private vignetteEl: HTMLDivElement;
+  private grade: Grade = { soft: new THREE.Color(), softOpacity: 0, hue: new THREE.Color(), hueOpacity: 0 };
 
   constructor(host: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -37,6 +42,13 @@ export class Stage {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.domElement.id = 'game-canvas';
     host.appendChild(this.renderer.domElement);
+    this.gradeEl = document.createElement('div');
+    this.gradeEl.className = 'grade';
+    this.hueEl = document.createElement('div');
+    this.hueEl.className = 'grade-hue';
+    this.vignetteEl = document.createElement('div');
+    this.vignetteEl.className = 'vignette';
+    host.append(this.gradeEl, this.hueEl, this.vignetteEl);
 
     this.camera = new THREE.PerspectiveCamera(CAMERA.fov, 1, 0.5, 600);
     this.fog = new THREE.Fog(0xe8dcc0, 70, 230);
@@ -86,6 +98,12 @@ export class Stage {
     this.fog.near = m.fogNear;
     this.fog.far = m.fogFar;
     this.renderer.toneMappingExposure = m.exposure;
+    const g = sampleGrade(t, this.grade);
+    this.gradeEl.style.backgroundColor = `#${g.soft.getHexString(THREE.SRGBColorSpace)}`;
+    this.gradeEl.style.opacity = g.softOpacity.toFixed(3);
+    this.hueEl.style.backgroundColor = `#${g.hue.getHexString(THREE.SRGBColorSpace)}`;
+    this.hueEl.style.opacity = g.hueOpacity.toFixed(3);
+    this.vignetteEl.style.opacity = (0.55 + 0.45 * m.night).toFixed(3);
     return m;
   }
 

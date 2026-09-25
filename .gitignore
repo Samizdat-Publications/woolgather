@@ -2,6 +2,8 @@ node_modules/
 dist/
 test-results/
 *.blend1
+blender_scripts/logs/
+__pycache__/
 *.log
 .DS_Store
 .vite/

@@ -18,7 +18,7 @@ function placeName(x: number, z: number) {
   // Same names as the minimap labels.
   if (x < -44) return 'on the far bank';
   if (z < -35) return 'in the grove';
-  if (z > 35) return 'by the rocks';
+  if (z > 35) return 'near the rocks';
   if (x > 40) return 'near the farm';
   return 'in the meadow';
 }
@@ -42,7 +42,11 @@ export class Ui {
           <div class="count-need">need <span class="n-need">0</span></div>
           <div class="count-spare"></div>
         </div>
-        <div class="hud-time"><div class="sunbar"><div class="sunbar-fill"></div></div><div class="time-label">Nightfall in <span class="t-left">0:00</span></div></div>
+        <div class="hud-time">
+          <div class="sunbar"><div class="sunbar-fill"></div><div class="sunbar-mark"></div></div>
+          <div class="time-label">Nightfall in <span class="t-left">0:00</span></div>
+          <div class="wolf-label"></div>
+        </div>
         <div class="hud-map"></div>
         <div class="hud-dog">
           <div class="meter"><span class="meter-label">Stamina <small>(Shift)</small></span><div class="stamina"><div class="stamina-fill"></div></div></div>
@@ -61,23 +65,23 @@ export class Ui {
         <button class="btn" data-act="howto">How to play</button>
       </div>
 
-      <div class="screen pause-screen" hidden>
+      <div class="screen pause-screen" hidden><div class="card">
         <h2>Paused</h2>
         <button class="btn primary" data-act="resume">Resume</button>
         <button class="btn" data-act="restart">Restart day</button>
         <button class="btn" data-act="howto">How to play</button>
         <button class="btn" data-act="title">Quit to title</button>
-      </div>
+      </div></div>
 
-      <div class="screen end-screen" hidden>
+      <div class="screen end-screen" hidden><div class="card">
         <h2 class="end-title"></h2>
         <p class="end-sub"></p>
         <div class="end-stats"></div>
         <button class="btn primary" data-act="restart">Play again</button>
         <button class="btn" data-act="title">Title screen</button>
-      </div>
+      </div></div>
 
-      <div class="screen howto-screen" hidden>
+      <div class="screen howto-screen" hidden><div class="card">
         <h2>How to play</h2>
         <ul class="howto">
           <li><b>WASD / Arrows</b> move Pip. Sheep run <i>away</i> from you, so get behind them.</li>
@@ -90,7 +94,7 @@ export class Ui {
           <li>Once you have enough sheep home, <b>Enter</b> latches the gate and ends the day.</li>
         </ul>
         <button class="btn primary" data-act="close-howto">Got it</button>
-      </div>
+      </div></div>
     `;
     this.minimap = new Minimap(level);
     $('.hud-map', this.root).appendChild(this.minimap.canvas);
@@ -152,16 +156,31 @@ export class Ui {
     $('.n-home', this.root).textContent = String(sim.folded);
     $('.n-total', this.root).textContent = String(sim.total);
     $('.n-need', this.root).textContent = String(sim.target);
-    // How many more sheep can be lost before the target becomes impossible.
+    // How many more sheep can be lost before the target becomes impossible, or a hurry-up when
+    // daylight is the tighter limit.
     const spare = sim.total - sim.target - sim.lost;
+    const need = Math.max(0, sim.target - sim.folded);
     const spareEl = $('.count-spare', this.root);
     const lostTxt = sim.lost > 0 ? ` · lost ${sim.lost}` : '';
+    const hurry = !sim.targetMet && sim.timeLeft < 90;
     spareEl.textContent = sim.targetMet
       ? `target met${lostTxt}`
-      : spare > 0
-        ? `can lose ${spare} more${lostTxt}`
-        : `no sheep to spare!${lostTxt}`;
-    spareEl.classList.toggle('danger', !sim.targetMet && spare <= 0);
+      : hurry
+        ? `hurry: ${need} more before dark!`
+        : spare > 0
+          ? `can lose ${spare} more${lostTxt}`
+          : `no sheep to spare!${lostTxt}`;
+    spareEl.classList.toggle('danger', (!sim.targetMet && spare <= 0) || hurry);
+    // Sun bar: a notch where the wolves come out, violet once the sun is down.
+    const ws = sim.preset.wolfStart;
+    const wolvesOut = sim.t >= ws;
+    const mark = $('.sunbar-mark', this.root);
+    mark.style.left = `${(1 - ws) * 100}%`;
+    mark.hidden = wolvesOut;
+    $('.sunbar-fill', this.root).classList.toggle('dusk', wolvesOut);
+    const wl = $('.wolf-label', this.root);
+    wl.textContent = wolvesOut ? 'the wolves are out' : `wolves come out in ${fmtTime((ws - sim.t) * sim.preset.dayLength)}`;
+    wl.classList.toggle('out', wolvesOut);
     $('.count-need', this.root).classList.toggle('met', sim.targetMet);
     $('.t-left', this.root).textContent = fmtTime(sim.timeLeft);
     // The last minute escalates: ember text, then a pulse in the final 20 seconds.
@@ -206,7 +225,7 @@ export class Ui {
     this.root.querySelector('.end-screen')!.classList.toggle('win', win);
     this.root.querySelector('.end-screen')!.classList.toggle('lose', !win);
     if (o.kind === 'win') {
-      title.textContent = o.stars === 3 ? 'Every sheep is home!' : 'The flock is home';
+      title.textContent = o.stars === 3 ? 'Every sheep is home!' : sim.free > 0 ? 'Home before dark' : 'The flock is home';
       const took = sim.lost === 1 ? 'one' : String(sim.lost);
       sub.textContent =
         o.reason === 'nightfall'
@@ -229,8 +248,10 @@ export class Ui {
     // Times match the in-game "Nightfall in" countdown, so they are given as daylight left.
     const dayLen = sim.preset.dayLength;
     const losses = sim.lostLog.map((l) => `${placeName(l.x, l.z)} (${fmtTime(dayLen - l.t)} left)`).join(' · ');
+    const two = Math.ceil((sim.target + sim.total) / 2);
+    const legend = `★ ${sim.target}+ home · ★★ ${two}+ · ★★★ all ${sim.total}`;
     stats.innerHTML = `
-      ${stars ? `<div class="stars">${stars}</div>` : ''}
+      ${stars ? `<div class="stars">${stars}</div><div class="star-legend">${legend}</div>` : ''}
       <div>Home: <b>${sim.folded}</b> / ${sim.total}</div>
       <div>Lost to wolves: <b>${sim.lost}</b></div>
       ${losses ? `<div class="losses">Taken ${losses}</div>` : ''}

@@ -27,6 +27,11 @@ await page.screenshot({ path: join(OUT, 'title.png') });
 await page.keyboard.press('Enter');
 await page.waitForTimeout(800);
 await page.evaluate(() => window.__WG.setTimeScale(0));
+const at = opt('at', null);
+if (at) {
+  const [x, z] = at.split(',').map(Number);
+  await page.evaluate(([px, pz]) => window.__WG.teleportDog(px, pz), [x, z]);
+}
 for (const t of TIMES) {
   await page.evaluate((x) => window.__WG.jumpTo(x), t);
   await page.waitForTimeout(400);

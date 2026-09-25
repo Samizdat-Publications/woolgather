@@ -47,6 +47,9 @@ export interface Sheep extends Body {
   trotX: number;
   trotZ: number;
   trotT: number;
+  /** Where this sheep last settled: undisturbed sheep graze around it instead of wandering off. */
+  homeX: number;
+  homeZ: number;
 }
 
 export type WolfState = 'stalk' | 'charge' | 'drag' | 'flee' | 'gone';
@@ -102,6 +105,11 @@ export class Sim {
   private targetAnnounced = false;
   private nextWolfT = 0;
   private wolfIds = 0;
+  /**
+   * One snatch at a time: while a wolf is dragging a sheep, or shortly after a snatch, the others
+   * only stalk. One dog must always be able to answer every snatch.
+   */
+  private snatchCd = 0;
 
   constructor(
     readonly level: Level,
@@ -174,6 +182,8 @@ export class Sim {
           trotX: 0,
           trotZ: 0,
           trotT: 0,
+          homeX: x,
+          homeZ: z,
         });
       }
     }
@@ -413,9 +423,24 @@ export class Sim {
         const gx = f.minX + 4 - s.x;
         const gz = f.cz - s.z;
         const gl = Math.hypot(gx, gz) || 1;
-        const k = alert ? 2.2 : 0.3;
+        // Only sheep that are being driven take the last steps in; grazers do not wander home.
+        const k = alert ? 2.2 : 0;
         vx += (gx / gl) * k;
         vz += (gz / gl) * k;
+      }
+
+      // Sheep settle wherever the dog (or a wolf) left them, then graze around that spot.
+      if (alert || fear > 0.05) {
+        s.homeX = s.x;
+        s.homeZ = s.z;
+      } else {
+        const hx = s.homeX - s.x;
+        const hz = s.homeZ - s.z;
+        const hd = Math.hypot(hx, hz);
+        if (hd > 5) {
+          vx += (hx / hd) * 0.3;
+          vz += (hz / hd) * 0.3;
+        }
       }
 
       // Driven sheep near a bridge end or the ford line up with it, the way a flock funnels
@@ -652,9 +677,9 @@ export class Sim {
       const ox = s.x - o.x;
       const oz = s.z - o.z;
       const od = Math.hypot(ox, oz);
-      if (od < 1.8 && od > 0) {
-        vx += (ox / od) * (1.8 - od) * 1.5;
-        vz += (oz / od) * (1.8 - od) * 1.5;
+      if (od < 2.2 && od > 0) {
+        vx += (ox / od) * (2.2 - od) * 1.5;
+        vz += (oz / od) * (2.2 - od) * 1.5;
       }
     }
     s.vx = lerp(s.vx, vx, 1 - Math.exp(-4 * dt));
@@ -748,6 +773,7 @@ export class Sim {
       s.alertT = 3;
       s.prevDry = !this.level.inWater(s.x, s.z);
       this.rescues++;
+      this.snatchCd = Math.max(this.snatchCd, 8);
       this.events.push({ type: 'rescued', x: s.x, z: s.z, id: s.id });
     }
     w.state = 'flee';
@@ -774,6 +800,8 @@ export class Sim {
 
     const d = this.dog;
     const spd = this.preset.wolfSpeedScale;
+    this.snatchCd = Math.max(0, this.snatchCd - dt);
+    const someoneDragging = this.wolves.some((o) => o.state === 'drag');
     for (const w of this.wolves) {
       if (w.state === 'gone') continue;
       w.stateT += dt;
@@ -813,9 +841,13 @@ export class Sim {
           tz += (dogDz / dogD) * k * 2.2;
         }
         const sheepToDog = Math.hypot(s.x - d.x, s.z - d.z);
-        if (sd < WOLF.chargeRange && sheepToDog > 8) {
+        if (sd < WOLF.chargeRange && sheepToDog > 8 && !someoneDragging && this.snatchCd <= 0) {
           w.state = 'charge';
           w.stateT = 0;
+        } else if (sd < WOLF.chargeRange * 0.8) {
+          // Wait at a distance for the other wolf's snatch to play out.
+          tx -= (sx / sd) * 1.2;
+          tz -= (sz / sd) * 1.2;
         }
       } else if (w.state === 'charge' && w.target) {
         const s = w.target;
@@ -825,7 +857,8 @@ export class Sim {
         tx = sx / sd;
         tz = sz / sd;
         speed = WOLF.chargeSpeed * spd;
-        if (sd < WOLF.grabRange + s.r) {
+        if (sd < WOLF.grabRange + s.r && !this.wolves.some((o) => o !== w && o.state === 'drag')) {
+          this.snatchCd = 12;
           w.state = 'drag';
           w.stateT = 0;
           s.state = 'grabbed';
@@ -856,6 +889,7 @@ export class Sim {
           s.stateT = 0;
           this.lost++;
           this.lostLog.push({ t: this.elapsed, x: s.x, z: s.z });
+          this.snatchCd = Math.max(this.snatchCd, 8);
           this.events.push({ type: 'lost', x: s.x, z: s.z, id: s.id });
           this.wolfGone(w);
           continue;

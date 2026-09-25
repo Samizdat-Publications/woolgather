@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import { moodTime } from '../render/daycycle';
 import { Stage } from '../render/stage';
-import { Indicators, type Marker } from '../ui/indicators';
+import { WolfCam } from '../render/wolfcam';
+import { hudState, Indicators, type Marker } from '../ui/indicators';
 import { PerfOverlay } from '../ui/perf';
 import { Ui, type UiAction } from '../ui/ui';
-import { GreyboxActors } from '../world/actors-greybox';
-import { buildGreybox } from '../world/greybox';
+import { Actors } from '../world/actors';
+import { loadAssets } from '../world/assets';
 import { Terrain } from '../world/terrain';
+import { buildWorld, updateWorld, type WorldHandles } from '../world/world';
 import type { Difficulty } from './config';
 import { Input } from './input';
 import { Level } from './level';
@@ -28,11 +30,15 @@ export class Game {
   readonly input = new Input();
   readonly stage: Stage;
   readonly ui: Ui;
-  readonly actors: GreyboxActors;
   readonly indicators: Indicators;
+  readonly wolfCam: WolfCam;
+  actors: Actors | null = null;
+  world: WorldHandles | null = null;
   mode: Mode = 'title';
   sim: Sim | null = null;
   timeScale = 1;
+  /** True once every Blender asset is loaded and the valley is built. */
+  ready = false;
   private last = 0;
   private clock = 0;
   private titleAngle = 0;
@@ -40,20 +46,34 @@ export class Game {
   private howtoFrom: Mode | null = null;
   /** Pulse a beacon at the fold gate while latching is available. */
   private gateGlow = false;
+  /** 1 = gate leaves wide open, 0 = shut (they swing shut when the day is won). */
+  private gateOpen = 1;
+  private gateTarget = 1;
+  /** Seconds until the end card appears (lets the player see the gate close / night fall). */
+  private endCardT = 0;
 
   constructor(
     host: HTMLElement,
     private opts: GameOptions,
   ) {
     this.stage = new Stage(host);
-    this.stage.scene.add(buildGreybox(this.level, this.terrain));
-    this.actors = new GreyboxActors(this.terrain, this.level);
-    this.stage.scene.add(this.actors.root);
     this.ui = new Ui(this.level);
     this.indicators = new Indicators(this.ui.root.querySelector('.hud') as HTMLElement);
+    this.wolfCam = new WolfCam(this.ui.root.querySelector('.hud') as HTMLElement);
     if (opts.difficulty) this.ui.setDifficulty(opts.difficulty);
     this.ui.onAction = (a) => this.onUi(a);
     this.toTitle();
+  }
+
+  /** Load the Blender assets and build the valley. */
+  async init(onProgress: (done: number, total: number) => void) {
+    const assets = await loadAssets(onProgress);
+    this.terrain.setData(assets.heightField, assets.meta);
+    this.world = buildWorld(this.level, this.terrain, assets);
+    this.stage.scene.add(this.world.root);
+    this.actors = new Actors(assets, this.terrain, this.level);
+    this.stage.scene.add(this.actors.root);
+    this.ready = true;
   }
 
   start() {
@@ -102,7 +122,10 @@ export class Game {
   }
 
   newDay() {
+    if (!this.ready) return;
     this.runs++;
+    this.gateOpen = this.gateTarget = 1;
+    this.endCardT = 0;
     const seed = this.opts.seed + this.runs - 1;
     this.sim = new Sim(this.level, this.ui.difficulty, seed);
     const d = this.sim.dog;
@@ -159,31 +182,94 @@ export class Game {
         this.updateHints(sim, dt);
         if (sim.outcome) {
           this.setMode('ended');
-          this.ui.showEnd(sim.outcome, sim);
+          // A win swings the gate shut; the card follows once the moment has landed.
+          if (sim.outcome.kind === 'win') this.gateTarget = 0;
+          this.endCardT = 1.2;
         }
       }
     } else if (this.mode === 'paused') {
       if (input.pressed('pause') && this.howtoFrom === null) this.setMode('playing');
     } else if (this.mode === 'ended') {
-      if (input.pressed('confirm')) this.newDay();
+      if (this.endCardT > 0) {
+        this.endCardT -= rawDt;
+        if (this.endCardT <= 0 && sim?.outcome) this.ui.showEnd(sim.outcome, sim);
+      } else if (input.pressed('confirm')) this.newDay();
     }
 
+    if (!this.ready || !this.world || !this.actors) {
+      this.stage.render();
+      return;
+    }
     this.actors.root.visible = !!sim;
+    let mood;
     if (sim) {
-      this.actors.sync(sim, this.mode === 'paused' ? 0 : rawDt, this.gateGlow && this.mode === 'playing');
+      mood = this.stage.applyMood(moodTime(sim.t, sim.preset.wolfStart));
+      this.actors.sync(sim, this.mode === 'paused' ? 0 : rawDt, this.gateGlow && this.mode === 'playing', mood.night, this.mode === 'playing');
       this.ui.update(sim, this.mode === 'paused' ? 0 : rawDt, this.clock);
-      this.frameCamera(sim);
-      this.stage.applyMood(moodTime(sim.t, sim.preset.wolfStart));
+      if (this.mode === 'ended' && sim.outcome?.kind === 'win') {
+        // Look at the fold while the gate closes.
+        const f = this.level.fold;
+        this.stage.setFocusGoal(f.minX + 1, this.terrain.ground(f.cx, f.cz), f.cz, 1.1);
+      } else {
+        this.frameCamera(sim);
+      }
     } else {
       // Title: slow orbit over the valley at golden hour.
       this.titleAngle += rawDt * 0.05;
-      this.stage.setFocusGoal(Math.sin(this.titleAngle) * 30, 0, Math.cos(this.titleAngle) * 20, 1.4);
-      this.stage.applyMood(0.3);
+      this.stage.setFocusGoal(Math.sin(this.titleAngle) * 30, this.terrain.ground(0, 0), Math.cos(this.titleAngle) * 20, 1.4);
+      mood = this.stage.applyMood(0.3);
     }
+    this.gateOpen += (this.gateTarget - this.gateOpen) * (1 - Math.exp(-3.5 * rawDt));
+    const open = this.gateOpen * 1.65;
+    if (this.world.gateN) this.world.gateN.rotation.y = open;
+    if (this.world.gateS) this.world.gateS.rotation.y = -open;
     this.stage.updateCamera(this.mode === 'paused' ? 0 : rawDt);
+    updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt);
     if (sim && (this.mode === 'playing' || this.mode === 'paused')) this.indicators.update(this.stage.camera, this.markers(sim));
     else this.indicators.clear();
+    if (sim && this.mode === 'playing') this.trackSnatch(sim, rawDt);
+    if (this.mode === 'playing' || this.mode === 'paused') this.wolfCam.update(this.mode === 'paused' ? 0 : rawDt);
+    else this.wolfCam.hide();
+    hudState.insetVisible = this.wolfCam.visible;
     this.stage.render();
+    this.wolfCam.render(this.stage.renderer, this.stage.scene);
+  }
+
+  /**
+   * Wolf cam: show a hunt the player cannot see, from the moment a wolf lines up a straggler, and
+   * while it drags its prey away show how far it still has to go to reach the trees.
+   */
+  private trackSnatch(sim: Sim, dt: number) {
+    const d = sim.dog;
+    const L = this.level;
+    const offScreen = (x: number, z: number) => {
+      tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
+      return !(tmpV.z < 1 && Math.abs(tmpV.x) < 0.85 && Math.abs(tmpV.y) < 0.8);
+    };
+    let best: { x: number; z: number; text: string; rank: number } | null = null;
+    for (const w of sim.wolves) {
+      const s = w.target;
+      if (!s || w.state === 'gone' || w.state === 'flee') continue;
+      const far = Math.hypot(w.x - d.x, w.z - d.z);
+      if (!offScreen(w.x, w.z) && far < 30) continue;
+      const where = compass(w.x, w.z, d.x, d.z).replace('to the ', '');
+      let rank = 0;
+      let text = '';
+      if (w.state === 'drag') {
+        // Metres until the sheep is lost: to the valley edge, then a few more into the trees.
+        const edge = L.insideValley(w.x, w.z) ? L.boundaryDistance(w.x, w.z) + 5 : Math.max(0, 5 - L.boundaryDistance(w.x, w.z));
+        rank = 3;
+        text = `Wolf has a sheep! ${Math.round(far)} m ${where} · ${Math.round(edge)} m to the trees`;
+      } else if (w.state === 'charge') {
+        rank = 2;
+        text = `Wolf charging! ${Math.round(far)} m ${where}`;
+      } else if (Math.hypot(w.x - s.x, w.z - s.z) < 16) {
+        rank = 1;
+        text = `Wolf stalking a straggler · ${Math.round(far)} m ${where}`;
+      }
+      if (rank && (!best || rank > best.rank)) best = { x: w.x, z: w.z, text, rank };
+    }
+    if (best) this.wolfCam.track(best.x, this.terrain.height(best.x, best.z), best.z, best.text, dt);
   }
 
   /**
@@ -290,10 +376,8 @@ export class Game {
           break;
         case 'grab': {
           this.ui.toast(`A wolf has a sheep ${compass(e.x, e.z, this.sim?.dog.x, this.sim?.dog.z)}! Chase it down!`, 'danger');
+          // The wolf cam inset shows the snatch; the main camera stays on Pip.
           this.stage.addShake(0.35);
-          // Show the snatch: lean the camera towards it if it happened away from Pip.
-          const d = this.sim?.dog;
-          if (d && Math.hypot(e.x - d.x, e.z - d.z) > 14) this.stage.glance(e.x, e.z);
           break;
         }
         case 'lost':
@@ -343,6 +427,11 @@ export class Game {
     const grabbed = sim.sheep.some((s) => s.state === 'grabbed');
     this.gateGlow = sim.targetMet && sim.free > 0 && !grabbed;
     this.ui.prompt(this.gateGlow ? 'Target met! Press <kbd>Enter</kbd> to latch the gate and end the day, or keep herding for more stars' : null);
+    if (this.gateGlow && this.tipUntil > 0) {
+      // One message at a time: the call to action wins over tutorial tips.
+      this.tipUntil = 0;
+      this.ui.hint('');
+    }
 
     const wolvesOut = sim.t >= sim.preset.wolfStart;
     let nearest = Infinity;

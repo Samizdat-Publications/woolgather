@@ -46,7 +46,7 @@ export const DIFFICULTIES: Record<Difficulty, DifficultyPreset> = {
     id: 'hard',
     label: 'Hard',
     blurb: 'A short evening and a hungry pack.',
-    dayLength: 400,
+    dayLength: 330,
     targetMissing: 2,
     wolfStart: 0.25,
     maxWolves: 3,
@@ -73,7 +73,8 @@ export const DOG = {
 };
 
 export const SHEEP = {
-  radius: 0.62,
+  // Matches the drawn (1.42x) woolly body, so sheep never merge into one lump on screen.
+  radius: 0.8,
   grazeSpeed: 0.7,
   fleeSpeed: 7.0,
   panicSpeed: 9.0,
@@ -89,7 +90,7 @@ export const SHEEP = {
   wolfThreatRadius: 13,
   panicTime: 1.25,
   neighborRadius: 10,
-  separationRadius: 1.9,
+  separationRadius: 2.5,
   cohesion: 1.1,
   cohesionAlert: 2.1,
   alignment: 0.9,

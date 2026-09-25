@@ -172,10 +172,16 @@ async function playToEnd(runName, { botOn, scale, shotsAt }) {
         lastWhy = d.why;
       }
     }
-    for (const [key, test, note] of shotsAt) {
+    for (const [key, test, note, slow] of shotsAt) {
       if (!fired.has(key) && test(st, prev)) {
         fired.add(key);
+        if (slow) {
+          // Real-time for a moment so camera smoothing (in real seconds) catches up at high speed.
+          await page.evaluate(() => window.__WG.setTimeScale(1));
+          await sleep(1200);
+        }
         await shot(key, note);
+        if (slow) await page.evaluate((k) => window.__WG.setTimeScale(k), scale);
       }
     }
     if (st.folded !== prev.folded || st.lost !== prev.lost) log(`${runName}: t=${st.elapsed.toFixed(0)}s home ${st.folded}/${st.total} lost ${st.lost} fps ${st.fps}`);
@@ -212,7 +218,10 @@ if (!flag('skip-lose')) {
   await playToEnd('lose', {
     botOn: false,
     scale: 40,
-    shotsAt: [['night', (s) => s.t > 0.95, 'nightfall, flock still out']],
+    shotsAt: [
+      ['snatch', (s) => s.sheep.some((q) => q.state === 'grabbed'), 'a wolf drags a sheep away from an idle Pip', true],
+      ['night', (s) => s.t > 0.95, 'nightfall, flock still out'],
+    ],
   });
 }
 
@@ -234,6 +243,12 @@ if (!flag('skip-latch')) {
   await sleep(800);
   const s2 = await state();
   check('latch: win by latching', s2.outcome?.kind === 'win' && s2.outcome?.reason === 'latched', JSON.stringify(s2.outcome));
+  // The gate swings shut before the card appears; wait for it so the next Enter starts a new day.
+  const card = await page.locator('.end-screen').waitFor({ state: 'visible', timeout: 6000 }).then(
+    () => true,
+    () => false,
+  );
+  check('latch: end card appears', card);
   await shot('latch-end', 'win screen after latching the gate');
 }
 
@@ -279,7 +294,12 @@ if (!flag('skip-late')) {
 // Back to the title from the end screen with the mouse.
 if (!flag('skip-menus')) {
   const toTitle = page.locator('.end-screen [data-act="title"]');
-  if (await toTitle.isVisible()) {
+  const shown = await toTitle.waitFor({ state: 'visible', timeout: 6000 }).then(
+    () => true,
+    () => false,
+  );
+  check('end card offers the title button', shown);
+  if (shown) {
     await toTitle.click();
     await sleep(500);
     const st = await state();

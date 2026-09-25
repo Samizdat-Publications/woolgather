@@ -26,12 +26,16 @@ const ICONS: Record<MarkerKind, string> = {
     '<svg viewBox="-12 -12 24 24"><circle cx="-3" cy="0" r="4" fill="#231c2b" opacity="0.18"/><path d="M-6 2 a3.5 3.5 0 0 1 1-6 a4 4 0 0 1 7-1 a3.5 3.5 0 0 1 3 6 Z" fill="#fff" stroke="#231c2b" stroke-width="1.4"/><rect x="4" y="-2" width="4" height="4.5" rx="1.5" fill="#231c2b"/></svg>',
 };
 
+/** Set while the wolf-cam inset occupies the bottom-right corner. */
+export const hudState = { insetVisible: false };
+
 // Screen regions taken by HUD panels (top-left counts, top-right minimap, the timer and message
-// banner across the top middle), in CSS pixels.
+// banner across the top middle, the wolf-cam inset), in CSS pixels.
 function avoidHud(px: number, py: number, w: number) {
   if (px > w - 250 && py < 215) py = 230;
   if (px < 190 && py < 135) py = 150;
   if (Math.abs(px - w / 2) < 340 && py < 150) py = 165;
+  if (hudState.insetVisible && px < 320 && py > 110 && py < 330) py = 345;
   return py;
 }
 
