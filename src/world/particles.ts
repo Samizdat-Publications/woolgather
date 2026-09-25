@@ -71,6 +71,7 @@ class Pool {
         this.items.splice(i, 1);
         continue;
       }
+      if (p.age < 0) continue;
       const k = Math.exp(-p.drag * dt);
       p.vx *= k;
       p.vz *= k;
@@ -90,6 +91,7 @@ class Pool {
       p.rot += p.spin * dt;
     }
     for (const p of this.items) {
+      if (p.age < 0) continue;
       const u = p.age / p.life;
       const s =
         p.curve === 'puff'
@@ -174,14 +176,40 @@ class Ripple {
   }
 }
 
+/** A heart icon on a canvas: gold with a dark outline and a highlight, so it reads at any size. */
+function heartTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d')!;
+  g.translate(32, 33);
+  g.beginPath();
+  g.moveTo(0, 21);
+  g.bezierCurveTo(-27, 3, -23, -23, 0, -10);
+  g.bezierCurveTo(23, -23, 27, 3, 0, 21);
+  g.closePath();
+  g.fillStyle = '#ffc94a';
+  g.fill();
+  g.lineWidth = 4.5;
+  g.lineJoin = 'round';
+  g.strokeStyle = '#5a2c10';
+  g.stroke();
+  g.beginPath();
+  g.ellipse(-9, -7, 4.5, 3, -0.6, 0, Math.PI * 2);
+  g.fillStyle = 'rgba(255, 255, 240, 0.85)';
+  g.fill();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 function glowTexture() {
   const c = document.createElement('canvas');
   c.width = c.height = 32;
   const g = c.getContext('2d')!;
   const grad = g.createRadialGradient(16, 16, 0, 16, 16, 16);
   grad.addColorStop(0, 'rgba(255,255,235,1)');
-  grad.addColorStop(0.18, 'rgba(250,255,170,0.95)');
-  grad.addColorStop(0.45, 'rgba(210,255,120,0.35)');
+  grad.addColorStop(0.28, 'rgba(228,255,110,0.95)');
+  grad.addColorStop(0.55, 'rgba(180,255,70,0.4)');
   grad.addColorStop(1, 'rgba(170,255,90,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 32, 32);
@@ -197,10 +225,11 @@ function glowTexture() {
  */
 class SoftPuffs {
   readonly points: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
-  private items: { x: number; y: number; z: number; vx: number; vy: number; vz: number; age: number; life: number; size: number; grow: number; alpha: number }[] = [];
+  private items: { x: number; y: number; z: number; vx: number; vy: number; vz: number; age: number; life: number; size: number; grow: number; alpha: number; seed: number }[] = [];
   private pos: Float32Array;
   private size: Float32Array;
   private alpha: Float32Array;
+  private seed: Float32Array;
 
   constructor(
     private max: number,
@@ -209,10 +238,12 @@ class SoftPuffs {
     this.pos = new Float32Array(max * 3);
     this.size = new Float32Array(max);
     this.alpha = new Float32Array(max);
+    this.seed = new Float32Array(max);
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute('size', new THREE.BufferAttribute(this.size, 1).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute('alpha', new THREE.BufferAttribute(this.alpha, 1).setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute('seed', new THREE.BufferAttribute(this.seed, 1).setUsage(THREE.DynamicDrawUsage));
     this.points = new THREE.Points(
       geo,
       new THREE.ShaderMaterial({
@@ -222,20 +253,27 @@ class SoftPuffs {
         vertexShader: `
           attribute float size;
           attribute float alpha;
+          attribute float seed;
           uniform float uScale;
           varying float vA;
+          varying float vSeed;
           void main() {
             vec4 mv = modelViewMatrix * vec4(position, 1.0);
             vA = alpha;
+            vSeed = seed;
             gl_PointSize = uScale * size / -mv.z;
             gl_Position = projectionMatrix * mv;
           }`,
         fragmentShader: `
           uniform vec3 uColor;
           varying float vA;
+          varying float vSeed;
           void main() {
-            float d = length(gl_PointCoord - 0.5) * 2.0;
-            float a = vA * (1.0 - smoothstep(0.35, 1.0, d));
+            vec2 q = gl_PointCoord - 0.5;
+            float ang = atan(q.y, q.x);
+            // A lumpy outline, different for every puff.
+            float d = length(q) * 2.0 * (1.0 + 0.16 * sin(ang * 3.0 + vSeed) + 0.1 * sin(ang * 5.0 + vSeed * 1.7));
+            float a = vA * (1.0 - smoothstep(0.3, 1.0, d));
             if (a < 0.01) discard;
             gl_FragColor = vec4(uColor, a);
           }`,
@@ -251,10 +289,10 @@ class SoftPuffs {
 
   add(x: number, y: number, z: number, vx: number, vy: number, vz: number, size: number, life: number, alpha: number, grow = 1.8) {
     if (this.items.length >= this.max) this.items.shift();
-    this.items.push({ x, y, z, vx, vy, vz, age: 0, life, size, grow, alpha });
+    this.items.push({ x, y, z, vx, vy, vz, age: 0, life, size, grow, alpha, seed: Math.random() * 6.28 });
   }
 
-  update(dt: number, camera: THREE.Camera) {
+  update(dt: number, camera: THREE.Camera, bufH: number) {
     let n = 0;
     for (let i = this.items.length - 1; i >= 0; i--) {
       const p = this.items[i];
@@ -278,6 +316,7 @@ class SoftPuffs {
       this.pos[n * 3 + 2] = p.z;
       this.size[n] = p.size * (1 + (p.grow - 1) * Math.sqrt(u));
       this.alpha[n] = p.alpha * Math.min(1, u * 6) * (1 - u) * (1 - u);
+      this.seed[n] = p.seed;
       n++;
     }
     const g = this.points.geometry;
@@ -285,9 +324,11 @@ class SoftPuffs {
     (g.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true;
     (g.getAttribute('size') as THREE.BufferAttribute).needsUpdate = true;
     (g.getAttribute('alpha') as THREE.BufferAttribute).needsUpdate = true;
-    // Pixels per metre at unit distance, for the camera's lens and the canvas height.
+    (g.getAttribute('seed') as THREE.BufferAttribute).needsUpdate = true;
+    // Pixels per metre at unit distance, for the camera's lens and the drawing buffer's height
+    // (point sizes are in buffer pixels, so a high-density screen needs bigger numbers).
     const cam = camera as THREE.PerspectiveCamera;
-    this.points.material.uniforms.uScale.value = window.innerHeight / (2 * Math.tan(THREE.MathUtils.degToRad((cam.fov ?? 34) / 2)));
+    this.points.material.uniforms.uScale.value = bufH / (2 * Math.tan(THREE.MathUtils.degToRad((cam.fov ?? 34) / 2)));
   }
 }
 
@@ -310,14 +351,10 @@ export class Particles {
     this.sprayPool = new SoftPuffs(80, '#e8f4ff');
     this.dropPool = new Pool(a.fx.get('splash_drop')!, 120);
     this.tuftPool = new Pool(a.fx.get('wool_tuft')!, 60);
-    this.heartPool = new Pool(a.fx.get('heart')!, 16, true);
-    // Gold hearts (red belongs to the wolves), marked as a character for the grade so they keep
-    // their colour in any light.
-    const heartMat = new THREE.MeshBasicMaterial({ color: 0xffd27a });
-    heartMat.onBeforeCompile = (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.a = 0.0;');
-    };
-    this.heartPool.mesh.material = heartMat;
+    // Gold heart icons facing the camera (red belongs to the wolves).
+    const heart = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: heartTexture(), transparent: true, depthWrite: false }));
+    this.heartPool = new Pool(heart, 24, true);
+    this.heartPool.mesh.renderOrder = 5;
     for (const p of [this.dropPool, this.tuftPool, this.heartPool]) this.root.add(p.mesh);
     this.root.add(this.dustPool.points, this.sprayPool.points);
     for (let i = 0; i < 6; i++) {
@@ -356,9 +393,9 @@ export class Particles {
             p.z += cos(uTime * 0.29 + phase * 1.3) * 1.4;
             p.y += sin(uTime * 0.8 + phase * 0.7) * 0.35;
             vec4 mv = modelViewMatrix * vec4(p, 1.0);
-            float blink = pow(max(0.0, sin(uTime * (0.9 + fract(phase) * 0.8) + phase)), 3.0);
+            float blink = pow(max(0.0, sin(uTime * (0.9 + fract(phase) * 0.8) + phase)), 1.6);
             vA = uNight * blink;
-            gl_PointSize = uScale * 0.75 / -mv.z * (0.7 + blink * 0.5);
+            gl_PointSize = uScale * 0.9 / -mv.z * (0.75 + blink * 0.5);
             gl_Position = projectionMatrix * mv;
           }`,
         fragmentShader: `
@@ -374,20 +411,20 @@ export class Particles {
     this.root.add(this.flies);
   }
 
-  /** A footfall's dust at (x, z): a small puff that hugs the ground and is gone in under half a second. */
+  /** A footfall's dust at (x, z): a puff that hugs the ground and is gone in about half a second. */
   dust(x: number, z: number, dirX = 0, dirZ = 0, size = 1) {
-    const y = this.terrain.surface(x, z) + 0.25;
+    const y = this.terrain.surface(x, z) + 0.35;
     this.dustPool.add(
-      x + (Math.random() - 0.5) * 0.5,
+      x + (Math.random() - 0.5) * 0.6,
       y,
-      z + (Math.random() - 0.5) * 0.5,
-      -dirX * 0.7 + (Math.random() - 0.5) * 0.5,
-      0.15 + Math.random() * 0.2,
-      -dirZ * 0.7 + (Math.random() - 0.5) * 0.5,
-      (0.6 + Math.random() * 0.3) * size,
-      0.32 + Math.random() * 0.14,
-      0.5,
-      1.7,
+      z + (Math.random() - 0.5) * 0.6,
+      -dirX * 0.9 + (Math.random() - 0.5) * 0.6,
+      0.25 + Math.random() * 0.2,
+      -dirZ * 0.9 + (Math.random() - 0.5) * 0.6,
+      (1.1 + Math.random() * 0.5) * size,
+      0.42 + Math.random() * 0.14,
+      0.55,
+      1.5,
     );
   }
 
@@ -446,25 +483,27 @@ export class Particles {
     }
   }
 
-  /** A heart rising over a sheep that made it home. */
+  /** Two hearts rising over a sheep that made it home, the second a beat after the first. */
   heart(x: number, z: number) {
-    this.heartPool.add({
-      x,
-      y: this.terrain.surface(x, z) + 2.4,
-      z,
-      vx: 0,
-      vy: 1.4,
-      vz: 0,
-      age: 0,
-      life: 1.3,
-      size: 2.2,
-      spin: 5,
-      rot: 0,
-      gravity: 0,
-      drag: 0.8,
-      curve: 'pop',
-      settle: false,
-    });
+    for (let i = 0; i < 2; i++) {
+      this.heartPool.add({
+        x: x + (i ? 0.8 : -0.4),
+        y: this.terrain.surface(x, z) + 2.3 + i * 0.3,
+        z: z + (i ? -0.4 : 0.2),
+        vx: 0,
+        vy: 1.7,
+        vz: 0,
+        age: -0.22 * i,
+        life: 1.2,
+        size: i ? 1.4 : 1.8,
+        spin: 4,
+        rot: i * 1.3,
+        gravity: 0,
+        drag: 0.6,
+        curve: 'pop',
+        settle: false,
+      });
+    }
   }
 
   /** Expanding ground ring (bark shockwave or water ripple). */
@@ -474,10 +513,10 @@ export class Particles {
     r.start(x, z, from, to, life, y);
   }
 
-  update(dt: number, camera: THREE.Camera, time: number, night: number) {
+  update(dt: number, camera: THREE.Camera, time: number, night: number, bufH: number) {
     this.dustPool.color.copy(DUST_DAY).lerp(DUST_NIGHT, night);
-    this.dustPool.update(dt, camera);
-    this.sprayPool.update(dt, camera);
+    this.dustPool.update(dt, camera, bufH);
+    this.sprayPool.update(dt, camera, bufH);
     this.dropPool.update(dt, this.terrain, camera);
     this.tuftPool.update(dt, this.terrain, camera);
     this.heartPool.update(dt, this.terrain, camera);
@@ -485,7 +524,7 @@ export class Particles {
     const u = this.flies.material.uniforms;
     u.uTime.value = time;
     u.uNight.value = Math.max(0, Math.min(1, (night - 0.25) / 0.45));
-    u.uScale.value = window.innerHeight * 3.2;
+    u.uScale.value = bufH * 3.2;
     this.flies.visible = night > 0.25;
   }
 }

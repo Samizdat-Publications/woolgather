@@ -122,15 +122,15 @@ def sheep():
 def wolf():
     # Built to read from the herding camera, i.e. from above, as a wolf's silhouette: a lean,
     # deep-chested body, a long narrow muzzle, two tall pointed ears, legs of a normal length and
-    # a bushy tail carried low. Cool slate blue-grey coat (lighter than the collie's blue-black, and
-    # a hue apart from the warm evening ground), a charcoal saddle, ears, paws and tail tip, a pale
+    # a bushy tail carried low. Dark slate blue-grey coat (lighter than the collie's blue-black,
+    # darker than the evening ground and a hue apart from it), a charcoal saddle, ears, paws and tail tip, a pale
     # cream muzzle, cheeks, throat and belly, no ruff. (Earlier versions read as a foal, a dark
     # smudge, a pale tube, a hooded figure, a collie, a fox, a boar and, in warm grey-brown, as
     # part of the ground.)
-    grey = W.mat("wolf_grey", "#727d8e", 0.9)
+    grey = W.mat("wolf_grey", "#5e6878", 0.9)
     light = W.mat("wolf_light", "#e2dccd", 0.9)
-    dark = W.mat("wolf_dark", "#3a3f4b", 0.85)
-    saddle = W.mat("wolf_saddle", "#4f5766", 0.9)
+    dark = W.mat("wolf_dark", "#2e323b", 0.85)
+    saddle = W.mat("wolf_saddle", "#414857", 0.9)
     nose = W.mat("wolf_nose", "#111114", 0.5)
     glow = W.mat("wolf_eyes", "#ffc045", 0.4, emit="#ffb030", emit_strength=4.0)
 

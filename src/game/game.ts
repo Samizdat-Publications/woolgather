@@ -82,6 +82,18 @@ export class Game {
     const spots: { x: number; z: number }[] = [];
     for (const [x, z] of this.level.data.bushes) for (let k = 0; k < 2; k++) spots.push({ x: x + (Math.random() - 0.5) * 6, z: z + (Math.random() - 0.5) * 6 });
     for (const t of this.level.trees) spots.push({ x: t.x + (Math.random() - 0.5) * 5, z: t.z + (Math.random() - 0.5) * 5 });
+    // ...and over the meadows and round the fold, where the last minutes are played.
+    const fold = this.level.fold;
+    for (let k = 0; k < 18; k++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 10 + Math.random() * 22;
+      spots.push({ x: fold.cx + Math.cos(a) * r, z: fold.cz + Math.sin(a) * r });
+    }
+    for (let k = 0; k < 400 && spots.length < 400; k++) {
+      const x = (Math.random() - 0.5) * 220;
+      const z = (Math.random() - 0.5) * 220;
+      if (this.level.insideValley(x, z) && !this.level.inFold(x, z, -2)) spots.push({ x, z });
+    }
     this.particles = new Particles(assets, this.terrain, spots);
     this.stage.scene.add(this.particles.root);
     this.ready = true;
@@ -251,7 +263,7 @@ export class Game {
       mood = this.stage.applyMood(0.28);
     }
     this.audio.update(rawDt, sim, mood.t, mood.night, this.mode, sim && this.mode === 'playing' ? this.tension(sim) : 0);
-    this.particles?.update(this.mode === 'paused' ? 0 : dt, this.stage.camera, this.clock, mood.night);
+    this.particles?.update(this.mode === 'paused' ? 0 : dt, this.stage.camera, this.clock, mood.night, this.stage.renderer.getDrawingBufferSize(tmpV2).y);
     this.gateOpen += (this.gateTarget - this.gateOpen) * (1 - Math.exp(-3.5 * rawDt));
     const open = this.gateOpen * 1.65;
     if (this.world.gateN) this.world.gateN.rotation.y = open;
@@ -552,9 +564,14 @@ export class Game {
           p.dust(e.x, e.z, 0, 0, 1.6);
           this.hitStop = Math.max(this.hitStop, 0.05);
           break;
-        case 'folded':
+        case 'folded': {
+          // Home: two hearts rise, a warm ring spreads at its feet and the sheep gives a hop.
           p.heart(e.x, e.z);
+          p.ripple(e.x, e.z, 0.8, 4, 0.5);
+          const i = sim.sheep.findIndex((s) => s.id === e.id);
+          if (i >= 0) this.actors.hop(i);
           break;
+        }
         case 'charge':
           p.dust(e.x, e.z, 0, 0, 1.3);
           break;
@@ -868,7 +885,7 @@ export class Game {
 const tmpV = new THREE.Vector3();
 /** The herding camera's usual distance (1 = the configured offset): far enough that Pip's reach
  * ring takes about half the screen's height. */
-const BASE_ZOOM = 1.08;
+const BASE_ZOOM = 0.98;
 /** Ground in view at zoom 1 around the focus (metres): across, towards the camera, away from it. */
 const VIEW = { half: 27.3, south: 17.8, north: 24.3 };
 const tmpV2 = new THREE.Vector2();

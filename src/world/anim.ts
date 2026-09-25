@@ -141,14 +141,15 @@ export function animateSheep(r: Rig, st: AnimState, s: Sheep, dt: number, time: 
   // Panicked sheep pronk: stiff-legged bounces.
   const pronk = s.state === 'panic' ? Math.max(0, Math.sin(time * TAU * 2.4 + st.seed)) * 0.16 : 0;
   if (pronk > 0) for (const l of r.legs) l.rotation.x *= 0.3;
-  const bob = st.amp * 0.03 * Math.abs(Math.sin(TAU * st.phase));
+  // A fleeing sheep bounds; a walking one only bobs.
+  const bob = st.amp * (s.state === 'flee' || s.state === 'panic' ? 0.075 : 0.03) * Math.abs(Math.sin(TAU * st.phase));
   r.body.position.y = p.bodyY + bob + startle + pronk;
   r.body.rotation.x = st.gallop * 0.1 * Math.sin(TAU * st.phase);
   if (r.head) {
     st.lift = Math.max(0, st.lift - dt);
     const graze = s.state === 'graze' ? 1 : 0;
     const nibble = graze * 0.06 * Math.sin(time * 9 + st.seed);
-    const want = graze * 0.8 + nibble - (s.fear > 0.3 ? 0.2 : 0) - (st.lift > 0 ? 0.35 : 0);
+    const want = graze * 0.95 + nibble - (s.fear > 0.3 ? 0.3 : 0) - (st.lift > 0 ? 0.35 : 0);
     r.head.rotation.x = damp(r.head.rotation.x, want, 7, dt);
   }
 }

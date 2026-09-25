@@ -433,3 +433,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Nightfall: moonlit ground with violet shade, lantern light at the fold, markers spread along the edge](m3-feel-r4-night.png)
 *Nightfall: moonlit ground with violet shade, lantern light at the fold, markers spread along the edge*
 
+
+## m3-feel-r5 (2026-09-25)
+
+![Round 5: warm green-gold grass under the amber sun, a hairline rim on Pip, the reach ring quiet](m3-feel-r5-herding.png)
+*Round 5: warm green-gold grass under the amber sun, a hairline rim on Pip, the reach ring quiet*
+
+![A sheep makes it home: gold hearts rise over the gate](m3-feel-r5-first-home.png)
+*A sheep makes it home: gold hearts rise over the gate*
+
+![A darker slate wolf stalks under the rose sunset](m3-feel-r5-wolf.png)
+*A darker slate wolf stalks under the rose sunset*
+
+![Night in deep indigo with moon shadows and the fold's lantern](m3-feel-r5-late-night.png)
+*Night in deep indigo with moon shadows and the fold's lantern*
+

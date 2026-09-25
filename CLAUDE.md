@@ -706,3 +706,23 @@ Newest at the bottom. Record every non-obvious choice.
   windows on the desktop belong to the user's other work), so the characters re-export ran the
   same `characters.py` in a headless Blender from the shell, exactly as `npm run assets` does,
   rather than opening a new Blender window on the user's desktop.
+- 2026-09-25 (M3 critic r4: no major for the first time in M3, five minors): the heart over a
+  sheep that makes it home is a drawn gold heart icon with a dark outline (the unlit heart mesh
+  read as a flat pale-yellow glitch on the gatepost), two of them a beat apart, with a warm ring at
+  the sheep's feet and a hop. Dust is one lumpy-edged puff per footfall, 1.1-1.6 m across, gone in
+  about half a second. Particle and firefly sizes follow the drawing buffer (point sizes are in
+  buffer pixels, so they shrank on high-density screens); fireflies are brighter, lit more of the
+  time, and also drift over the meadows and round the fold. Pip's reach ring is hidden when no
+  sheep is within 1.6 times its radius, otherwise 20% (12% at a sprint) and brightest towards the
+  sheep, over a fainter dark stroke. Pip has a hairline cream rim by day (round 4's critic asked
+  for one after round 3's asked the wide sky-blue halo away; a hairline reads as a rim, not a
+  selection ring), widening to a moonlit halo after dark; the camera sits 10% closer (zoom 0.98).
+  The golden hour keeps the gold in the light: a less orange key and a smaller push of the grass
+  towards gold (a warm yellow-green, OKLCH hue 107, instead of round 4's mustard at 96), soft
+  blue-violet shade instead of navy, less haze and vignette, softer relief shading. Night is deep
+  indigo with darker darks (a stronger moon over a dimmer fill, crisper shadows, a stronger silver
+  rim on the animals), and the lantern pools are 20 m across again (the pink patch was the grade,
+  now fixed). The wolf's coat is a darker slate, so it stands off the ground by value as well as
+  hue, and its eyes shine brighter from the sunset on; fleeing sheep bound and grazing heads go
+  lower. The stream's body is darker with narrower sky streaks (a lavender wash read as fog);
+  birch leaves are a touch deeper (a sunlit birch glowed like a flat cut-out).

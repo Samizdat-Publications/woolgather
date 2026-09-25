@@ -82,10 +82,11 @@ interface GradeKey {
 }
 
 const KEYS: GradeKey[] = [
-  // Golden hour: saturated amber light against cool blue shade, the lit grass nudged towards gold,
-  // cream highlights, a clear view (little haze) and the warm sky along the top edge.
-  { t: 0.0, sat: 0.88, zones: [0.36, 0.62, 0.74, 0.9], greyKeep: 1, shadeKeep: 0.4, spare: 0.55, warm: 0, shadow: [244, 0.1, 0.85], mid: [84, 0.115, 0.32], high: [75, 0.06, 0.3], protect: 0.2, gain: 1.2, contrast: 1.4, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.12, sky: 0.42, shafts: 0.12, bloom: 0.3, bloomAt: 0.95, vignette: 0.16 },
-  { t: 0.3, sat: 0.88, zones: [0.36, 0.62, 0.74, 0.9], greyKeep: 1, shadeKeep: 0.4, spare: 0.55, warm: 0, shadow: [248, 0.1, 0.85], mid: [80, 0.115, 0.34], high: [65, 0.065, 0.32], protect: 0.2, gain: 1.18, contrast: 1.4, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.14, sky: 0.46, shafts: 0.13, bloom: 0.32, bloomAt: 0.92, vignette: 0.18 },
+  // Golden hour: the gold is in the light (a strong amber key), the grass under it a warm green
+  // nudged a little towards gold, a soft blue-violet shade, cream highlights, a clear view and the
+  // warm sky along the top edge.
+  { t: 0.0, sat: 0.86, zones: [0.36, 0.62, 0.74, 0.9], greyKeep: 1, shadeKeep: 0.5, spare: 0.55, warm: 0, shadow: [262, 0.065, 0.62], mid: [96, 0.105, 0.14], high: [78, 0.06, 0.3], protect: 0.2, gain: 1.16, contrast: 1.4, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.07, sky: 0.36, shafts: 0.12, bloom: 0.3, bloomAt: 0.95, vignette: 0.16 },
+  { t: 0.3, sat: 0.86, zones: [0.36, 0.62, 0.74, 0.9], greyKeep: 1, shadeKeep: 0.5, spare: 0.55, warm: 0, shadow: [266, 0.07, 0.65], mid: [90, 0.105, 0.18], high: [65, 0.065, 0.32], protect: 0.2, gain: 1.14, contrast: 1.4, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.09, sky: 0.4, shafts: 0.13, bloom: 0.32, bloomAt: 0.92, vignette: 0.18 },
   // Sunset, as the wolves come out: told by the light, not by repainting the ground. The grass
   // stays green, cooler and duller as the sun sinks (apricot, then rose, over a cool sky fill);
   // the shade turns blue-violet, well apart in hue from the warm light; the pink is on the
@@ -96,10 +97,10 @@ const KEYS: GradeKey[] = [
   // the eye in low light) towards a cool blue-grey, the shade violet, the moonlit tops silver, and
   // the frame darker every second.
   { t: 0.74, sat: 0.35, zones: [0.2, 0.5, 0.62, 0.8], greyKeep: 0.35, shadeKeep: 0.3, spare: 0.4, warm: 0.8, shadow: [302, 0.11, 0.8], mid: [296, 0.085, 0.7], high: [280, 0.035, 0.45], protect: 0.13, gain: 1.04, contrast: 1.36, pivot: 0.26, haze: '#b87ab0', hazeAmt: 0.2, sky: 0.44, shafts: 0.02, bloom: 0.36, bloomAt: 0.72, vignette: 0.32 },
-  { t: 0.88, sat: 0.32, zones: [0.18, 0.46, 0.58, 0.78], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.3, warm: 1, shadow: [300, 0.115, 0.82], mid: [290, 0.09, 0.72], high: [270, 0.04, 0.5], protect: 0.12, gain: 0.98, contrast: 1.4, pivot: 0.22, haze: '#7a5aa4', hazeAmt: 0.18, sky: 0.38, shafts: 0, bloom: 0.4, bloomAt: 0.62, vignette: 0.38 },
-  // Night: the moonlit ground blue-silver, the shade a deeper violet-indigo (a hue apart, so the
-  // moonlight reads as light and not a filter), silver tops, the lamps and windows warm.
-  { t: 1.0, sat: 0.3, zones: [0.16, 0.44, 0.56, 0.76], greyKeep: 0.25, shadeKeep: 0.3, spare: 0.2, warm: 1, shadow: [302, 0.12, 0.85], mid: [282, 0.09, 0.72], high: [262, 0.04, 0.5], protect: 0.11, gain: 0.92, contrast: 1.46, pivot: 0.2, haze: '#383c80', hazeAmt: 0.14, sky: 0.32, shafts: 0, bloom: 0.45, bloomAt: 0.55, vignette: 0.44 },
+  { t: 0.88, sat: 0.32, zones: [0.18, 0.46, 0.58, 0.78], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.3, warm: 1, shadow: [300, 0.115, 0.82], mid: [284, 0.095, 0.75], high: [270, 0.04, 0.5], protect: 0.12, gain: 0.98, contrast: 1.48, pivot: 0.24, haze: '#7a5aa4', hazeAmt: 0.18, sky: 0.38, shafts: 0, bloom: 0.4, bloomAt: 0.62, vignette: 0.38 },
+  // Night: the moonlit ground deep indigo-blue, the shade a darker violet-indigo (a hue apart, so
+  // the moonlight reads as light and not a filter), silver-blue tops, the lamps and windows warm.
+  { t: 1.0, sat: 0.3, zones: [0.16, 0.44, 0.56, 0.76], greyKeep: 0.25, shadeKeep: 0.3, spare: 0.2, warm: 1, shadow: [298, 0.12, 0.88], mid: [276, 0.1, 0.78], high: [255, 0.045, 0.55], protect: 0.11, gain: 0.95, contrast: 1.55, pivot: 0.26, haze: '#383c80', hazeAmt: 0.14, sky: 0.32, shafts: 0, bloom: 0.45, bloomAt: 0.55, vignette: 0.44 },
 ];
 
 /** Display-space (sRGB) components of a hex colour. */

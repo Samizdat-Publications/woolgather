@@ -12,6 +12,9 @@ import type { Terrain } from './terrain';
 // Characters are drawn larger than life so they read from the herding camera's height.
 export const SCALE = { dog: 2.4, sheep: 1.9, wolf: 2.3 };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
+/** Pip's light rim: warm cream by day, moonlit blue after dark. */
+const HALO_DAY = new THREE.Color('#fff0d0');
+const HALO_NIGHT = new THREE.Color('#b4ccf0');
 
 /**
  * Inverted-hull outline: every mesh under `root` (or under the named parts only) gets a
@@ -222,10 +225,10 @@ export class Actors {
     private terrain: Terrain,
   ) {
     this.dog = rig(a.collie, SCALE.dog);
-    // A thin dark ink line like the sheep and wolves have; after dark a soft moonlit halo grows
-    // outside it, so the black dog never sinks into the night ground (by day a bright halo read
-    // as a game's selection ring).
-    this.dogHalo = addOutline(this.dog.root, 0xb4ccf0, 0.034);
+    // A thin dark ink line like the sheep and wolves have, and outside it a faint light rim: a
+    // hairline of warm cream by day (a wide sky-blue halo read as a game's selection ring), a
+    // softer, wider moonlit one after dark, so the black dog never sinks into the ground.
+    this.dogHalo = addOutline(this.dog.root, 0xfff0d0, 0.048);
     addOutline(this.dog.root, 0x1c2030, 0.032);
     this.root.add(this.dog.root);
     // A chevron in front of Pip, pointing where he faces: it finds him in a crowd and cannot be
@@ -251,7 +254,7 @@ export class Actors {
         `#include <opaque_fragment>
         vec2 rd = vRingXZ - uFocus.xy;
         float facing = max(0.0, dot(rd / max(length(rd), 0.001), normalize(uFocus.zw + vec2(0.0, 0.0001))));
-        gl_FragColor.a *= mix(1.0, 0.55 + 1.2 * facing * facing, clamp(length(uFocus.zw), 0.0, 1.0));`,
+        gl_FragColor.a *= mix(1.0, 0.35 + 1.9 * facing * facing, clamp(length(uFocus.zw), 0.0, 1.0));`,
       );
     };
 
@@ -326,10 +329,10 @@ export class Actors {
       const sp = Math.hypot(vx, vz) || 1;
       this.footfalls.push({ x: x - (vx / sp) * 0.7, z: z - (vz / sp) * 0.7, dx: vx / sp, dz: vz / sp, size });
     };
-    // Pip's moonlit halo grows in with the dark.
+    // Pip's rim: a warm hairline by day, a wider moonlit halo after dark.
     const halo = Math.min(1, Math.max(0, (night - 0.3) / 0.4));
-    this.dogHalo.visible = halo > 0.02;
-    this.dogHalo.userData.width.value = 0.034 + 0.022 * halo;
+    this.dogHalo.color.copy(HALO_DAY).lerp(HALO_NIGHT, halo);
+    this.dogHalo.userData.width.value = 0.048 + 0.014 * halo;
     // An orange-gold key light is taken out of white wool (orange sheep read as dirty), but the
     // rose sunset's pink is left on it: sixteen pink-lit sheep are the sunset. By moonlight the
     // fleece may cool a little.
@@ -341,7 +344,7 @@ export class Actors {
     // Pink from the sunset until the sun goes, then the moon's silver.
     const sunset = Math.min(1, Math.max(0, (mood.t - 0.4) / 0.1)) * Math.min(1, Math.max(0, (0.63 - mood.t) / 0.05));
     const gold = 1 - Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15));
-    this.rim.value.setRGB(1, 0.7 - 0.12 * sunset, 0.5 + 0.16 * sunset).lerp(RIM_MOON, night).multiplyScalar(0.06 + 0.1 * gold + 0.16 * sunset + 0.45 * night);
+    this.rim.value.setRGB(1, 0.7 - 0.12 * sunset, 0.5 + 0.16 * sunset).lerp(RIM_MOON, night).multiplyScalar(0.06 + 0.1 * gold + 0.16 * sunset + 0.7 * night);
     // Gameplay rings belong to play, not to the pause menu or the results card.
     this.zone.mesh.visible = showRings;
     this.zoneUnder.mesh.visible = showRings;
@@ -375,7 +378,7 @@ export class Actors {
     this.zone.place(d.x, d.z, this.zoneR, this.time * 0.12);
     this.zoneUnder.place(d.x, d.z, this.zoneR + 0.3);
     this.zone.mesh.material.color.set(d.creeping ? 0x8fd0ff : 0xfff4d6);
-    const reach = this.zoneR + 9;
+    const reach = this.zoneR * 1.6;
     let near = false;
     let fx = 0;
     let fz = 0;
@@ -398,14 +401,15 @@ export class Actors {
     this.focusX += ((fl > 0.05 ? (fx / fl) * pull : 0) - this.focusX) * ease;
     this.focusZ += ((fl > 0.05 ? (fz / fl) * pull : 0) - this.focusZ) * ease;
     this.zoneFocus.value.set(d.x, d.z, this.focusX, this.focusZ);
-    // Always readable (the how-to points at it), stronger with sheep about or while creeping,
-    // quieter at a sprint (when it is widest), and at full strength for the first seconds of the
-    // day while its label explains it.
+    // At full strength for the first seconds of the day while its label explains it; after that
+    // quiet (brightest on the side facing the sheep, faintest at a sprint, when it is widest), and
+    // gone when no sheep is near enough for it to matter.
     const intro = sim.elapsed < 20 ? 1 : 0;
-    const want = Math.max(intro * 0.42, near ? (d.creeping ? 0.4 : d.sprinting ? 0.22 : 0.3) : 0.14);
+    const want = Math.max(intro * 0.42, near ? (d.creeping ? 0.3 : d.sprinting ? 0.12 : 0.2) : 0);
     this.zoneA += (want - this.zoneA) * (1 - Math.exp(-5 * dt));
     this.zone.mesh.material.opacity = this.zoneA;
-    this.zoneUnder.mesh.material.opacity = this.zoneA * 0.4;
+    this.zoneUnder.mesh.material.opacity = this.zoneA * 0.25;
+    this.zone.mesh.visible = this.zoneUnder.mesh.visible = showRings && this.zoneA > 0.005;
 
     while (this.sheep.length < sim.sheep.length) {
       const n = this.sheep.length;
@@ -431,7 +435,7 @@ export class Actors {
     });
 
     for (const m of this.eyeMats) m.emissiveIntensity = 0.6 + 3.5 * night;
-    this.glowMat.opacity = Math.min(1, 0.45 + 0.9 * night);
+    this.glowMat.opacity = Math.min(1, 0.75 + 0.5 * night);
 
     const seen = new Set<number>();
     for (const w of sim.wolves) {
@@ -450,7 +454,7 @@ export class Actors {
         // every hour (pushing it above white made the tone mapping wash it to salmon).
         // Warm eye-shine that reads from the herding camera once the light goes.
         const glow = new THREE.Sprite(this.glowMat);
-        glow.scale.setScalar(0.7);
+        glow.scale.setScalar(0.9);
         glow.position.set(0, 0.1, 0.24); // heads face +Z: the eyes are in front
         (r.head ?? r.root).add(glow);
         // While it stalks: a dashed line to the sheep it is after, and a pulsing ring on that sheep.
@@ -504,6 +508,12 @@ export class Actors {
         this.wolves.delete(id);
       }
     }
+  }
+
+  /** A sheep gives a little hop (it made it home). */
+  hop(index: number) {
+    const st = this.sheepAnim[index];
+    if (st) st.hopT = 0;
   }
 
   /** A sheep lifts its head to bleat (index in the sim's list). */
