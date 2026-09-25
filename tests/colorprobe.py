@@ -65,18 +65,38 @@ def main():
     shadow = [(x, y) for x in range(SHADOW_BOX[0], SHADOW_BOX[2], 3) for y in range(SHADOW_BOX[1], SHADOW_BOX[3], 3)]
     frame = [(x, y) for x in range(FRAME_BOX[0], FRAME_BOX[2], 4) for y in range(FRAME_BOX[1], FRAME_BOX[3], 4)]
     print(f"samples: grass {len(grass)} water {len(water)} path {len(path)} shadow {len(shadow)}")
-    print(f"{'shot':8} {'grass h/Y/S':>17} {'shadow h/Y/S':>17} {'path h/Y/S':>17} {'water h/Y/S':>17} w/g  Y P5-P95")
+    print(f"{'shot':8} {'grass h/Y/S':>17} {'shadow h/Y/S':>17} {'path h/Y/S':>17} {'water h/Y/S':>17} w/g  Y P5-P95        mean h/S/V")
     for n in names:
         img = Image.open(os.path.join(folder, n + ".png")).convert("RGB")
         g = stats(img, grass)
         sh = stats(img, shadow)
         p = stats(img, path)
         w = stats(img, water)
-        ys = sorted((0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) for c in (img.getpixel(q) for q in frame))
+        cols = [img.getpixel(q) for q in frame]
+        ys = sorted((0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) for c in cols)
+        # The mean colour of the play area as a whole (hue and HSV saturation of the average).
+        mr, mg, mb = (sum(c[i] for c in cols) / len(cols) / 255 for i in range(3))
+        mh, ms, mv = colorsys.rgb_to_hsv(mr, mg, mb)
+        # How monochrome the frame is: the share of coloured pixels within 20 degrees of the most
+        # common hue, and the share that reads as rose (hue 330-20, some saturation).
+        hues = []
+        rose = 0
+        for c in cols:
+            hh, ss_, vv = colorsys.rgb_to_hsv(*(v / 255 for v in c))
+            if ss_ > 0.12 and vv > 0.08:
+                hues.append(hh * 360)
+                if (hh * 360 >= 330 or hh * 360 <= 20) and ss_ > 0.2:
+                    rose += 1
+        best = 0
+        for centre in range(0, 360, 5):
+            cnt = sum(1 for hh in hues if abs(((hh - centre + 180) % 360) - 180) <= 20)
+            best = max(best, cnt)
+        mono = best / max(1, len(hues))
+        rosy = rose / max(1, len(cols))
         p5 = ys[int(len(ys) * 0.05)]
         p95 = ys[int(len(ys) * 0.95)]
         fmt = lambda t: f"{t[0]:4.0f} {t[1]:.3f} {t[2]:.2f}"
-        print(f"{n:8} {fmt(g):>17} {fmt(sh):>17} {fmt(p):>17} {fmt(w):>17} {w[1] / max(g[1], 1e-3):.2f} {p5:3.0f}-{p95:3.0f} ({p95 - p5:3.0f})")
+        print(f"{n:8} {fmt(g):>17} {fmt(sh):>17} {fmt(p):>17} {fmt(w):>17} {w[1] / max(g[1], 1e-3):.2f} {p5:3.0f}-{p95:3.0f} ({p95 - p5:3.0f})  mean {mh * 360:4.0f} {ms:.2f} {mv:.2f}  mono {mono:.2f} rose {rosy:.2f}")
 
 
 main()

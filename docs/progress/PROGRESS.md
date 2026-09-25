@@ -253,3 +253,39 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Deep violet dusk: lit windows, the fold lantern, a hunting wolf](m2-assets-r20-late-dusk.png)
 *Deep violet dusk: lit windows, the fold lantern, a hunting wolf*
 
+
+## m2-assets-r22 (2026-09-25)
+
+![Golden hour: the dashed reach ring, labelled for the first seconds of the day](m2-assets-r22-start.png)
+*Golden hour: the dashed reach ring, labelled for the first seconds of the day*
+
+![Rose sunset: the hue-aware grade turns the valley rose, shadows violet, the stream cool](m2-assets-r22-late-sunset.png)
+*Rose sunset: the hue-aware grade turns the valley rose, shadows violet, the stream cool*
+
+![A snatch: one banner says what and what to do; the inset docks by the threat with its distance](m2-assets-r22-snatch.png)
+*A snatch: one banner says what and what to do; the inset docks by the threat with its distance*
+
+![Moonlit mauve twilight: the stalking wolf kept in frame with its prey](m2-assets-r22-late-dusk.png)
+*Moonlit mauve twilight: the stalking wolf kept in frame with its prey*
+
+![Nightfall: violet-indigo night with the lantern's warm pool](m2-assets-r22-late-night.png)
+*Nightfall: violet-indigo night with the lantern's warm pool*
+
+
+## m2-assets-r23 (2026-09-25)
+
+![Golden hour, camera pulled back: Pip's blue outline and the dashed reach ring](m2-assets-r23-start.png)
+*Golden hour, camera pulled back: Pip's blue outline and the dashed reach ring*
+
+![Rose sunset raking across the hills: coral-rose on the lit grass, violet in the shade](m2-assets-r23-wolf.png)
+*Rose sunset raking across the hills: coral-rose on the lit grass, violet in the shade*
+
+![A snatch: one banner, the inset docked by the threat with its distance](m2-assets-r23-snatch.png)
+*A snatch: one banner, the inset docked by the threat with its distance*
+
+![Twilight closing in: the colour fading from the ground, a charging wolf kept in frame](m2-assets-r23-late-dusk.png)
+*Twilight closing in: the colour fading from the ground, a charging wolf kept in frame*
+
+![Nightfall: dark indigo, the lantern's warm pool, white sheep and Pip's outline](m2-assets-r23-late-night.png)
+*Nightfall: dark indigo, the lantern's warm pool, white sheep and Pip's outline*
+

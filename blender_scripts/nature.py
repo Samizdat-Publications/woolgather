@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wg_lib as W  # noqa: E402
 
 
-def pine(name, tiers, height, seed, needle="#2f5b3c", needle2="#3b6c46"):
+def pine(name, tiers, height, seed, needle="#3c6c48", needle2="#4a7c55"):
     bark = W.mat("bark_pine", "#5a3f2c")
     m1 = W.mat(f"needles_{needle}", needle)
     m2 = W.mat(f"needles_{needle2}", needle2)
@@ -231,7 +231,7 @@ def main():
     W.reset()
     objs = [
         pine("pine_a", 4, 5.6, 1),
-        pine("pine_b", 5, 6.6, 2, needle="#2b5236", needle2="#35613f"),
+        pine("pine_b", 5, 6.6, 2, needle="#365f40", needle2="#426e4b"),
         oak("oak", 3),
         birch("birch", 4),
         bush("bush_a", 5),

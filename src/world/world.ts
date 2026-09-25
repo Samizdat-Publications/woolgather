@@ -23,6 +23,8 @@ function groundLight(m: MoodValues) {
 const GOLDEN_GROUND = groundLight(sampleMood(0, createMoodValues()));
 /** Terrain colour tint, shared by the ground and path shaders (set from the mood each frame). */
 const GROUND_TINT = { value: new THREE.Color(1, 1, 1) };
+/** Direction the hill shading is lit from (the sun, then the moon), level with the horizon. */
+const HILL_DIR = { value: new THREE.Vector3(-1, 0, 0) };
 const PLUM = new THREE.Color('#5a3c5e');
 const INDIGO = new THREE.Color('#3a3c8a');
 
@@ -73,9 +75,18 @@ function instance(proto: THREE.Object3D, spots: Placement[], opts: { shadow?: bo
   return { group, meshes };
 }
 
-// Fade for trees between the camera and the action. Alpha-to-coverage on the multisampled scene
-// target gives a soft see-through without sorting (a screen-door dither read as a checkerboard),
-// and the tree keeps its shadow.
+// Trees between the camera and the action open a soft round window around Pip, the wolves and
+// nearby sheep (screen-space cut-outs through alpha-to-coverage on the multisampled target), so
+// the rest of the tree stays solid instead of the whole thing turning into a ghost. `vFade` says
+// how open a tree is (1 = solid).
+const MAX_HOLES = 6;
+const HOLES = { value: Array.from({ length: MAX_HOLES }, () => new THREE.Vector3()) };
+const HOLE_COUNT = { value: 0 };
+let holeCountMain = 0;
+/** Tree cut-outs follow the main view; switch them off while another camera renders. */
+export function treeHoles(on: boolean) {
+  HOLE_COUNT.value = on ? holeCountMain : 0;
+}
 const fadeCache = new Map<THREE.Material, THREE.Material>();
 function fadeMaterial(src: THREE.Material) {
   const hit = fadeCache.get(src);
@@ -83,14 +94,29 @@ function fadeMaterial(src: THREE.Material) {
   const m = src.clone();
   m.alphaToCoverage = true;
   m.onBeforeCompile = (shader) => {
+    shader.uniforms.uHoles = HOLES;
+    shader.uniforms.uHoleCount = HOLE_COUNT;
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nattribute float instanceFade;\nvarying float vFade;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFade = instanceFade;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vFade;')
-      .replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.a = vFade;');
+      .replace('#include <common>', `#include <common>
+        varying float vFade;
+        uniform vec3 uHoles[${MAX_HOLES}];
+        uniform int uHoleCount;`)
+      .replace(
+        '#include <opaque_fragment>',
+        `#include <opaque_fragment>
+        float cut = 1.0;
+        for (int i = 0; i < ${MAX_HOLES}; i++) {
+          if (i >= uHoleCount) break;
+          float d = length(gl_FragCoord.xy - uHoles[i].xy);
+          cut = min(cut, smoothstep(uHoles[i].z * 0.65, uHoles[i].z, d));
+        }
+        gl_FragColor.a = mix(cut, 1.0, vFade);`,
+      );
   };
-  m.customProgramCacheKey = () => 'wg-fade-a2c';
+  m.customProgramCacheKey = () => 'wg-fade-holes';
   fadeCache.set(src, m);
   return m;
 }
@@ -228,6 +254,8 @@ export interface WorldHandles {
   stoneMaterials: THREE.MeshLambertMaterial[];
   fadeables: { meshes: THREE.InstancedMesh[]; spots: Placement[]; canopy: number; height: number }[];
   lanternLight: THREE.PointLight;
+  /** Ground height lookup (for placing screen-space effects). */
+  heightAt: (x: number, z: number) => number;
 }
 
 export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHandles {
@@ -237,8 +265,10 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   const rng = new Rng(9001);
   const g = (x: number, z: number) => terrain.ground(x, z);
 
-  // Ground. Smooth shading (flat facets turned into a checkerboard under a low sun), and a tint
-  // multiplied into its colours that warms the grass at sunset and cools it at night.
+  // Ground. Smooth shading (flat facets turned into a checkerboard under a low sun), a tint
+  // multiplied into its colours that warms the grass at sunset and cools it at night, and hill
+  // shading: slopes facing the sun (or the moon) are lighter and slopes facing away darker, more
+  // than the light alone would make them, so the hills read from the high herding camera.
   const ground = a.terrain;
   ground.receiveShadow = true;
   const tinted: THREE.MeshLambertMaterial[] = [];
@@ -249,9 +279,20 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
     if (smooth) m.flatShading = false;
     m.onBeforeCompile = (shader) => {
       shader.uniforms.uGround = GROUND_TINT;
+      shader.uniforms.uHillDir = HILL_DIR;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying vec3 vWorldN;')
+        .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvWorldN = normalize(mat3(modelMatrix) * objectNormal);');
       shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform vec3 uGround;')
-        .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= uGround;');
+        .replace('#include <common>', '#include <common>\nuniform vec3 uGround;\nuniform vec3 uHillDir;\nvarying vec3 vWorldN;')
+        .replace(
+          '#include <color_fragment>',
+          `#include <color_fragment>
+          diffuseColor.rgb *= uGround;
+          vec3 hl = normalize(uHillDir * 0.8 + vec3(0.0, 0.6, 0.0));
+          float hs = dot(normalize(vWorldN), hl) - hl.y;
+          diffuseColor.rgb *= clamp(1.0 + 1.3 * hs, 0.6, 1.35);`,
+        );
     };
     m.customProgramCacheKey = () => (smooth ? 'wg-ground-smooth' : 'wg-ground');
     m.needsUpdate = true;
@@ -373,11 +414,22 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
     return out;
   };
   const grassTest = (x: number, z: number) => clear(x, z, 0.4) && !onPath(x, z);
-  root.add(instance(a.nature.get('grass_a')!, scatter(1300, grassTest, [0.8, 1.5]), { shadow: false }).group);
-  root.add(instance(a.nature.get('grass_b')!, scatter(1300, grassTest, [0.8, 1.5]), { shadow: false }).group);
-  const meadow = (x: number, z: number) => x > -40 && grassTest(x, z) && Math.sin(x * 0.11) * Math.cos(z * 0.13) > 0.1;
-  root.add(instance(a.nature.get('flower_white')!, scatter(260, meadow, [0.9, 1.3]), { shadow: false }).group);
-  root.add(instance(a.nature.get('flower_yellow')!, scatter(260, meadow, [0.9, 1.3]), { shadow: false }).group);
+  // Tussocks gather in clumps with grazed lawn between, not an even speckle.
+  const clump = (x: number, z: number) => Math.sin(x * 0.21 + 1.3) * Math.cos(z * 0.17 - 0.4) + Math.sin((x - z) * 0.09) * 0.6;
+  const tussock = (x: number, z: number) => grassTest(x, z) && clump(x, z) > -0.15 + rng.next() * 0.5;
+  root.add(instance(a.nature.get('grass_a')!, scatter(1100, tussock, [0.8, 1.6]), { shadow: false }).group);
+  root.add(instance(a.nature.get('grass_b')!, scatter(1100, tussock, [0.8, 1.6]), { shadow: false }).group);
+  const meadow = (x: number, z: number) => x > -40 && grassTest(x, z) && Math.sin(x * 0.11) * Math.cos(z * 0.13) > 0.42;
+  root.add(instance(a.nature.get('flower_white')!, scatter(130, meadow, [0.9, 1.3]), { shadow: false }).group);
+  root.add(instance(a.nature.get('flower_yellow')!, scatter(130, meadow, [0.9, 1.3]), { shadow: false }).group);
+  // Scree: small stones where the ground steepens under the rim.
+  const slope = (x: number, z: number) => Math.hypot(g(x + 1, z) - g(x - 1, z), g(x, z + 1) - g(x, z - 1)) / 2;
+  const patch2 = (x: number, z: number) => Math.sin(x * 0.07 + 2.1) * Math.cos(z * 0.061 + 0.3) + Math.sin((x + z) * 0.05) * 0.4;
+  const scree = (x: number, z: number) => level.boundaryDistance(x, z) < 24 && grassTest(x, z) && slope(x, z) > 0.2 && patch2(x, z) > 0.2;
+  for (const [k, kind] of ['rock_a', 'rock_b', 'rock_c'].entries()) {
+    const stones = scatter(70, scree, [0.14, 0.32]).map((p) => ({ ...p, y: p.y - 0.05, rot: p.rot + k }));
+    root.add(instance(a.nature.get(kind)!, stones, { shadow: false }).group);
+  }
   // Highland ground cover: heather, bracken and gorse in patches on the far bank and along every
   // slope near the rim, where the grass gives way to the hill.
   const patch = (x: number, z: number, k: number) => Math.sin(x * 0.083 + k) * Math.cos(z * 0.097 - k * 0.7) + Math.sin((x + z) * 0.041 + k * 2.1) * 0.5;
@@ -387,7 +439,10 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   const fern = (x: number, z: number) => upland(x, z) && grassTest(x, z) && patch(x, z, 2.2) > 0.35;
   root.add(instance(a.nature.get('bracken_a')!, scatter(170, fern, [0.9, 1.4]), { shadow: false }).group);
   root.add(instance(a.nature.get('bracken_b')!, scatter(150, fern, [0.9, 1.4]), { shadow: false }).group);
-  const gorseSpot = (x: number, z: number) => level.boundaryDistance(x, z) < 14 && grassTest(x, z) && patch(x, z, 4.1) > 0.45;
+  // No gorse where the wolves come out of the trees: its orange flowers beside a wolf's ember
+  // outline turned the pair into noise.
+  const nearDen = (x: number, z: number) => level.dens.some(([dx, dz]) => (x - dx) ** 2 + (z - dz) ** 2 < 34 * 34);
+  const gorseSpot = (x: number, z: number) => level.boundaryDistance(x, z) < 14 && !nearDen(x, z) && grassTest(x, z) && patch(x, z, 4.1) > 0.45;
   root.add(instance(a.nature.get('gorse')!, scatter(70, gorseSpot, [0.8, 1.3])).group);
   const bank = (x: number, z: number) => {
     const d = level.streamQuery(x, z).d;
@@ -472,11 +527,25 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
     }
   });
 
-  return { root, sky, water, gateN, gateS, glowMaterials, stoneMaterials, fadeables, lanternLight };
+  return { root, sky, water, gateN, gateS, glowMaterials, stoneMaterials, fadeables, lanternLight, heightAt: (x: number, z: number) => terrain.height(x, z) };
 }
 
 /** Per-frame world updates: water flow, sky colours, night glow, and fading trees that block the view. */
-export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, camera: THREE.Camera, focus: { x: number; z: number }[], dt: number) {
+export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, camera: THREE.Camera, focus: { x: number; z: number }[], dt: number, bufW = 1, bufH = 1) {
+  // Screen positions (drawing-buffer pixels, y up) of the first few focus points for the tree
+  // windows, sized to the character at its distance from the camera.
+  let n = 0;
+  for (const p of focus) {
+    if (n >= MAX_HOLES) break;
+    const y = w.heightAt(p.x, p.z) + 1;
+    tmpP.set(p.x, y, p.z).project(camera);
+    if (tmpP.z > 1 || Math.abs(tmpP.x) > 1.2 || Math.abs(tmpP.y) > 1.2) continue;
+    const dist = camera.position.distanceTo(tmpS.set(p.x, y, p.z));
+    HOLES.value[n].set(((tmpP.x + 1) / 2) * bufW, ((tmpP.y + 1) / 2) * bufH, (bufH / 720) * 78 * (48 / Math.max(10, dist)));
+    n++;
+  }
+  holeCountMain = n;
+  HOLE_COUNT.value = n;
   const wu = w.water.material.uniforms;
   wu.uTime.value = time;
   // Glints are sky colour washed towards white, so sunset hues read as sparkle, not blotches.
@@ -486,9 +555,10 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   wu.uLight.value = 0.9 * Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
   wu.uGlint.value = 0.2 + 0.12 * mood.night;
   GROUND_TINT.value.copy(mood.ground);
-  // Only a touch of the evening's colour: deep teal by day, dusky plum at sunset, indigo at night.
-  wu.uTint.value.copy(mood.skyHorizon).lerp(PLUM, 0.5).lerp(INDIGO, mood.night);
-  wu.uTintAmt.value = 0.06 + 0.26 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
+  HILL_DIR.value.set(mood.keyDir.x, 0, mood.keyDir.z).normalize();
+  wu.uTint.value.copy(mood.skyHorizon).lerp(PLUM, 0.25).lerp(INDIGO, mood.night);
+  // From sunset the stream mirrors the sky: rose, then lilac, then the moonlit indigo.
+  wu.uTintAmt.value = 0.06 + 0.42 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
   const su = w.sky.material.uniforms;
   su.uTop.value.copy(mood.skyTop);
   su.uHorizon.value.copy(mood.skyHorizon);
@@ -522,8 +592,8 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
         }
       }
       const cur = attr.getX(i);
-      // A faint ghost of the tree stays, so the player knows it is there.
-      const want = hide ? 0.25 : 1;
+      // Occluding trees open their window fully; the rest of the tree stays solid.
+      const want = hide ? 0 : 1;
       if (Math.abs(cur - want) > 0.005) {
         const next = cur + (want - cur) * k;
         for (const m of f.meshes) (m.geometry.getAttribute('instanceFade') as THREE.InstancedBufferAttribute).setX(i, next);

@@ -82,7 +82,7 @@ export class Ui {
         <h2>How to play</h2>
         <ul class="howto">
           <li><b>WASD / Arrows</b> move Pip. Sheep run <i>away</i> from you, so get behind them.</li>
-          <li>The pale ring around Pip is how close you can get before sheep bolt. It shrinks while you creep and grows when you sprint.</li>
+          <li>The dashed ring around Pip is how close you can get before sheep bolt. It shrinks while you creep and grows when you sprint.</li>
           <li><b>Shift</b> sprint (uses stamina). <b>C</b> creep: sheep stay calm until you are close.</li>
           <li><b>Space</b> bark: startles nearby sheep and scares wolves off.</li>
           <li>Drive the flock through the gate of the stone fold by the farmhouse.</li>
@@ -162,13 +162,15 @@ export class Ui {
   private toastKind = 'info';
   private toastText = '';
   private alertText: string | null = null;
+  private alertSub = '';
 
   /**
    * A danger message that holds the slot until cleared (a sheep in a wolf's jaws). Toasts that
    * arrive meanwhile wait underneath and show once it clears.
    */
-  alert(text: string | null) {
-    if (text === this.alertText) return;
+  alert(text: string | null, sub = '') {
+    if (text === this.alertText && sub === this.alertSub) return;
+    this.alertSub = sub;
     if (text && !this.alertText) {
       // Whatever was showing is old news by the time the snatch is settled.
       this.toastT = 0;
@@ -201,7 +203,19 @@ export class Ui {
     const text = this.alertText ?? (this.toastT > 0 ? this.toastText : '');
     const cls = this.alertText ? 'toast danger sticky' : `toast ${this.toastKind}`;
     el.hidden = !text;
-    if (el.textContent !== text) el.textContent = text;
+    // A snatch alert carries what to do on a second line in the same banner.
+    const sub = this.alertText ? this.alertSub : '';
+    const key = `${text}|${sub}`;
+    if (el.dataset.key !== key) {
+      el.dataset.key = key;
+      el.textContent = text;
+      if (sub) {
+        const line = document.createElement('span');
+        line.className = 'toast-sub';
+        line.textContent = sub;
+        el.appendChild(line);
+      }
+    }
     if (el.className !== cls) el.className = cls;
   }
 
@@ -209,12 +223,32 @@ export class Ui {
     $('.hud-hint', this.root).textContent = text;
   }
 
-  /** A prominent call to action under the timer (e.g. latching the gate). Null hides it. */
-  prompt(html: string | null) {
+  /**
+   * A prominent call to action under the timer (e.g. latching the gate); after a few seconds it
+   * shrinks to a small chip with the `short` text. Null hides it.
+   */
+  prompt(html: string | null, short = '') {
     const el = $('.hud-prompt', this.root);
+    if (!html) this.promptSince = -1;
+    else if (this.promptSince < 0) this.promptSince = performance.now();
+    const chip = !!html && !!short && performance.now() - this.promptSince > 5000;
+    const want = chip ? short : html;
     el.hidden = !html;
-    $('.hud', this.root).classList.toggle('has-prompt', !!html);
-    if (html && el.innerHTML !== html) el.innerHTML = html;
+    el.classList.toggle('chip', chip);
+    $('.hud', this.root).classList.toggle('has-prompt', !!html && !chip);
+    if (want && el.innerHTML !== want) el.innerHTML = want;
+  }
+  private promptSince = -1;
+
+  /** HUD panels go see-through while Pip, a sheep or a wolf is behind them (screen points). */
+  fadePanels(points: { x: number; y: number }[]) {
+    for (const sel of ['.hud-counts', '.hud-time', '.toast', '.hud-prompt']) {
+      const el = $(sel, this.root);
+      if (el.hidden) continue;
+      const r = el.getBoundingClientRect();
+      const under = points.some((p) => p.x > r.left - 14 && p.x < r.right + 14 && p.y > r.top - 14 && p.y < r.bottom + 14);
+      el.classList.toggle('see-through', under);
+    }
   }
 
   update(sim: Sim, dt: number, time: number) {

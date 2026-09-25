@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CAMERA } from '../game/config';
 import { damp } from '../game/math';
-import { createMoodValues, sampleMood, SUN_MOON_SWAP, type MoodValues } from './daycycle';
+import { createMoodValues, sampleMood, type MoodValues } from './daycycle';
 import { GradePass } from './grade';
 
 // Renderer, camera, key/fill lights, fog and the colour grade. Owns nothing gameplay related.
@@ -102,7 +102,8 @@ export class Stage {
     this.grade.hazeSky = HAZE.set(sky.r, sky.g, sky.b);
     this.grade.apply(t, m.exposure);
     // Sun-side glow: warm while the sun is up, faint silver from the moon later on.
-    const moon = t >= SUN_MOON_SWAP;
+    // The glow stays on the sun's side (west) through the twilight, fading into the night.
+    const moon = t >= 0.9;
     const dir = moon ? m.keyDir : m.sunDir;
     tmpV.copy(this.camera.position).addScaledVector(dir, 800).project(this.camera);
     const behind = tmpV.z > 1;
@@ -114,9 +115,10 @@ export class Stage {
   }
 
   /** Snap the camera to a point (used on restart so it doesn't swoop across the map). */
-  snapTo(x: number, y: number, z: number) {
+  snapTo(x: number, y: number, z: number, zoom = 1) {
     this.focus.set(x, y, z);
     this.focusGoal.set(x, y, z);
+    this.zoom = this.zoomGoal = zoom;
   }
 
   setFocusGoal(x: number, y: number, z: number, zoom = 1) {

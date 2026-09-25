@@ -30,10 +30,10 @@ export interface Mood {
 }
 
 // The whole arc plays out inside a normal run: warm gold from the first frame, the sun sets as
-// the wolves come out, a long rose afterglow, then a deep rose-violet dusk over the last minute or
-// so. Night proper (moonlight) falls at nightfall itself, the moment the day ends, so the picture
-// never shows night while the clock still says there is time.
-export const SUN_MOON_SWAP = 0.905;
+// the wolves come out, a long rose afterglow, then a moonlit rose-violet twilight over the last 75
+// seconds: the sun gone below the hills, the western sky still glowing, a rising moon lighting the
+// valley. Full night falls at nightfall itself, the moment the day ends.
+export const SUN_MOON_SWAP = 0.632;
 const KEYS: Mood[] = [
   // A strong warm key against a lower, cool sky fill: lit grass reads green-gold, shadows cool, and
   // the ground has real contrast instead of an even olive wash.
@@ -41,19 +41,22 @@ const KEYS: Mood[] = [
   { t: 0.25, elev: 15, azim: 252, keyColor: '#ffc684', keyIntensity: 4.0, hemiSky: '#a6b4e6', hemiGround: '#74814c', hemiIntensity: 1.0, fog: '#f2cc98', fogNear: 78, fogFar: 250, skyTop: '#6f8cc4', skyHorizon: '#fbb878', sunGlow: '#ffd08a', exposure: 1.12, night: 0, shadow: 0.58, ground: '#fff6ea' },
   // Sunset, when the wolves come out: a low pink-coral sun under a rose sky with a lavender fill;
   // the grass turns gold under it and the pink falls on the fleece, stone and water.
-  { t: 0.45, elev: 10, azim: 259, keyColor: '#ffa6b0', keyIntensity: 3.6, hemiSky: '#b8a8e0', hemiGround: '#6a6060', hemiIntensity: 1.1, fog: '#e79a8c', fogNear: 72, fogFar: 240, skyTop: '#565c9e', skyHorizon: '#ff8f8a', sunGlow: '#ff9460', exposure: 1.14, night: 0.1, shadow: 0.5, ground: '#fff2e6' },
-  { t: 0.6, elev: 6, azim: 264, keyColor: '#ff98b4', keyIntensity: 2.8, hemiSky: '#ae9ad8', hemiGround: '#5c5c6c', hemiIntensity: 1.2, fog: '#c890a4', fogNear: 66, fogFar: 232, skyTop: '#474a90', skyHorizon: '#e87c96', sunGlow: '#ff7860', exposure: 1.12, night: 0.2, shadow: 0.45, ground: '#fff0ea' },
-  // Dusk, the last minute or so: the sun on the horizon, a dim rose key, a strong lilac fill, the
-  // longest (but light) shadows of the evening.
-  { t: 0.74, elev: 2, azim: 267, keyColor: '#e88aa4', keyIntensity: 1.7, hemiSky: '#9c88cc', hemiGround: '#544e66', hemiIntensity: 1.45, fog: '#9a7aa4', fogNear: 62, fogFar: 224, skyTop: '#343a80', skyHorizon: '#c46e86', sunGlow: '#e0708a', exposure: 1.12, night: 0.32, shadow: 0.35, ground: '#faeef6' },
-  { t: 0.86, elev: 0, azim: 268, keyColor: '#b880b4', keyIntensity: 1.2, hemiSky: '#8a7cc4', hemiGround: '#4c4a64', hemiIntensity: 1.7, fog: '#7c6a9c', fogNear: 60, fogFar: 220, skyTop: '#282e70', skyHorizon: '#90608a', sunGlow: '#b0708e', exposure: 1.1, night: 0.48, shadow: 0.3, ground: '#f2ecfa' },
-  // Nightfall: sun and moon swap while the key light is almost off, so shadows never swing.
-  { t: 0.9, elev: 0, azim: 268, keyColor: '#9080b8', keyIntensity: 0.04, hemiSky: '#7c74b8', hemiGround: '#4a4a62', hemiIntensity: 1.5, fog: '#5c5a8c', fogNear: 58, fogFar: 214, skyTop: '#1c2258', skyHorizon: '#5a4a80', sunGlow: '#8a7ab0', exposure: 1.08, night: 0.6, shadow: 0.35, ground: '#eeeefc' },
-  // Moonlight: a strong cool-white key over a dim blue-violet fill: bright moonlit tops and dark
-  // shadows.
-  { t: SUN_MOON_SWAP, elev: 40, azim: 118, keyColor: '#ccd4f4', keyIntensity: 0.04, hemiSky: '#7a72b8', hemiGround: '#484a60', hemiIntensity: 1.1, fog: '#565888', fogNear: 58, fogFar: 212, skyTop: '#1a2056', skyHorizon: '#524880', sunGlow: '#8a80b8', exposure: 1.06, night: 0.62, shadow: 0.35, ground: '#ececfc' },
-  { t: 1.0, elev: 42, azim: 120, keyColor: '#d0dcff', keyIntensity: 1.9, hemiSky: '#7066b2', hemiGround: '#3e445a', hemiIntensity: 0.5, fog: '#2e3264', fogNear: 52, fogFar: 200, skyTop: '#0c1034', skyHorizon: '#2a2c5c', sunGlow: '#6878c0', exposure: 1.0, night: 1, shadow: 0.5, ground: '#e4e4ff' },
+  { t: 0.45, elev: 10, azim: 259, keyColor: '#ffb4a8', keyIntensity: 4.4, hemiSky: '#8c80d8', hemiGround: '#5a5068', hemiIntensity: 0.75, fog: '#e79a8c', fogNear: 72, fogFar: 240, skyTop: '#565c9e', skyHorizon: '#ff8f8a', sunGlow: '#ff9460', exposure: 1.14, night: 0.1, shadow: 0.6, ground: '#fff2e6' },
+  { t: 0.6, elev: 6, azim: 264, keyColor: '#ffa8b8', keyIntensity: 3.9, hemiSky: '#8878d0', hemiGround: '#544c66', hemiIntensity: 0.8, fog: '#c890a4', fogNear: 66, fogFar: 232, skyTop: '#474a90', skyHorizon: '#e87c96', sunGlow: '#ff7860', exposure: 1.12, night: 0.2, shadow: 0.58, ground: '#fff0ea' },
+  // The sun drops below the hills as the last 75 seconds begin; the key light is almost off while
+  // sun and moon swap, so shadows never visibly swing.
+  { t: 0.628, elev: 2, azim: 267, keyColor: '#e890a8', keyIntensity: 0.05, hemiSky: '#a890cc', hemiGround: '#564e66', hemiIntensity: 1.35, fog: '#a07aa0', fogNear: 62, fogFar: 224, skyTop: '#383c84', skyHorizon: '#d0708a', sunGlow: '#e8788e', exposure: 1.12, night: 0.28, shadow: 0.4, ground: '#faeef6' },
+  // Twilight: the western sky still glows rose (haze, glow, water) while a cool moon rises in the
+  // east as the key light: silver on the tops of things, soft shadows, lilac fill. Full night
+  // falls at nightfall.
+  { t: SUN_MOON_SWAP, elev: 30, azim: 112, keyColor: '#c8d2f4', keyIntensity: 0.05, hemiSky: '#a490cc', hemiGround: '#544e66', hemiIntensity: 1.3, fog: '#9a78a0', fogNear: 62, fogFar: 222, skyTop: '#343a80', skyHorizon: '#c86e8a', sunGlow: '#e0708a', exposure: 1.1, night: 0.3, shadow: 0.42, ground: '#f6eef8' },
+  { t: 0.7, elev: 32, azim: 114, keyColor: '#c8d2f4', keyIntensity: 1.9, hemiSky: '#9c88c8', hemiGround: '#504c64', hemiIntensity: 0.95, fog: '#8a70a0', fogNear: 60, fogFar: 220, skyTop: '#2c3276', skyHorizon: '#b06a8c', sunGlow: '#c8708e', exposure: 1.0, night: 0.38, shadow: 0.48, ground: '#f0eefa' },
+  { t: 0.8, elev: 36, azim: 116, keyColor: '#ccd6f8', keyIntensity: 1.9, hemiSky: '#8e80c2', hemiGround: '#4a4a62', hemiIntensity: 0.75, fog: '#6c6294', fogNear: 58, fogFar: 214, skyTop: '#222866', skyHorizon: '#8a6292', sunGlow: '#a07098', exposure: 0.95, night: 0.5, shadow: 0.52, ground: '#eceafc' },
+  { t: 0.88, elev: 38, azim: 118, keyColor: '#ced8fc', keyIntensity: 1.7, hemiSky: '#7c74ba', hemiGround: '#46485e', hemiIntensity: 0.6, fog: '#4c4c80', fogNear: 56, fogFar: 208, skyTop: '#181e52', skyHorizon: '#5c5088', sunGlow: '#8878b0', exposure: 0.92, night: 0.62, shadow: 0.65, ground: '#e8e8fe' },
+  // Night, at nightfall itself: a strong cool-white moon over a dim blue-violet fill.
+  { t: 1.0, elev: 42, azim: 120, keyColor: '#d0dcff', keyIntensity: 1.7, hemiSky: '#7066b2', hemiGround: '#3e445a', hemiIntensity: 0.45, fog: '#2e3264', fogNear: 52, fogFar: 200, skyTop: '#0c1034', skyHorizon: '#2a2c5c', sunGlow: '#6878c0', exposure: 0.9, night: 1, shadow: 0.65, ground: '#e4e4ff' },
 ];
+
 
 /** Mood position where the sun is setting: wolves always arrive at this moment. */
 const SUNSET = 0.45;

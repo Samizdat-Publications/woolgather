@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { insetRect, type InsetSide } from '../render/wolfcam';
+import type { ScreenRect } from '../render/wolfcam';
 
 // Screen-edge arrows for things that matter but are off camera: the fold, sheep in a wolf's jaws,
 // hunting wolves and (when no sheep are on screen) the nearest loose sheep.
 
-export type MarkerKind = 'fold' | 'grab' | 'wolf' | 'sheep';
+export type MarkerKind = 'fold' | 'grab' | 'wolf' | 'sheep' | 'note';
 
 export interface Marker {
   id: string;
@@ -14,6 +14,8 @@ export interface Marker {
   z: number;
   /** Also show a label over the thing while it is on screen. */
   labelOnScreen?: string;
+  /** A label only: nothing at the screen edge when the point is off screen. */
+  onScreenOnly?: boolean;
 }
 
 const v = new THREE.Vector3();
@@ -26,22 +28,23 @@ export const MARKER_ICONS: Record<MarkerKind, string> = {
   grab: '<svg viewBox="-12 -12 24 24"><path d="M0 -7 V2" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><circle cx="0" cy="6.5" r="1.9" fill="#fff"/></svg>',
   sheep:
     '<svg viewBox="-12 -12 24 24"><circle cx="-3" cy="0" r="4" fill="#231c2b" opacity="0.18"/><path d="M-6 2 a3.5 3.5 0 0 1 1-6 a4 4 0 0 1 7-1 a3.5 3.5 0 0 1 3 6 Z" fill="#fff" stroke="#231c2b" stroke-width="1.4"/><rect x="4" y="-2" width="4" height="4.5" rx="1.5" fill="#231c2b"/></svg>',
+  note: '',
 };
 
-/** Set while the wolf-cam inset is up, and on which side. */
-export const hudState: { insetVisible: boolean; insetSide: InsetSide } = { insetVisible: false, insetSide: 'left' };
+/** Set while the wolf-cam inset is up, and where it is. */
+export const hudState: { insetVisible: boolean; insetRect: ScreenRect | null } = { insetVisible: false, insetRect: null };
 
 // Screen regions taken by HUD panels (top-left counts, top-right minimap, the timer and message
 // banner across the top middle, the wolf-cam inset), in CSS pixels.
-function avoidHud(px: number, py: number, w: number, h: number): [number, number] {
+function avoidHud(px: number, py: number, w: number): [number, number] {
   if (px > w - 250 && py < 215) py = 230;
   if (px < 190 && py < 135) py = 150;
   // The timer and banner across the top middle: slide along the edge past them rather than
   // dropping into the field, where a marker reads as an object in the world.
   if (Math.abs(px - w / 2) < 340 && py < 150) px = px < w / 2 ? w / 2 - 350 : w / 2 + 350;
-  if (hudState.insetVisible) {
+  const r = hudState.insetRect;
+  if (hudState.insetVisible && r) {
     // Markers on the inset's edge hop above it.
-    const r = insetRect(hudState.insetSide, w, h);
     if (px > r.x - 34 && px < r.x + r.w + 34 && py > r.y - 30 && py < r.y + r.h + 30) py = r.y - 34;
   }
   return [px, py];
@@ -93,6 +96,10 @@ export class Indicators {
         }
         continue;
       }
+      if (m.onScreenOnly) {
+        e.hidden = true;
+        continue;
+      }
       e.hidden = false;
       e.classList.remove('on-screen');
       label.textContent = '';
@@ -104,7 +111,7 @@ export class Indicators {
       const k = Math.min(mx / Math.max(Math.abs(nx), 1e-4), my / Math.max(Math.abs(ny), 1e-4));
       nx *= k;
       ny *= k;
-      const [px, py] = avoidHud(((nx + 1) / 2) * w, ((1 - ny) / 2) * h, w, h);
+      const [px, py] = avoidHud(((nx + 1) / 2) * w, ((1 - ny) / 2) * h, w);
       e.style.transform = `translate(${px}px, ${py}px)`;
       (e.querySelector('.ind-arrow') as HTMLElement).style.transform = `rotate(${ang}rad)`;
     }

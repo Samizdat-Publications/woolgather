@@ -82,6 +82,30 @@ def toothed_ring(name, inner, outer, teeth=12, fill=0.62, seg_per=4):
     return ob
 
 
+def chevron(name):
+    """A flat arrowhead pointing along -Y (the game's +Z once exported): Pip's foot marker, which
+    shows where he is facing and cannot be mistaken for his (dashed) reach ring."""
+    bm = bmesh.new()
+    tip = bm.verts.new((0, -1.0, 0))
+    notch = bm.verts.new((0, -0.42, 0))
+    ro = bm.verts.new((0.9, 0.3, 0))
+    ri = bm.verts.new((0.52, 0.3, 0))
+    lo = bm.verts.new((-0.9, 0.3, 0))
+    li = bm.verts.new((-0.52, 0.3, 0))
+    for quad in ((tip, ro, ri, notch), (tip, notch, li, lo)):
+        f = bm.faces.new(quad)
+        f.normal_update()
+        if f.normal.z < 0:
+            f.normal_flip()
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    me.materials.append(W.mat("fx_ring", "#fff4d6", 1.0))
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    return ob
+
+
 def moon():
     p = W.Part("moon")
     m = W.mat("moon", "#f3f0e2", 1.0, emit="#f3f0e2", emit_strength=1.0)
@@ -117,6 +141,9 @@ def main():
         ring("soft_ring", 0.97, 1.0, 96),
         ring("thin_ring", 0.985, 1.0, 128),
         toothed_ring("danger_ring", 0.8, 1.0),
+        # Pip's reach: dashes, so it never reads like the solid rings on the ground elsewhere.
+        toothed_ring("dashed_ring", 0.972, 1.0, teeth=48, fill=0.5, seg_per=2),
+        chevron("chevron"),
         moon(),
         heart(),
         small("wool_tuft", "#f4efe2", 0.12, 1),

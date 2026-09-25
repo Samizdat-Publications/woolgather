@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { moodTime } from '../render/daycycle';
 import { Stage } from '../render/stage';
-import { WolfCam } from '../render/wolfcam';
+import { INSET, WolfCam } from '../render/wolfcam';
 import { hudState, Indicators, type Marker } from '../ui/indicators';
 import { PerfOverlay } from '../ui/perf';
 import { Ui, type UiAction } from '../ui/ui';
 import { Actors } from '../world/actors';
 import { loadAssets } from '../world/assets';
 import { Terrain } from '../world/terrain';
-import { buildWorld, updateWorld, type WorldHandles } from '../world/world';
+import { buildWorld, treeHoles, updateWorld, type WorldHandles } from '../world/world';
 import { DOG, type Difficulty } from './config';
 import { Input } from './input';
 import { Level } from './level';
@@ -129,7 +129,7 @@ export class Game {
     const seed = this.opts.seed + this.runs - 1;
     this.sim = new Sim(this.level, this.ui.difficulty, seed);
     const d = this.sim.dog;
-    this.stage.snapTo(d.x, this.terrain.height(d.x, d.z), d.z);
+    this.stage.snapTo(d.x, this.terrain.height(d.x, d.z), d.z, BASE_ZOOM);
     this.ui.clearToasts();
     this.gateGlow = false;
     this.warnedAt.clear();
@@ -227,18 +227,25 @@ export class Game {
     if (this.world.gateN) this.world.gateN.rotation.y = open;
     if (this.world.gateS) this.world.gateS.rotation.y = -open;
     this.stage.updateCamera(this.mode === 'paused' ? 0 : rawDt);
-    updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt);
+    const buf = this.stage.renderer.getDrawingBufferSize(tmpV2);
+    updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt, buf.x, buf.y);
     if (sim && (this.mode === 'playing' || this.mode === 'paused')) {
       this.indicators.update(this.stage.camera, this.markers(sim));
       this.ui.fadeMap(this.behindMap(sim));
+      this.ui.fadePanels(this.subjectsOnScreen(sim));
     }
     else this.indicators.clear();
     if (sim && this.mode === 'playing') this.trackSnatch(sim, rawDt);
     if (this.mode === 'playing' || this.mode === 'paused') this.wolfCam.update(this.mode === 'paused' ? 0 : rawDt);
     else this.wolfCam.hide();
     hudState.insetVisible = this.wolfCam.visible;
-    hudState.insetSide = this.wolfCam.side;
-    this.stage.render((r, target) => this.wolfCam.render(r, this.stage.scene, target));
+    hudState.insetRect = this.wolfCam.rect;
+    this.stage.render((r, target) => {
+      // Tree cut-outs are placed for the main view only.
+      treeHoles(false);
+      this.wolfCam.render(r, this.stage.scene, target);
+      treeHoles(true);
+    });
   }
 
   /**
@@ -246,7 +253,6 @@ export class Game {
    * until the snatch is settled.
    */
   private trackSnatch(sim: Sim, dt: number) {
-    const L = this.level;
     const offScreen = (x: number, z: number) => {
       tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
       // Anything even at the edge of the view counts as seen: the inset never repeats it.
@@ -269,19 +275,18 @@ export class Game {
         text = 'Snatch!';
       } else if (w.state === 'charge') {
         rank = 2;
-        text = 'Wolf charging a straggler!';
+        text = 'Wolf charging!';
       } else if (Math.hypot(w.x - s.x, w.z - s.z) < 16) {
         rank = 1;
-        text = `Wolf stalking sheep ${L.placeName(s.x, s.z)}`;
+        text = 'Wolf stalking';
       }
       if (rank && (!best || rank > best.rank)) best = { x: w.x, z: w.z, text, rank, id: w.id, heading: w.facing };
     }
     if (best) {
       this.insetWolf = best.id;
-      // The inset opens on the side of the screen the threat lies towards.
-      tmpV.set(best.x, this.terrain.height(best.x, best.z), best.z).project(this.stage.camera);
-      const side = (tmpV.z > 1 ? -tmpV.x : tmpV.x) < 0 ? 'left' : 'right';
-      this.wolfCam.track(best.x, this.terrain.height(best.x, best.z), best.z, best.heading, best.text, side, dt);
+      const dist = Math.round(Math.hypot(best.x - sim.dog.x, best.z - sim.dog.z));
+      const dock = this.insetDock(sim, best.x, best.z);
+      this.wolfCam.track(best.x, this.terrain.height(best.x, best.z), best.z, best.heading, `${best.text} · ${dist} m`, dock.x, dock.y, dock.point, dt);
     } else if (this.wolfCam.visible) {
       // While the inset lingers, stay on the same wolf rather than on the spot it left.
       const w = sim.wolves.find((o) => o.id === this.insetWolf && o.state !== 'gone');
@@ -289,6 +294,69 @@ export class Game {
     }
   }
   private insetWolf = -1;
+
+  /**
+   * Where the wolf-cam inset docks for a threat at (x, z) off screen: on the screen edge the
+   * threat lies beyond, level with where the line from the middle of the screen towards it
+   * crosses that edge, between the HUD panels, and slid along the edge until it covers neither Pip,
+   * the sheep near him nor the fold gate. Returns the frame's top-left and the threat's (off
+   * screen) position for the arrow.
+   */
+  private insetDock(sim: Sim, x: number, z: number) {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const cam = this.stage.camera;
+    const toScreen = (px: number, pz: number) => {
+      tmpV.set(px, this.terrain.height(px, pz) + 0.8, pz).project(cam);
+      const behind = tmpV.z > 1;
+      const nx = behind ? -tmpV.x : tmpV.x;
+      const ny = behind ? -tmpV.y : tmpV.y;
+      return { x: ((nx + 1) / 2) * w, y: ((1 - ny) / 2) * h, behind };
+    };
+    const t = toScreen(x, z);
+    const left = t.x < w / 2;
+    const dx = left ? INSET.margin : w - INSET.margin - INSET.w;
+    const colX = dx + INSET.w / 2;
+    const cx = w / 2;
+    const cy = h / 2;
+    const yc = Math.abs(t.x - cx) > 1 ? cy + ((t.y - cy) * (colX - cx)) / (t.x - cx) : t.y < cy ? 0 : h;
+    // Free band on that edge: under the counter (left) or the minimap (right), above the meters.
+    const top = left ? 124 : 196;
+    const bottom = h - 84 - INSET.h;
+    const clampY = (y: number) => Math.max(top, Math.min(bottom, y));
+    const keep: { x: number; y: number }[] = [];
+    const d = sim.dog;
+    const add = (px: number, pz: number) => {
+      const p = toScreen(px, pz);
+      if (!p.behind) keep.push(p);
+    };
+    add(d.x, d.z);
+    for (const s of sim.sheep) {
+      if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed') continue;
+      if ((s.x - d.x) ** 2 + (s.z - d.z) ** 2 < 30 * 30) add(s.x, s.z);
+    }
+    const f = this.level.fold;
+    add(f.minX, f.cz);
+    const pad = 26;
+    const blocked = (y: number) => keep.some((p) => p.x > dx - pad && p.x < dx + INSET.w + pad && p.y > y - pad && p.y < y + INSET.h + pad);
+    let y = clampY(yc - INSET.h / 2);
+    // Stay where the frame already is if that is still clear, so it does not wander.
+    const prev = this.wolfCam.visible && Math.abs(this.wolfCam.rect.x - dx) < 1 ? this.wolfCam.rect.y : null;
+    if (prev !== null && !blocked(prev) && Math.abs(prev - y) < 140) y = prev;
+    else if (blocked(y)) {
+      for (let off = 20; off < h; off += 20) {
+        if (y - off >= top && !blocked(y - off)) {
+          y -= off;
+          break;
+        }
+        if (y + off <= bottom && !blocked(y + off)) {
+          y += off;
+          break;
+        }
+      }
+    }
+    return { x: dx, y, point: t };
+  }
 
   /**
    * Keep Pip and the sheep he is working in one frame: the focus leans towards the nearby flock
@@ -299,10 +367,13 @@ export class Game {
     const d = sim.dog;
     let fx = d.x + d.vx * 0.35;
     let fz = d.z + d.vz * 0.35;
-    let minX = d.x;
-    let maxX = d.x;
-    let minZ = d.z;
-    let maxZ = d.z;
+    // Pip's safe band: the frame always keeps this much ground round him, so he never ends up
+    // under the timer and banners at the top or on the bottom edge (north is up the screen).
+    const SAFE = { side: 6, north: 6, south: 4 };
+    let minX = d.x - SAFE.side;
+    let maxX = d.x + SAFE.side;
+    let minZ = d.z - SAFE.north;
+    let maxZ = d.z + SAFE.south;
     let n = 0;
     let cx = 0;
     let cz = 0;
@@ -324,17 +395,30 @@ export class Game {
     }
     let framed = n > 0;
     // Hunting wolves near Pip are framed; a wolf dragging a sheep is pulled into view from
-    // further out, so the alert and the picture agree.
+    // further out, so the alert and the picture agree. They (with their prey and Pip) are the
+    // must-haves: `ess` is their box.
     let dragFrame = false;
+    const ess = { minX, maxX, minZ, maxZ, wolves: 0 };
+    const growEss = (x: number, z: number) => {
+      grow(x, z);
+      ess.minX = Math.min(ess.minX, x);
+      ess.maxX = Math.max(ess.maxX, x);
+      ess.minZ = Math.min(ess.minZ, z);
+      ess.maxZ = Math.max(ess.maxZ, z);
+    };
     for (const w of sim.wolves) {
       if (w.state !== 'stalk' && w.state !== 'charge' && w.state !== 'drag') continue;
       const reach = w.state === 'drag' ? 52 : 40;
       if ((w.x - d.x) ** 2 + (w.z - d.z) ** 2 > reach * reach) continue;
-      grow(w.x, w.z);
+      growEss(w.x, w.z);
+      // A stalking or charging wolf brings its prey into the frame too, so the player can see
+      // which sheep it is after and where to cut in.
+      if (w.target && (w.state === 'stalk' || w.state === 'charge') && (w.target.x - w.x) ** 2 + (w.target.z - w.z) ** 2 < 30 * 30) growEss(w.target.x, w.target.z);
       framed = true;
+      ess.wolves++;
       if (w.state === 'drag') dragFrame = true;
     }
-    let zoom = 1;
+    let zoom = BASE_ZOOM;
     if (framed) {
       if (n > 0) {
         cx /= n;
@@ -355,18 +439,28 @@ export class Game {
         for (const p of best ?? []) grow(p.x, p.z);
       }
       // Frame the whole working group (Pip, flock, landmark), not Pip with the rest at the edges.
-      const bx = (minX + maxX) / 2;
-      const bz = (minZ + maxZ) / 2;
-      fx += (bx - fx) * 0.85;
-      fz += (bz - fz) * 0.85;
       // At zoom 1 the view spans about +-27 m across, 15 m towards the camera, 26 m away from it.
-      const halfW = Math.max(maxX - fx, fx - minX) + 5;
-      // Wider margin at the bottom, where the meters, hints and edge markers sit.
-      const south = maxZ - fz + 8;
-      const north = fz - minZ + 5;
-      zoom = Math.min(dragFrame ? 1.95 : 1.6, Math.max(1, halfW / 27, south / 15, north / 26));
+      // Margins keep everything framed clear of the timer and banners at the top (9 m: the far
+      // side of the tilted view is squeezed) and of the meters, hints and edge markers at the
+      // bottom (8 m). Capped so Pip, with his outline, stays a readable size.
+      const cap = dragFrame ? 1.75 : 1.6;
+      const fit = (x0: number, x1: number, z0: number, z1: number) => {
+        // The tilted view sees further away from the camera than towards it, so the centre that
+        // needs the least zoom sits south of the box's middle: where both margins bind equally.
+        const cx0 = fx + ((x0 + x1) / 2 - fx) * 0.85;
+        const cz0 = fz + ((26 * (z1 + 8) + 15 * (z0 - 9)) / 41 - fz) * 0.85;
+        const halfW = Math.max(x1 - cx0, cx0 - x0) + 5;
+        return { x: cx0, z: cz0, zoom: Math.max(BASE_ZOOM, halfW / 27, (z1 - cz0 + 8) / 15, (cz0 - z0 + 9) / 26) };
+      };
+      let f = fit(minX, maxX, minZ, maxZ);
+      // When everything will not fit, the hunt wins: the wolf, its prey and Pip stay in frame and
+      // the far side of the flock may go off the edge.
+      if (f.zoom > cap && ess.wolves > 0) f = fit(ess.minX, ess.maxX, ess.minZ, ess.maxZ);
+      fx = f.x;
+      fz = f.z;
+      zoom = Math.min(cap, f.zoom);
     }
-    if (d.sprinting) zoom = Math.max(zoom, 1.08);
+    if (d.sprinting) zoom = Math.max(zoom, BASE_ZOOM * 1.08);
     this.stage.setFocusGoal(fx, this.terrain.height(d.x, d.z), fz, zoom);
   }
 
@@ -384,11 +478,13 @@ export class Game {
         labelOnScreen: this.gateGlow ? 'Enter: latch the gate' : sim.elapsed < 45 ? 'Fold' : undefined,
       },
     ];
+    // The wolf-cam inset stands in for the edge marker of the hunt it is showing.
+    const shown = this.wolfCam.visible ? sim.wolves.find((w) => w.id === this.insetWolf && w.state !== 'gone') : undefined;
     for (const s of sim.sheep) {
-      if (s.state === 'grabbed') out.push({ id: `g${s.id}`, kind: 'grab', x: s.x, y: h(s.x, s.z) + 1, z: s.z });
+      if (s.state === 'grabbed' && shown?.target !== s) out.push({ id: `g${s.id}`, kind: 'grab', x: s.x, y: h(s.x, s.z) + 1, z: s.z });
     }
     for (const w of sim.wolves) {
-      if (w.state === 'stalk' || w.state === 'charge') out.push({ id: `w${w.id}`, kind: 'wolf', x: w.x, y: h(w.x, w.z) + 1, z: w.z });
+      if ((w.state === 'stalk' || w.state === 'charge') && w !== shown) out.push({ id: `w${w.id}`, kind: 'wolf', x: w.x, y: h(w.x, w.z) + 1, z: w.z });
     }
     // If no loose sheep is in view, point at the nearest one.
     const cam = this.stage.camera;
@@ -408,6 +504,11 @@ export class Game {
       }
     }
     if (!anyVisible && nearest) out.push({ id: 'stray', kind: 'sheep', x: nearest.x, y: h(nearest.x, nearest.z) + 1, z: nearest.z });
+    // The first seconds of the first day: name the dashed ring on the ring itself.
+    if (this.runs === 1 && sim.elapsed < 20) {
+      const r = sim.dogThreatRadius;
+      out.push({ id: 'reach', kind: 'note', x: d.x, y: h(d.x, d.z - r), z: d.z - r, labelOnScreen: "Pip's reach: sheep inside it move away", onScreenOnly: true });
+    }
     return out;
   }
 
@@ -479,6 +580,22 @@ export class Game {
     return sim.sheep.some((s) => s.state !== 'lost' && under(s.x, s.z));
   }
 
+  /** Screen positions (CSS pixels) of Pip, the loose sheep and the hunting wolves in view. */
+  private subjectsOnScreen(sim: Sim) {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const out: { x: number; y: number }[] = [];
+    const add = (x: number, z: number) => {
+      tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
+      if (tmpV.z > 1 || Math.abs(tmpV.x) > 1 || Math.abs(tmpV.y) > 1) return;
+      out.push({ x: ((tmpV.x + 1) / 2) * w, y: ((1 - tmpV.y) / 2) * h });
+    };
+    add(sim.dog.x, sim.dog.z);
+    for (const s of sim.sheep) if (s.state !== 'folded' && s.state !== 'lost') add(s.x, s.z);
+    for (const wf of sim.wolves) if (wf.state !== 'gone') add(wf.x, wf.z);
+    return out;
+  }
+
   /** Is (x, z) inside the main view (with a margin)? */
   private onScreen(x: number, z: number) {
     tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
@@ -525,11 +642,11 @@ export class Game {
       const place = this.level.placeName(s.x, s.z);
       const inRange = Math.hypot(dragger.x - d.x, dragger.z - d.z) < DOG.barkWolfRadius - 1;
       if (inRange || far < 16) {
-        this.ui.alert(`A wolf has one of your sheep! ${secs} s to save it`);
-        this.ui.hint(inRange ? 'Bark (Space) now to make it let go!' : 'Bark (Space) or run into the wolf to make it let go');
+        this.ui.alert(`A wolf has one of your sheep! ${secs} s to save it`, inRange ? 'Bark (Space) now to make it let go!' : 'Bark (Space) or run into the wolf');
+        this.ui.hint('');
       } else if (this.dragFeasible) {
-        this.ui.alert(`A wolf has a sheep ${place}! ${secs} s to save it`);
-        this.ui.hint('Run at it (Shift to sprint), then bark (Space)!');
+        this.ui.alert(`A wolf has a sheep ${place}! ${secs} s to save it`, 'Sprint at it (Shift), then bark (Space)');
+        this.ui.hint('');
       } else {
         // Out of reach: one calm line, no countdown and no inset (see trackSnatch).
         this.ui.alert(null);
@@ -564,7 +681,10 @@ export class Game {
     }
     const wasGlowing = this.gateGlow;
     this.gateGlow = sim.targetMet && sim.free > 0 && !grabbed;
-    this.ui.prompt(this.gateGlow ? 'Target met! Press <kbd>Enter</kbd> to latch the gate and end the day, or keep herding for more stars' : null);
+    this.ui.prompt(
+      this.gateGlow ? 'Target met! Press <kbd>Enter</kbd> to latch the gate and end the day, or keep herding for more stars' : null,
+      'Target met · <kbd>Enter</kbd> latches the gate',
+    );
     // The call to action replaces the objective it completes, and wins over tutorial tips.
     if (this.gateGlow && !wasGlowing) this.ui.dropInfoToast();
     if (this.gateGlow && this.tipUntil > 0) {
@@ -579,7 +699,7 @@ export class Game {
       nearest = Math.min(nearest, Math.hypot(s.x - d.x, s.z - d.z));
     }
     if (!wolvesOut && nearest < 22) {
-      this.tip('ring', "The pale ring is Pip's reach: sheep inside it run away. Hold C to creep and shrink it", 9, t);
+      this.tip('ring', "The dashed ring is Pip's reach: sheep inside it run away. Hold C to creep and shrink it", 9, t);
     }
     this.farT = nearest > 45 && nearest < Infinity ? this.farT + dt : 0;
     if (!wolvesOut && this.farT > 3 && this.tipsShown.has('ring')) {
@@ -612,8 +732,14 @@ export class Game {
       dog: s ? { x: s.dog.x, z: s.dog.z, vx: s.dog.vx, vz: s.dog.vz, stamina: s.dog.stamina, barkCd: s.dog.barkCd } : null,
       sheep: s ? s.sheep.map((q) => ({ id: q.id, x: q.x, z: q.z, state: q.state })) : [],
       wolves: s ? s.wolves.filter((w) => w.state !== 'gone').map((w) => ({ id: w.id, x: w.x, z: w.z, state: w.state })) : [],
+      /** Whether the game judges the current snatch reachable (null: no snatch). */
+      dragFeasible: this.dragFeasible,
     };
   }
 }
 
 const tmpV = new THREE.Vector3();
+/** The herding camera's usual distance (1 = the configured offset): far enough that Pip's reach
+ * ring takes about half the screen's height. */
+const BASE_ZOOM = 1.2;
+const tmpV2 = new THREE.Vector2();

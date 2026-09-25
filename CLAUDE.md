@@ -451,3 +451,65 @@ Newest at the bottom. Record every non-obvious choice.
   markers slide along the top edge past the timer instead of dropping into the field; a partly
   visible sheep counts as visible; the inset needs the wolf truly off screen. The minimap is tinted
   with the evening (sepia by day, dimmer and cooler into the dusk) and wolves are ringed red dots.
+- 2026-09-25 (M2 critic r20, the last major was the dusk and night as a flat violet wash with
+  Pip and the wolves as dark blobs): the sun now sets under the hills as the last 75 seconds
+  begin and a cool moon rises in the east as the key light for the whole twilight (silver on the
+  tops of things, soft shadows, a silver rim on the animals), while the western sky, haze, glow
+  and water keep the rose afterglow; full night still falls only at nightfall. The dusk and night
+  grades are less saturated with a lifted ground ramp. The wolf's back is a lighter slate so it
+  never reads as a hole, and Pip is drawn at 2.0x; the camera's zoom-out is capped (1.4, or 1.5
+  during a snatch) so Pip never shrinks below about 40 px.
+- 2026-09-25 (M2 critic r20): a stalking or charging wolf within 26 m draws a dashed red line on
+  the ground to the sheep it is after and a pulsing ring round that sheep, and the camera frames
+  the pair, so the player sees which sheep is in danger before the snatch. The wolf-cam inset opens
+  on the side of the screen away from the threat, so it never covers the ground Pip must cross.
+  Trees between the camera and the action open a soft round window around Pip, the wolves and the
+  nearest sheep (screen-space cut-outs through alpha-to-coverage) instead of ghosting the whole
+  tree.
+- 2026-09-25 (M2 critic r21, the last major was the sunset reading brown then grey instead of
+  rose then violet): green grass under a pink sun is brown, and pulling green towards rose or
+  violet in RGB passes through grey (opposite hues). The grade now works in OKLCH: every pixel
+  keeps its lightness and its hue turns along the colour wheel towards the phase's colour for its
+  tone band (shadows, midtones, highlights), with chroma eased towards the phase's own and scaled
+  by lightness (dark pixels never turn neon). Measured mean colour of the play area: gold 53,
+  coral 4, rose 356 and 350, mauve 330 and 318, violet 294, indigo 247, saturation 0.37-0.65
+  all evening (HSV hue and saturation of the frame's mean). Non-grass hues (the stream) turn less,
+  so the water stays a cool blue-violet against the rose ground; after sunset warm hues (lamp
+  light) keep their colour, so the lantern pools orange against the violet night. Characters write
+  alpha 0 into the scene target and the grade leaves 70% of their own colour alone: cream sheep,
+  grey wolves and a black and white dog stand off the ground by colour, not only by outline.
+  The terrain gets hill shading (slopes facing the sun or moon lighter, the far side darker),
+  grass grows in clumps with grazed lawn between, flowers are halved into fewer drifts, scree lies
+  under the rim, and there is no gorse near the wolf dens.
+- 2026-09-25 (M2 critic r21): the wolf-cam inset docks on the screen edge the threat lies beyond,
+  level with it, slid clear of Pip, the nearby flock and the fold gate, with an arrow on its border
+  pointing at the threat and the distance in its label; it stands in for that hunt's edge marker.
+  A snatch alert carries what to do on a second line in the same red banner (the hint bar stays
+  clear). Pip's reach is a dashed ring over a faint dark stroke, never below about a third opacity,
+  and labelled on the ring for the first 20 s of the first day; the yellow foot ring became a
+  chevron in front of Pip showing where he faces. The wolf is lighter grey with pale, bigger ears
+  and a longer muzzle. The camera frames a hunting wolf, its prey and Pip first (the far side of
+  the flock may leave the frame when not everything fits) and centres the box for the tilted
+  view (it sees 26 m away from the camera but only 15 m towards it), so a stalker south of Pip
+  is no longer cut off at the bottom edge.
+- 2026-09-25 (M2 critic r22, two majors: every phase one full-screen tint, "pink clay", and the
+  camera pushing Pip under the top HUD): the sunset now rakes across the hills. The grade's tone
+  bands sit on the valley's average brightness, so grass brighter than it (slopes facing the sun)
+  turns coral-rose and grass darker than it (shade, far slopes) cool violet, the flats between
+  rose; other materials (path, stone, water, trees) turn much less. Measured at the bridge: lit
+  grass coral 14 to rose 343 through the sunset, shade violet (313-329). A softer pink key light
+  (on green grass a strong one only makes orange) and the fleece keeps its pink: only an
+  orange-gold key is taken out of white wool. After sunset the ground's own colour fades before
+  it is tinted (as colour fades to the eye in low light), which stops green passing through teal
+  on its way to violet; the frame darkens over the last minute (grass luma about 0.17, then 0.15
+  at night). OKLCH hues are not screen hues: 288 reads indigo-blue, violet needs 305-325.
+- 2026-09-25 (M2 critic r22): the camera sits a fifth further back by default (Pip's walking ring
+  about half the screen's height; zoom 1.2-1.6, 1.75 during a snatch), Pip is 2.2x with a sky-blue
+  outer outline around his dark one (the friendly counterpart of the wolves' ember) and a cool
+  blue-black coat that no longer browns in warm light, with more white from above. Everything
+  framed keeps 9 m of ground clear at the top of the view (under the timer and banners) and Pip
+  6 m more; the counter, timer, banners and latch prompt fade while an animal is under them, and
+  the latch prompt shrinks to a chip after 5 s. The wolf is mid-grey with a narrow charcoal saddle
+  and charcoal ears splayed wide, so from above it shows a dark and a light side against any
+  ground; the pines are lighter. The playtest bot now leaves a snatch the game calls too far to
+  save, like a player reading the banner (it used to run 150 m after every one and lose the day).

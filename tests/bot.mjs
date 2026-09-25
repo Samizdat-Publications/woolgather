@@ -212,7 +212,8 @@ export class HerdBot {
     const now = st.elapsed;
 
     // 1. Wolves first: rescue grabbed sheep, then intercept hunters that are close.
-    const draggers = st.wolves.filter((w) => w.state === 'drag');
+    // Like a player reading the banner: a snatch the game calls too far to save is left alone.
+    const draggers = st.dragFeasible === false ? [] : st.wolves.filter((w) => w.state === 'drag');
     // Only break off herding for wolves that are actually closing on a sheep.
     const nearSheep = (w) => Math.min(...free.map((s) => dist(s, w)), Infinity);
     const hunters = st.wolves.filter((w) => (w.state === 'stalk' || w.state === 'charge') && nearSheep(w) < 16);
