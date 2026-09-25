@@ -74,8 +74,8 @@ export const DOG = {
 };
 
 export const SHEEP = {
-  // Matches the drawn (1.42x) woolly body, so sheep never merge into one lump on screen.
-  radius: 0.8,
+  // Matches the drawn (1.9x) woolly body, so sheep never merge into one lump on screen.
+  radius: 1.05,
   grazeSpeed: 0.7,
   fleeSpeed: 7.0,
   panicSpeed: 9.0,
@@ -91,7 +91,7 @@ export const SHEEP = {
   wolfThreatRadius: 13,
   panicTime: 1.25,
   neighborRadius: 10,
-  separationRadius: 2.5,
+  separationRadius: 3.1,
   cohesion: 1.1,
   cohesionAlert: 2.1,
   alignment: 0.9,

@@ -78,12 +78,12 @@ const KEYS: GradeKey[] = [
   // light (world.ts turns it at its own brightness so the pink sun makes rose, not khaki) with the
   // grass tufts, trees, rocks and water keeping their own colours; the shade violet, the whites
   // pink, the stream mirroring the sky.
-  { t: 0.45, sat: 0.95, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.3, spare: 0.6, warm: 0, shadow: [298, 0.08, 0.64], mid: [15, 0.06, 0.1], high: [12, 0.045, 0.35], protect: 0.17, gain: 1.14, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.2 },
-  { t: 0.6, sat: 0.95, zones: [0.32, 0.48, 0.68, 0.84], greyKeep: 1, shadeKeep: 0.28, spare: 0.6, warm: 0, shadow: [300, 0.08, 0.66], mid: [10, 0.06, 0.12], high: [6, 0.045, 0.4], protect: 0.16, gain: 1.12, contrast: 1.3, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.24 },
+  { t: 0.45, sat: 0.95, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.22, spare: 0.6, warm: 0, shadow: [284, 0.085, 0.72], mid: [30, 0.06, 0.08], high: [12, 0.045, 0.35], protect: 0.17, gain: 1.2, contrast: 1.24, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.32, vignette: 0.2 },
+  { t: 0.6, sat: 0.95, zones: [0.32, 0.48, 0.68, 0.84], greyKeep: 1, shadeKeep: 0.22, spare: 0.6, warm: 0, shadow: [286, 0.085, 0.74], mid: [14, 0.06, 0.1], high: [6, 0.045, 0.4], protect: 0.16, gain: 1.18, contrast: 1.24, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.32, vignette: 0.24 },
   // Twilight under the rising moon, closing in: the ground's own colour fades (as it does to the
   // eye in low light), moonlit ground mauve, shade indigo, silver tops; the frame darkens.
-  { t: 0.74, sat: 0.45, zones: [0.3, 0.44, 0.62, 0.8], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.4, warm: 0.8, shadow: [308, 0.11, 0.75], mid: [324, 0.09, 0.72], high: [300, 0.035, 0.45], protect: 0.13, gain: 0.98, contrast: 1.36, pivot: 0.24, haze: '#b87ab0', hazeAmt: 0.26, vignette: 0.32 },
-  { t: 0.88, sat: 0.35, zones: [0.26, 0.4, 0.58, 0.78], greyKeep: 0.2, shadeKeep: 0.3, spare: 0.25, warm: 1, shadow: [302, 0.11, 0.76], mid: [312, 0.085, 0.74], high: [292, 0.03, 0.45], protect: 0.12, gain: 0.9, contrast: 1.36, pivot: 0.2, haze: '#7a5aa4', hazeAmt: 0.22, vignette: 0.38 },
+  { t: 0.74, sat: 0.45, zones: [0.3, 0.44, 0.62, 0.8], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.4, warm: 0.8, shadow: [308, 0.11, 0.75], mid: [324, 0.09, 0.72], high: [300, 0.035, 0.45], protect: 0.13, gain: 1.12, contrast: 1.36, pivot: 0.24, haze: '#b87ab0', hazeAmt: 0.26, vignette: 0.32 },
+  { t: 0.88, sat: 0.35, zones: [0.26, 0.4, 0.58, 0.78], greyKeep: 0.2, shadeKeep: 0.3, spare: 0.25, warm: 1, shadow: [302, 0.11, 0.76], mid: [312, 0.085, 0.74], high: [292, 0.03, 0.45], protect: 0.12, gain: 1.04, contrast: 1.36, pivot: 0.2, haze: '#7a5aa4', hazeAmt: 0.22, vignette: 0.38 },
   // Night: violet-indigo ground, deeper indigo shade, silver moonlit tops, warm windows.
   { t: 1.0, sat: 0.3, zones: [0.24, 0.38, 0.56, 0.76], greyKeep: 0.2, shadeKeep: 0.3, spare: 0.15, warm: 1, shadow: [296, 0.1, 0.78], mid: [304, 0.08, 0.76], high: [285, 0.03, 0.45], protect: 0.11, gain: 0.84, contrast: 1.36, pivot: 0.18, haze: '#383c80', hazeAmt: 0.18, vignette: 0.44 },
 ];

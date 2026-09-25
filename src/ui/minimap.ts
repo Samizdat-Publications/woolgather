@@ -158,6 +158,16 @@ export class Minimap {
       const grabbed = s.state === 'grabbed';
       c.beginPath();
       c.arc(this.px(s.x), this.pz(s.z), grabbed ? 4.6 + Math.sin(time * 12) : s.state === 'folded' ? 2.8 : 4, 0, Math.PI * 2);
+      if (grabbed) {
+        // The snatch pulses on the map, so the place the banner names can be found at a glance.
+        c.save();
+        c.strokeStyle = `rgba(255, 70, 50, ${0.5 + 0.4 * Math.sin(time * 8)})`;
+        c.lineWidth = 2.5;
+        c.beginPath();
+        c.arc(this.px(s.x), this.pz(s.z), 10 + 5 * ((time * 1.5) % 1), 0, Math.PI * 2);
+        c.stroke();
+        c.restore();
+      }
       c.fillStyle = grabbed ? '#ff6b4a' : s.state === 'folded' ? '#f4e6c0' : '#ffffff';
       c.fill();
       c.lineWidth = 1.3;

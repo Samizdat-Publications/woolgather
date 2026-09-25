@@ -70,8 +70,6 @@ export class WolfCam {
     const s = Math.sin(ang);
     const t = Math.min(Math.abs(W / 2 / (c || 1e-4)), Math.abs(H / 2 / (s || 1e-4)));
     this.arrow.style.transform = `translate(${W / 2 + c * (t + 12) - 14}px, ${H / 2 + s * (t + 12) - 14}px) rotate(${ang}rad)`;
-    // The label moves to the bottom edge when the arrow leaves through the top, so it never hides it.
-    this.label.classList.toggle('below', s < -0.5 && Math.abs(H / 2 / s) <= Math.abs(W / 2 / (c || 1e-4)));
     this.active = true;
     this.linger = 1.4;
   }
@@ -89,8 +87,9 @@ export class WolfCam {
       px = -px;
       pz = -pz;
     }
-    const goalPos = new THREE.Vector3(x + px * 9 + Math.sin(heading) * -3, y + 6, z + pz * 9 + Math.cos(heading) * -3);
-    const goalLook = new THREE.Vector3(x + Math.sin(heading) * 1.5, y + 0.9, z + Math.cos(heading) * 1.5);
+    // Close enough that the sheep in the wolf's jaws fills a real part of the picture.
+    const goalPos = new THREE.Vector3(x + px * 7.5 + Math.sin(heading) * 0.5, y + 4.6, z + pz * 7.5 + Math.cos(heading) * 0.5);
+    const goalLook = new THREE.Vector3(x + Math.sin(heading) * 2.4, y + 1.1, z + Math.cos(heading) * 2.4);
     if (!this.hasPose) {
       this.pos.copy(goalPos);
       this.look.copy(goalLook);

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CAMERA } from '../game/config';
 import { damp } from '../game/math';
-import { createMoodValues, sampleMood, type MoodValues } from './daycycle';
+import { createMoodValues, sampleMood, SUN_MOON_SWAP, type MoodValues } from './daycycle';
 import { GradePass } from './grade';
 
 // Renderer, camera, key/fill lights, fog and the colour grade. Owns nothing gameplay related.
@@ -184,9 +184,10 @@ export class Stage {
     // a real low sun laid tree shadows across the whole valley in near-black stripes and barely
     // lit flat ground. The sky still shows the true low sun; the light just stays playable.
     const kd = this.mood.keyDir;
-    // Lower once the sun drops behind the ridge (long sunset shadows), lower still in the dusk.
+    // Lower once the sun drops behind the ridge (long sunset shadows); the moon that takes over in
+    // the twilight rides high, so walls never throw the fold into black.
     const tm = this.mood.t;
-    const minElev = THREE.MathUtils.degToRad(26 - 6 * Math.min(1, Math.max(0, (tm - 0.3) / 0.15)) - 5 * Math.min(1, Math.max(0, (tm - 0.6) / 0.14)));
+    const minElev = THREE.MathUtils.degToRad(tm >= SUN_MOON_SWAP ? 38 : 26 - 6 * Math.min(1, Math.max(0, (tm - 0.3) / 0.15)));
     const elev = Math.max(Math.asin(Math.min(1, Math.max(-1, kd.y))), minElev);
     const horiz = Math.hypot(kd.x, kd.z) || 1;
     const dx = (kd.x / horiz) * Math.cos(elev);

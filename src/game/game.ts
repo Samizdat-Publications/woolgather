@@ -290,10 +290,10 @@ export class Game {
   private insetWolf = -1;
 
   /**
-   * Where the wolf-cam inset goes for a snatch at (x, z) off screen: always the same place, under
-   * the counter at the top left, so the eye knows where to look (its arrow points the way); it only
-   * slides down the edge while Pip or the sheep near him would be under it. Returns the frame's
-   * top-left and the threat's (off screen) position for the arrow.
+   * Where the wolf-cam inset goes for a snatch at (x, z) off screen: always the same place, the
+   * left edge at mid-height, clear of the counter, so the eye knows where to look (its arrow points
+   * the way); it only slides along the edge while Pip or the sheep near him would be under it.
+   * Returns the frame's top-left and the threat's (off screen) position for the arrow.
    */
   private insetDock(sim: Sim, x: number, z: number) {
     const w = window.innerWidth;
@@ -322,9 +322,13 @@ export class Game {
     }
     const pad = 26;
     const blocked = (y: number) => keep.some((p) => p.x > dx - pad && p.x < dx + INSET.w + pad && p.y > y - pad && p.y < y + INSET.h + pad);
-    let y = top;
-    for (let off = 0; off <= bottom - top && blocked(y); off += 20) y = top + off;
-    return { x: dx, y: Math.min(bottom, y), point: toScreen(x, z) };
+    const home = Math.max(top, Math.min(bottom, Math.round((h - INSET.h) / 2)));
+    let y = home;
+    for (let off = 20; off < h && blocked(y); off += 20) {
+      if (home - off >= top && !blocked(home - off)) y = home - off;
+      else if (home + off <= bottom) y = home + off;
+    }
+    return { x: dx, y: Math.max(top, Math.min(bottom, y)), point: toScreen(x, z) };
   }
 
   /**
@@ -566,6 +570,16 @@ export class Game {
     return out;
   }
 
+  /** An arrow pointing from the middle of the screen towards (x, z), for banners. */
+  private arrowTo(x: number, z: number) {
+    tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
+    const behind = tmpV.z > 1;
+    const nx = behind ? -tmpV.x : tmpV.x;
+    const ny = behind ? -tmpV.y : tmpV.y;
+    const a = Math.atan2(ny, nx);
+    return ['→', '↗', '↑', '↖', '←', '↙', '↓', '↘'][((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8];
+  }
+
   /** Is (x, z) inside the main view (with a margin)? */
   private onScreen(x: number, z: number) {
     tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
@@ -615,7 +629,8 @@ export class Game {
         this.ui.alert(`A wolf has one of your sheep! ${secs} s to save it`, inRange ? 'Bark (Space) now to make it let go!' : 'Bark (Space) or run into the wolf');
         this.ui.hint('');
       } else if (this.dragFeasible) {
-        this.ui.alert(`A wolf has a sheep ${place}! ${secs} s to save it`, 'Sprint at it (Shift), then bark (Space)');
+        const dist = Math.round(Math.hypot(dragger.x - d.x, dragger.z - d.z));
+        this.ui.alert(`A wolf has a sheep ${place}! ${this.arrowTo(dragger.x, dragger.z)} ${dist} m · ${secs} s to save it`, 'Sprint at it (Shift), then bark (Space)');
         this.ui.hint('');
       } else {
         // Out of reach: one calm line, no countdown and no inset (see trackSnatch).
@@ -647,7 +662,7 @@ export class Game {
       const nearPip = Math.hypot(s.x - d.x, s.z - d.z) < 26;
       if (nearPip ? !visible : Math.hypot(w.x - s.x, w.z - s.z) > 20) continue;
       this.stalkWarned.add(w.id);
-      this.ui.toast(nearPip ? 'A wolf is stalking your flock!' : `A wolf is stalking the sheep ${this.level.placeName(s.x, s.z)}!`, 'warn');
+      this.ui.toast(nearPip ? `A wolf is stalking your flock! ${this.arrowTo(w.x, w.z)}` : `A wolf is stalking the sheep ${this.level.placeName(s.x, s.z)}! ${this.arrowTo(w.x, w.z)}`, 'warn');
     }
     const wasGlowing = this.gateGlow;
     this.gateGlow = sim.targetMet && sim.free > 0 && !grabbed;

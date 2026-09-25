@@ -264,7 +264,7 @@ export interface WorldHandles {
   /** Rock and wall stone: a faint warm self-light at night keeps grey stone from going indigo. */
   stoneMaterials: THREE.MeshLambertMaterial[];
   fadeables: { meshes: THREE.InstancedMesh[]; spots: Placement[]; canopy: number; height: number }[];
-  lanternLight: THREE.PointLight;
+  lanternLights: THREE.PointLight[];
   /** Ground height lookup (for placing screen-space effects). */
   heightAt: (x: number, z: number) => number;
 }
@@ -509,6 +509,9 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   const b = level.bridge;
   place('bridge', b.x, terrain.bridgeDeck - 0.55, b.z, -Math.atan2(b.uz, b.ux));
   const lantern = place('lantern', L.lantern[0], g(L.lantern[0], L.lantern[1]), L.lantern[1], Math.PI * 0.75);
+  // Its twin on the other gatepost, mirrored across the gate.
+  const lz2 = 2 * f.cz - L.lantern[1];
+  const lantern2 = place('lantern', L.lantern[0], g(L.lantern[0], lz2), lz2, Math.PI * 0.25);
   for (const [x, z, deg] of L.hay) place('hay', x, g(x, z) - 0.05, z, (deg * Math.PI) / 180);
   place('signpost', L.signpost[0], g(L.signpost[0], L.signpost[1]), L.signpost[1], 0.6);
   const ford = level.ford;
@@ -518,12 +521,17 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   stones.rotation.y = -Math.atan2(across.uz, across.ux);
   root.add(stones);
 
-  // Warm light from the lantern at the fold gate once dusk falls.
-  const lanternLight = new THREE.PointLight(0xffc766, 0, 16, 1.6);
-  const lampPos = new THREE.Vector3();
-  (lantern.getObjectByName('lantern_light') ?? lantern).getWorldPosition(lampPos);
-  lanternLight.position.copy(lampPos);
-  root.add(lanternLight);
+  // Warm light from the lanterns at the fold gate once dusk falls: the gate is the brightest,
+  // warmest thing in the valley at night.
+  const lanternLights = [lantern, lantern2].map((l) => {
+    const light = new THREE.PointLight(0xffc766, 0, 20, 1.5);
+    const lampPos = new THREE.Vector3();
+    l.updateMatrixWorld(true);
+    (l.getObjectByName('lantern_light') ?? l).getWorldPosition(lampPos);
+    light.position.copy(lampPos);
+    root.add(light);
+    return light;
+  });
 
   // Materials that glow at night (windows, lantern glass), and stone that must stay grey by moonlight.
   const glowMaterials: THREE.MeshLambertMaterial[] = [];
@@ -542,7 +550,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
     }
   });
 
-  return { root, sky, water, gateN, gateS, glowMaterials, stoneMaterials, fadeables, lanternLight, heightAt: (x: number, z: number) => terrain.height(x, z) };
+  return { root, sky, water, gateN, gateS, glowMaterials, stoneMaterials, fadeables, lanternLights, heightAt: (x: number, z: number) => terrain.height(x, z) };
 }
 
 /** Per-frame world updates: water flow, sky colours, night glow, and fading trees that block the view. */
@@ -573,12 +581,12 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   wu.uGlint.value = 0.2 + 0.12 * mood.night;
   GROUND_TINT.value.copy(mood.ground);
   // Rose from the moment the sun drops behind the ridge, easing off into the violet twilight.
-  const rose = Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.5 * Math.min(1, Math.max(0, (mood.t - 0.62) / 0.26)));
-  ROSE_AMT.value = 0.58 * rose;
-  ROSE_AMT_PATH.value = 0.22 * rose;
+  const rose = Math.min(1, Math.max(0, (mood.t - 0.3) / 0.32)) * (1 - 0.5 * Math.min(1, Math.max(0, (mood.t - 0.62) / 0.26)));
+  ROSE_AMT.value = 0.52 * rose;
+  ROSE_AMT_PATH.value = 0.12 * rose;
   HILL_DIR.value.set(mood.keyDir.x, 0, mood.keyDir.z).normalize();
-  wu.uTint.value.copy(mood.skyHorizon).lerp(LAVENDER, 0.5).lerp(INDIGO, mood.night);
-  wu.uReflect.value = 0.55 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.6 * mood.night);
+  wu.uTint.value.copy(mood.skyHorizon).lerp(LAVENDER, 0.65).lerp(INDIGO, mood.night);
+  wu.uReflect.value = 0.35 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.6 * mood.night);
   // From sunset the stream mirrors the sky: rose, then lilac, then the moonlit indigo.
   wu.uTintAmt.value = 0.06 + 0.42 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
   const su = w.sky.material.uniforms;
@@ -591,8 +599,8 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   w.sky.position.copy(camera.position);
   for (const m of w.glowMaterials) m.emissiveIntensity = 0.2 + 3.2 * mood.night;
   for (const m of w.stoneMaterials) m.emissiveIntensity = 0.75 * mood.night;
-  // The fold lantern is the one warm light at night: strong enough to pool on the grass.
-  w.lanternLight.intensity = 32 * Math.max(0, mood.night - 0.15);
+  // The fold lanterns are the warm lights at night: lit from the twilight, pooling on the grass.
+  for (const l of w.lanternLights) l.intensity = 30 * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
 
   // Trees standing between the camera and anything that matters fade to a dither.
   const k = 1 - Math.exp(-6 * dt);

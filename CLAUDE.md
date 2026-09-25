@@ -553,3 +553,24 @@ Newest at the bottom. Record every non-obvious choice.
   one place, under the counter at the top left (its arrow and distance point the way). The
   minimap is 240x192 with bigger labels and dots, and only goes see-through while Pip or a loose
   sheep is under it (never for the fold or the farmhouse).
+- 2026-09-25 (M2 critic r25, four majors: the rose phase a pink filter over everything, the last
+  minute black at the fold, the wolf reading as a fox, the snatch alert covering its own marker):
+  the critics' colour advice has swung round by round (rose on the ground; no tint; olive grass;
+  rose on the ground; no tint), so the fixed points are what they agree on: the lit ground and the
+  shade must differ clearly in hue (light, not a filter) and the gold must get real time. The
+  critic playtest now runs on Standard, the default a first-time player gets (on Hard the wolves
+  come after one minute, so every critic saw a minute of gold). The sunset now deepens in the
+  light: apricot as the sun touches the ridge with the wolves, coral, then rose, the floor's rose
+  coming in gradually (52% by the dusk) over blue-violet shade (a hue well apart from the warm
+  light), bright enough that the apricot never reads as brown. The twilight moon rides at 38
+  degrees or higher (a low moon threw the fold into its walls' shadow), the twilight is a lighter
+  lavender and a lantern stands on each gatepost, lit from the dusk.
+- 2026-09-25 (M2 critic r25): the wolf is charcoal-grey (lighter than the collie's blue-black,
+  with no white on top), pale-bellied, heavy in the chest and shoulders, with a big head and long
+  muzzle, smaller ears, longer legs and a straight tail carried low, drawn at 2.3x (1.3-1.5x a
+  sheep); the tawny coat with a pale muzzle read as a fox. A snatched sheep hangs crosswise from
+  the jaws in front of the muzzle, rolled to show its face and legs, and the close-up camera is
+  tighter. The inset sits at the left edge at mid-height with its label always at the top and the
+  arrow drawn over it; the snatch banner carries a direction arrow and the distance, the stalking
+  toasts an arrow, and the snatch pulses on the minimap. Sheep collide at 1.05 m (their drawn
+  size) and keep 3.1 m apart, so a bunch no longer melts into one lump.

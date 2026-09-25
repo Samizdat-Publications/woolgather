@@ -322,3 +322,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![The last 40 seconds: violet twilight closing in](m2-assets-r25-late-dusk.png)
 *The last 40 seconds: violet twilight closing in*
 
+
+## m2-assets-r26 (2026-09-25)
+
+![Standard: the sun touches the ridge as the wolves come out, apricot light and blue shade](m2-assets-r26-wolf.png)
+*Standard: the sun touches the ridge as the wolves come out, apricot light and blue shade*
+
+![A snatch: the banner points the way with the distance; the close-up shows the sheep in the jaws](m2-assets-r26-snatch.png)
+*A snatch: the banner points the way with the distance; the close-up shows the sheep in the jaws*
+
+![A minute left: rose light, the gate lanterns lit](m2-assets-r26-late-dusk.png)
+*A minute left: rose light, the gate lanterns lit*
+
+![The last seconds: moonlit lavender twilight, a lamp on each gatepost](m2-assets-r26-late-night.png)
+*The last seconds: moonlit lavender twilight, a lamp on each gatepost*
+
