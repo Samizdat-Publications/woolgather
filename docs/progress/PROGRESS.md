@@ -145,3 +145,45 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Wolf cam with an escape timer: metres left to the trees](m2-assets-r6-snatch.png)
 *Wolf cam with an escape timer: metres left to the trees*
 
+
+## m2-assets-r9 (2026-09-25)
+
+![Hard mode: still herding as the sun sets](m2-assets-r9-sunset.png)
+*Hard mode: still herding as the sun sets*
+
+![Expert Hard run ends near dark: 14 of 16, two lost to wolves](m2-assets-r9-win-end.png)
+*Expert Hard run ends near dark: 14 of 16, two lost to wolves*
+
+
+## m2-assets-r11 (2026-09-25)
+
+![Rose sunset as the wolves come out; the camera frames a hunting wolf](m2-assets-r11-wolf.png)
+*Rose sunset as the wolves come out; the camera frames a hunting wolf*
+
+![A snatch holds a live alert with distance and bearing until it is settled](m2-assets-r11-snatch.png)
+*A snatch holds a live alert with distance and bearing until it is settled*
+
+
+## m2-assets-r11b (2026-09-25)
+
+![Moonlit night: slate water, grey stone](m2-assets-r11b-late-night.png)
+*Moonlit night: slate water, grey stone*
+
+
+## m2-assets-r13 (2026-09-25)
+
+![Title: a low shot across the valley into the golden-hour sun](m2-assets-r13-title.png)
+*Title: a low shot across the valley into the golden-hour sun*
+
+![Remodelled wolf with a pulsing danger ring; outlined sheep](m2-assets-r13-wolf.png)
+*Remodelled wolf with a pulsing danger ring; outlined sheep*
+
+![Snatch: place-name alert on top, what to do in the hint bar, graded inset](m2-assets-r13-snatch.png)
+*Snatch: place-name alert on top, what to do in the hint bar, graded inset*
+
+![Post-process grade: coral sunset light](m2-assets-r13-late-sunset.png)
+*Post-process grade: coral sunset light*
+
+![Post-process grade: blue-violet moonlit night](m2-assets-r13-late-night.png)
+*Post-process grade: blue-violet moonlit night*
+

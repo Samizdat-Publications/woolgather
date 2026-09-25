@@ -18,7 +18,7 @@ export class Minimap {
     this.canvas.className = 'minimap';
     this.ctx = this.canvas.getContext('2d')!;
     this.base = document.createElement('canvas');
-    this.resize(200, 160);
+    this.resize(180, 144);
   }
 
   resize(w: number, h: number) {
@@ -102,17 +102,18 @@ export class Minimap {
       c.fillStyle = '#d8c7a6';
       c.fillRect(this.px(r.minX), this.pz(r.minZ), (r.maxX - r.minX) * this.scale, (r.maxZ - r.minZ) * this.scale);
     }
-    // Region names (the end card refers to these).
+    // Region names (the end card refers to these), set beside the grazing spots rather than on
+    // them so the sheep dots never print over the words.
     c.font = '600 9px system-ui, sans-serif';
     c.textAlign = 'center';
     c.lineWidth = 2.5;
-    c.strokeStyle = 'rgba(30, 36, 26, 0.75)';
-    c.fillStyle = 'rgba(255, 250, 235, 0.8)';
+    c.strokeStyle = 'rgba(30, 36, 26, 0.7)';
+    c.fillStyle = 'rgba(255, 250, 235, 0.72)';
     for (const [name, x, z] of [
-      ['FAR BANK', -70, -30],
-      ['GROVE', 22, -58],
-      ['MEADOW', 8, 24],
-      ['ROCKS', -18, 62],
+      ['FAR BANK', -72, 42],
+      ['GROVE', 52, -52],
+      ['MEADOW', -8, 26],
+      ['ROCKS', 8, 58],
       ['FARM', 80, 8],
     ] as const) {
       c.strokeText(name, this.px(x), this.pz(z));

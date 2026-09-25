@@ -46,12 +46,13 @@ export const DIFFICULTIES: Record<Difficulty, DifficultyPreset> = {
     id: 'hard',
     label: 'Hard',
     blurb: 'A short evening and a hungry pack.',
-    dayLength: 330,
-    targetMissing: 2,
-    wolfStart: 0.25,
+    // Tuned so even expert herding (the test bot) is still racing the dark with wolves about.
+    dayLength: 300,
+    targetMissing: 3,
+    wolfStart: 0.2,
     maxWolves: 3,
-    wolfRespawn: [11, 16],
-    wolfSpeedScale: 1.1,
+    wolfRespawn: [10, 14],
+    wolfSpeedScale: 1.12,
   },
 };
 
@@ -103,13 +104,16 @@ export const WOLF = {
   radius: 0.7,
   stalkSpeed: 4.6,
   chargeSpeed: 10.5,
-  dragSpeed: 3.5,
+  // Slow enough that Pip can reach a snatch from across the valley (sprint 12.5 m/s).
+  dragSpeed: 2.7,
   fleeSpeed: 12.5,
   chargeRange: 10,
+  /** Wolves that may not strike yet keep this far from their prey (sheep fear wolves within 13 m). */
+  lurkRange: 17,
   dogWaryRadius: 11,
   grabRange: 1.5,
   /** Metres past the valley boundary at which a dragged sheep counts as lost. */
-  lostDepth: 5,
+  lostDepth: 9,
 };
 
 export const CAMERA = {

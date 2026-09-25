@@ -87,9 +87,15 @@ BRIDGE = LEVEL["bridge"]
 FORD = LEVEL["ford"]
 
 
+KNOLLS = [(-4, 30, 2.6, 17.0), (40, -28, 2.3, 15.0), (-20, -30, 1.8, 13.0), (18, 44, 1.6, 12.0)]
+
+
 def base_height(x, z):
     """Ground before carving the stream and flattening building pads."""
-    h = fbm(x / 38.0, z / 38.0, 3, 1.7) * 1.3
+    # Rolling highland floor: broad swells plus a few knolls, so low sun paints real relief.
+    h = fbm(x / 34.0, z / 34.0, 3, 1.7) * 2.3
+    for kx, kz, kh, kr in KNOLLS:
+        h += kh * math.exp(-((x - kx) ** 2 + (z - kz) ** 2) / (kr * kr))
     # West hillside inside the valley, rising towards the western woods.
     h += smoothstep(-42, -96, x) * (4.2 + fbm(x / 20.0, z / 20.0, 2, 5.1) * 0.8)
     # Gentle slope up to the northern grove.
@@ -166,11 +172,13 @@ def water_level_at(s_x, s_z):
 
 # ----------------------------------------------------------------------------- colours
 
-GRASS_A = "#6ea34a"
-GRASS_B = "#86b656"
-GRASS_DRY = "#b1b563"
-GRASS_LUSH = "#4f9443"
-WORN = "#9aa35a"
+# Muted, slightly warm greens: the golden-hour light supplies the glow (lime greens read as a
+# bright lawn instead of a highland valley at sunset).
+GRASS_A = "#779a4f"
+GRASS_B = "#8fab5d"
+GRASS_DRY = "#b0aa68"
+GRASS_LUSH = "#5a8a4a"
+WORN = "#9c9a6a"
 HEATHER = "#86697f"
 BED_C = "#7b7560"
 DIRT = "#b39463"
@@ -178,7 +186,7 @@ FOLD_FLOOR = "#a38e5b"
 YARD = "#9c8a6c"
 FOREST = "#4f6a3a"
 FOREST_DEEP = "#3d5430"
-ROCKY = "#8b8471"
+ROCKY = "#737a55"  # stony ground stays close to the grass: grey patches glowed blue under moonlight
 
 
 def lin(h):
@@ -201,8 +209,8 @@ def color(x, z, h):
     # Around rocks: bare, stony ground.
     for rx, rz, rr in LEVEL["rocks"]:
         dr = math.hypot(x - rx, z - rz)
-        if dr < rr + 2.5:
-            c = mix(c, lin(ROCKY), (1 - smoothstep(rr * 0.6, rr + 2.5, dr)) * 0.7)
+        if dr < rr + 1.5:
+            c = mix(c, lin(ROCKY), (1 - smoothstep(rr * 0.6, rr + 1.5, dr)) * 0.45)
     d, _ = stream_query(x, z)
     if d < STREAM_HALF + 5:
         c = mix(c, lin(GRASS_LUSH), 1 - smoothstep(STREAM_HALF, STREAM_HALF + 5, d))
@@ -351,8 +359,10 @@ def build_path():
             pts.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
     pts.append(tuple(PATH[-1]))
     bm = bmesh.new()
-    dirt = W.mat("path_dirt", "#b8976a", 1.0)
-    dirt_edge = W.mat("path_edge", "#9f8358", 1.0)
+    # Yellow-grey earth with no red in it: under the orange sun and lilac sky fill of the sunset a
+    # reddish or neutral dirt turned magenta and read as a UI route next to the red danger markers.
+    dirt = W.mat("path_dirt", "#a8996a", 1.0)
+    dirt_edge = W.mat("path_edge", "#8a7c56", 1.0)
     rows = []
     for i, (x, z) in enumerate(pts):
         a = pts[max(0, i - 1)]

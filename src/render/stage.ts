@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { CAMERA } from '../game/config';
 import { damp } from '../game/math';
-import { createMoodValues, sampleGrade, sampleMood, type Grade, type MoodValues } from './daycycle';
+import { createMoodValues, sampleMood, type MoodValues } from './daycycle';
+import { GradePass } from './grade';
 
-// Renderer, camera, key/fill lights and the fog. Owns nothing gameplay related.
+// Renderer, camera, key/fill lights, fog and the colour grade. Owns nothing gameplay related.
 
 export class Stage {
   readonly renderer: THREE.WebGLRenderer;
@@ -13,6 +14,7 @@ export class Stage {
   readonly key: THREE.DirectionalLight;
   readonly mood: MoodValues = createMoodValues();
   readonly fog: THREE.Fog;
+  readonly grade = new GradePass();
   /** Point the camera looks at (smoothed). */
   readonly focus = new THREE.Vector3();
   private readonly focusGoal = new THREE.Vector3();
@@ -20,35 +22,24 @@ export class Stage {
   private zoomGoal = 1;
   private shake = 0;
   private shakeT = 0;
-  private glanceX = 0;
-  private glanceZ = 0;
-  private glanceT = 0;
-  private glanceDur = 1;
   private pixelRatioCap = 2;
-  /** Compositor colour grade (soft-light) and vignette layered between the canvas and the UI. */
-  private gradeEl: HTMLDivElement;
-  private hueEl: HTMLDivElement;
-  private vignetteEl: HTMLDivElement;
-  private grade: Grade = { soft: new THREE.Color(), softOpacity: 0, hue: new THREE.Color(), hueOpacity: 0 };
+  /** Title shot: a low camera across the valley towards the setting sun, instead of the herding view. */
+  private titleShot = false;
+  private titleAngle = 0;
 
   constructor(host: HTMLElement) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    // The scene renders into the grade pass's multisampled target, so the canvas itself needs
+    // no antialiasing.
+    this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.pixelRatioCap));
     this.renderer.shadowMap.enabled = true;
     // r186 removed PCFSoftShadowMap; PCF with a blur radius gives the same soft edge.
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
-    // Neutral keeps the painted palette's hues; ACES pushed everything towards olive and brown.
-    this.renderer.toneMapping = THREE.NeutralToneMapping;
+    // Tone mapping happens in the grade pass.
+    this.renderer.toneMapping = THREE.NoToneMapping;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.domElement.id = 'game-canvas';
     host.appendChild(this.renderer.domElement);
-    this.gradeEl = document.createElement('div');
-    this.gradeEl.className = 'grade';
-    this.hueEl = document.createElement('div');
-    this.hueEl.className = 'grade-hue';
-    this.vignetteEl = document.createElement('div');
-    this.vignetteEl.className = 'vignette';
-    host.append(this.gradeEl, this.hueEl, this.vignetteEl);
 
     this.camera = new THREE.PerspectiveCamera(CAMERA.fov, 1, 0.5, 600);
     this.fog = new THREE.Fog(0xe8dcc0, 70, 230);
@@ -83,6 +74,8 @@ export class Stage {
     this.renderer.setSize(w, h, false);
     this.renderer.domElement.style.width = `${w}px`;
     this.renderer.domElement.style.height = `${h}px`;
+    const pr = this.renderer.getPixelRatio();
+    this.grade.setSize(Math.round(w * pr), Math.round(h * pr));
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
   }
@@ -97,13 +90,8 @@ export class Stage {
     this.fog.color.copy(m.fog);
     this.fog.near = m.fogNear;
     this.fog.far = m.fogFar;
-    this.renderer.toneMappingExposure = m.exposure;
-    const g = sampleGrade(t, this.grade);
-    this.gradeEl.style.backgroundColor = `#${g.soft.getHexString(THREE.SRGBColorSpace)}`;
-    this.gradeEl.style.opacity = g.softOpacity.toFixed(3);
-    this.hueEl.style.backgroundColor = `#${g.hue.getHexString(THREE.SRGBColorSpace)}`;
-    this.hueEl.style.opacity = g.hueOpacity.toFixed(3);
-    this.vignetteEl.style.opacity = (0.55 + 0.45 * m.night).toFixed(3);
+    this.grade.hazeScale = this.titleShot ? 0 : 1;
+    this.grade.apply(t, m.exposure);
     return m;
   }
 
@@ -116,59 +104,47 @@ export class Stage {
   setFocusGoal(x: number, y: number, z: number, zoom = 1) {
     this.focusGoal.set(x, y, z);
     this.zoomGoal = zoom;
+    this.titleShot = false;
+  }
+
+  /** Low establishing shot for the title: across the valley towards the sunset sky. */
+  setTitleShot(x: number, y: number, z: number, angle: number) {
+    if (!this.titleShot) this.focus.set(x, y, z);
+    this.focusGoal.set(x, y, z);
+    this.titleShot = true;
+    this.titleAngle = angle;
   }
 
   addShake(amount: number) {
     this.shake = Math.min(1, this.shake + amount);
   }
 
-  /**
-   * Briefly lean the camera towards something happening off to the side (a wolf snatching a
-   * sheep), then settle back. The lean is capped so the player's dog stays in view.
-   */
-  glance(x: number, z: number, duration = 2.4) {
-    this.glanceX = x;
-    this.glanceZ = z;
-    this.glanceT = duration;
-    this.glanceDur = duration;
-  }
-
   updateCamera(dt: number) {
     const f = this.focus;
     const g = this.focusGoal;
-    let gx = g.x;
-    let gz = g.z;
-    let zoomGoal = this.zoomGoal;
-    if (this.glanceT > 0) {
-      this.glanceT -= dt;
-      const w = Math.sin(Math.min(1, Math.max(0, 1 - this.glanceT / this.glanceDur)) * Math.PI);
-      let ox = this.glanceX - g.x;
-      let oz = this.glanceZ - g.z;
-      const l = Math.hypot(ox, oz);
-      const cap = 18;
-      if (l > cap) {
-        ox *= cap / l;
-        oz *= cap / l;
+    if (this.titleShot) {
+      f.lerp(g, 1 - Math.exp(-2 * dt));
+      // East of the focus, looking west with the low sun just left of centre, slowly swinging.
+      const a = this.titleAngle;
+      this.camera.position.set(f.x + Math.cos(a) * 70, f.y + 14, f.z + Math.sin(a) * 70);
+      this.camera.lookAt(f.x, f.y + 10, f.z);
+    } else {
+      f.x = damp(f.x, g.x, CAMERA.followRate, dt);
+      f.y = damp(f.y, g.y, CAMERA.followRate * 0.6, dt);
+      f.z = damp(f.z, g.z, CAMERA.followRate, dt);
+      this.zoom = damp(this.zoom, this.zoomGoal, 1.6, dt);
+      const o = CAMERA.offset;
+      this.camera.position.set(f.x + o.x * this.zoom, f.y + o.y * this.zoom, f.z + o.z * this.zoom);
+      this.shakeT += dt;
+      if (this.shake > 0.001) {
+        const s = this.shake * this.shake * 0.55;
+        this.camera.position.x += Math.sin(this.shakeT * 53.1) * s;
+        this.camera.position.y += Math.sin(this.shakeT * 61.7 + 1.3) * s * 0.6;
+        this.camera.position.z += Math.cos(this.shakeT * 47.3 + 0.4) * s;
+        this.shake = Math.max(0, this.shake - dt * 2.4);
       }
-      gx += ox * w;
-      gz += oz * w;
-      zoomGoal *= 1 + 0.18 * w;
+      this.camera.lookAt(f.x, f.y, f.z);
     }
-    f.x = damp(f.x, gx, CAMERA.followRate, dt);
-    f.y = damp(f.y, g.y, CAMERA.followRate * 0.6, dt);
-    f.z = damp(f.z, gz, CAMERA.followRate, dt);
-    this.zoom = damp(this.zoom, zoomGoal, 1.6, dt);
-    const o = CAMERA.offset;
-    this.camera.position.set(f.x + o.x * this.zoom, f.y + o.y * this.zoom, f.z + o.z * this.zoom);
-    this.shakeT += dt;
-    if (this.shake > 0.001) {
-      const s = this.shake * this.shake * 0.55;
-      this.camera.position.x += Math.sin(this.shakeT * 53.1) * s;
-      this.camera.position.y += Math.sin(this.shakeT * 61.7 + 1.3) * s * 0.6;
-      this.camera.position.z += Math.cos(this.shakeT * 47.3 + 0.4) * s;
-      this.shake = Math.max(0, this.shake - dt * 2.4);
-    }
-    this.camera.lookAt(f.x, f.y, f.z);
 
     // Shadow frustum rides along with the focus point. Low suns are clamped to 10 degrees so the
     // shadow map never stretches across the whole valley.
@@ -182,7 +158,15 @@ export class Stage {
     this.key.target.position.set(f.x, f.y, f.z);
   }
 
-  render() {
-    this.renderer.render(this.scene, this.camera);
+  /**
+   * Render the scene into the grade target, let `extra` draw into it too (the wolf cam inset),
+   * then grade it onto the screen.
+   */
+  render(extra?: (renderer: THREE.WebGLRenderer, target: THREE.WebGLRenderTarget) => void) {
+    const r = this.renderer;
+    r.setRenderTarget(this.grade.target);
+    r.render(this.scene, this.camera);
+    extra?.(r, this.grade.target);
+    this.grade.render(r);
   }
 }

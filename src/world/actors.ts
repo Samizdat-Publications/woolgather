@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Level } from '../game/level';
 import type { Sim } from '../game/sim';
+import type { MoodValues } from '../render/daycycle';
 import type { Assets } from './assets';
 import type { Terrain } from './terrain';
 
@@ -9,14 +10,14 @@ import type { Terrain } from './terrain';
 // procedural animation can move them (milestone 3 adds the full motion).
 
 // Characters are drawn larger than life so they read from the herding camera's height.
-export const SCALE = { dog: 1.85, sheep: 1.42, wolf: 1.4 };
+export const SCALE = { dog: 1.85, sheep: 1.42, wolf: 1.5 };
 
 /**
- * Inverted-hull outline: every mesh under `root` gets a back-facing shell pushed out along smooth
- * normals (rebuilt from the flat-shaded mesh so the shell has no cracks), drawn unlit so Pip reads
- * against dark grass and at night.
+ * Inverted-hull outline: every mesh under `root` (or under the named parts only) gets a
+ * back-facing shell pushed out along smooth normals (rebuilt from the flat-shaded mesh so the
+ * shell has no cracks), drawn unlit so the characters read against grass in any light.
  */
-export function addOutline(root: THREE.Object3D, color: THREE.ColorRepresentation, width: number) {
+export function addOutline(root: THREE.Object3D, color: THREE.ColorRepresentation, width: number, parts?: string[]) {
   const mat = new THREE.MeshBasicMaterial({ color, side: THREE.BackSide });
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uOutline = { value: width };
@@ -24,10 +25,15 @@ export function addOutline(root: THREE.Object3D, color: THREE.ColorRepresentatio
       .replace('#include <common>', '#include <common>\nuniform float uOutline;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * uOutline;');
   };
+  // Each outline colour/width needs its own compiled program.
+  mat.customProgramCacheKey = () => `outline-${width}`;
+  const roots = parts ? parts.map((n) => root.getObjectByName(n)).filter((o): o is THREE.Object3D => !!o) : [root];
   const meshes: THREE.Mesh[] = [];
-  root.traverse((o) => {
-    if ((o as THREE.Mesh).isMesh && !o.userData.outline) meshes.push(o as THREE.Mesh);
-  });
+  for (const r of roots) {
+    r.traverse((o) => {
+      if ((o as THREE.Mesh).isMesh && !o.userData.outline && !meshes.includes(o as THREE.Mesh)) meshes.push(o as THREE.Mesh);
+    });
+  }
   for (const m of meshes) {
     const g = m.geometry.clone();
     for (const name of Object.keys(g.attributes)) if (name !== 'position') g.deleteAttribute(name);
@@ -109,11 +115,28 @@ export class GroundRing {
   }
 }
 
+/** Soft radial glow texture, drawn once on a canvas (procedural, no image files). */
+function glowTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d')!;
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.25, 'rgba(255,220,150,0.85)');
+  grad.addColorStop(1, 'rgba(255,160,60,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 export class Actors {
   readonly root = new THREE.Group();
   readonly dog: Rig;
   private sheep: Rig[] = [];
-  private wolves = new Map<number, { rig: Rig; danger: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial> }>();
+  private wolves = new Map<number, { rig: Rig; danger: GroundRing; glow: THREE.Sprite }>();
+  private glowMat = new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffb040, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
   private marker: GroundRing;
   private zone: GroundRing;
   private beacon: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>;
@@ -152,19 +175,53 @@ export class Actors {
       const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | undefined;
       if (m && m.name === 'wolf_eyes' && !this.eyeMats.includes(m)) this.eyeMats.push(m);
     });
-    // A little self-light keeps wool and Pip's white markings readable under sunset and moonlight.
-    for (const proto of [a.sheep, a.collie]) {
+    // Self-light keeps wool and Pip's white markings near-white under the coral sunset and the
+    // moon; it is raised as the light warms or fades (see sync).
+    // The wolves' grey coat gets the same treatment so a wolf stays grey instead of turning navy.
+    const neutral = ['wool', 'coat_white', 'wolf_grey', 'wolf_light'];
+    for (const proto of [a.sheep, a.collie, a.wolf]) {
       proto.traverse((o) => {
         const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | undefined;
-        if (m && (m.name === 'wool' || m.name === 'coat_white')) m.emissive.set(m.name === 'wool' ? 0x4c4842 : 0x3a3834);
+        if (m && neutral.includes(m.name) && !this.whiteMats.includes(m)) {
+          if (m.name === 'wool' || m.name === 'coat_white') m.emissive.set(m.name === 'wool' ? 0x4c4842 : 0x3a3834);
+          // Coloured sun and sky light would dye the fleece pink at sunset and lilac at night:
+          // most of the tint is taken back out so white stays white.
+          m.onBeforeCompile = (shader) => {
+            shader.uniforms.uWhiteKeep = this.whiteKeep;
+            shader.fragmentShader = shader.fragmentShader
+              .replace('#include <common>', '#include <common>\nuniform float uWhiteKeep;')
+              .replace(
+                '#include <opaque_fragment>',
+                '#include <opaque_fragment>\ngl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(dot(gl_FragColor.rgb, vec3(0.2126, 0.7152, 0.0722))), uWhiteKeep);',
+              );
+          };
+          m.customProgramCacheKey = () => 'wg-white';
+          m.needsUpdate = true;
+          this.whiteMats.push(m);
+        }
       });
     }
+    // Outlines make the animals read as characters, not as bushes and rocks: sheep get a dark
+    // ink line round the fleece and face, wolves a hot ember line that says danger. Added to the
+    // prototypes, so every clone shares them.
+    addOutline(a.sheep, 0x2a2230, 0.04, ['body', 'head']);
+    addOutline(a.wolf, 0xff6a3d, 0.045);
   }
 
-  sync(sim: Sim, dt: number, gateGlow: boolean, night: number, showRings = true) {
+  private whiteMats: THREE.MeshLambertMaterial[] = [];
+  /** How much of the light's colour is removed from white wool and coat (0 = none). */
+  private whiteKeep = { value: 0.3 };
+
+  sync(sim: Sim, dt: number, gateGlow: boolean, mood: MoodValues, showRings = true) {
     const h = (x: number, z: number) => this.terrain.height(x, z);
     this.time += dt;
     const d = sim.dog;
+    const night = mood.night;
+    // The warmer (more orange) the key light, the more of its colour is taken out of white wool;
+    // by moonlight the fleece may cool a little.
+    const warm = 1 - Math.min(1, mood.keyColor.b / Math.max(0.01, mood.keyColor.r));
+    this.whiteKeep.value = Math.min(0.85, 0.2 + 0.6 * warm * Math.min(1, mood.keyIntensity / 2) + 0.3 * night);
+    for (const m of this.whiteMats) m.emissiveIntensity = 1 + 0.4 * night;
     // Gameplay rings belong to play, not to the pause menu or the results card.
     this.zone.mesh.visible = showRings;
     this.marker.mesh.visible = showRings;
@@ -205,6 +262,7 @@ export class Actors {
     });
 
     for (const m of this.eyeMats) m.emissiveIntensity = 0.6 + 3.5 * night;
+    this.glowMat.opacity = 0.25 + 0.75 * night;
 
     const seen = new Set<number>();
     for (const w of sim.wolves) {
@@ -213,23 +271,28 @@ export class Actors {
       let v = this.wolves.get(w.id);
       if (!v) {
         const r = rig(this.a.wolf, SCALE.wolf);
-        const ring = findMesh(this.a.fx.get('bark_ring')!);
-        const danger = new THREE.Mesh(ring.geometry, new THREE.MeshBasicMaterial({ color: 0xff4a30, transparent: true, opacity: 0.7, depthWrite: false }));
-        danger.scale.setScalar(1.5);
-        this.root.add(r.root, danger);
-        v = { rig: r, danger };
+        // A thick, pulsing danger ring that hugs the ground under every hunting wolf.
+        const danger = new GroundRing(this.a.fx.get('thick_ring')!, 0xff4a30, this.terrain, 0.1);
+        // Warm eye-shine that reads from the herding camera once the light goes.
+        const glow = new THREE.Sprite(this.glowMat);
+        glow.scale.setScalar(0.7);
+        glow.position.set(0, 0.1, 0.24); // heads face +Z: the eyes are in front
+        (r.head ?? r.root).add(glow);
+        this.root.add(r.root, danger.mesh);
+        v = { rig: r, danger, glow };
         this.wolves.set(w.id, v);
       }
       const y = h(w.x, w.z);
       v.rig.root.position.set(w.x, y, w.z);
       v.rig.root.rotation.y = w.facing;
-      v.danger.position.set(w.x, y + 0.08, w.z);
-      v.danger.visible = w.state !== 'flee';
-      v.danger.material.opacity = 0.45 + 0.35 * Math.sin(this.time * 8);
+      const pulse = 0.5 + 0.5 * Math.sin(this.time * 7);
+      v.danger.mesh.visible = w.state !== 'flee';
+      if (v.danger.mesh.visible) v.danger.place(w.x, w.z, 2 + 0.25 * pulse);
+      v.danger.mesh.material.opacity = 0.55 + 0.35 * pulse;
     }
     for (const [id, v] of this.wolves) {
       if (!seen.has(id)) {
-        this.root.remove(v.rig.root, v.danger);
+        this.root.remove(v.rig.root, v.danger.mesh);
         this.wolves.delete(id);
       }
     }

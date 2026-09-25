@@ -7,13 +7,14 @@ Other games live in sibling folders and are built by other sessions: never touch
 
 **Woolgather** is a cosy-tense sheepdog game set in a highland valley at golden hour.
 You are Pip, a border collie. The flock has scattered across the hills, the sun is going down,
-and wolves come out after dark. Herd every sheep you can into the stone fold by the farmhouse
-before night falls.
+and when it sets the wolves come out. Herd every sheep you can into the stone fold by the
+farmhouse before night falls.
 
 Sheep are a real flock: they graze, bunch together when nervous and flee from you as a group.
 You steer them by *where you stand*, not by pushing them one at a time. Creep up quietly, get
-behind the flock, drive it over the bridge and through the fold gate. As the sky turns from gold
-to violet the wolves slip out of the pines to snatch stragglers: chase them off or bark them away.
+behind the flock, drive it over the bridge and through the fold gate. When the gold turns to a
+rose sunset the wolves slip out of the pines to snatch stragglers: chase them off or bark them
+away before they drag a sheep into the trees. Night falls in violet and moonlight.
 
 - Win: every sheep that is still yours is in the fold (and you have at least the day's target),
   or night falls with the target met, or you latch the gate early once the target is met.
@@ -107,7 +108,7 @@ Status: see the DECISIONS log below for where we are.
 | `nature.py` | `nature.glb` | pine A/B, oak, birch, bush, 3 rocks, grass tuft, 3 flowers, reeds, log, stump |
 | `structures.py` | `structures.glb` | stone fold with gate, guide fences, farmhouse, bridge, dry-stone wall segment, fence segment, lantern post, hay bale, trough, stepping stones, signpost |
 | `terrain.py` | `terrain.glb`, `water.glb`, `terrain_height.bin` | valley ground mesh (vertex colours), stream surface ribbon, heightfield for gameplay |
-| `fx.py` | `fx.glb` | sky dome, bark shockwave ring, moon |
+| `fx.py` | `fx.glb` | sky dome, bark shockwave ring, soft ring, thick danger ring, moon, heart, wool tuft, dust puff, splash drop |
 
 ### Asset conventions
 
@@ -265,3 +266,78 @@ Newest at the bottom. Record every non-obvious choice.
   Hard is a 330 s evening (wolves from 82 s) so skilled play still meets them. Sheep radius 0.8 m
   and separation 2.5 m so the flock never merges into one lump. End card sits on a panel; a
   partial win is titled "Home before dark".
+- 2026-09-25 (M2 critic r6): camera now frames the whole working group (Pip, nearby flock, and
+  the fold gate + interior or the bridge/ford when the flock is within 42 m), leaning 85% to the
+  group's centre instead of 45%. The day's first wolf targets the flock Pip is working, and every
+  wolf must spend 6 s (first wolf 10 s) inside the valley before it may charge, so wolves are seen
+  approaching. Wolves get an additive eye-glow sprite (canvas radial gradient) that brightens with
+  night. The night `color` grade layer is much weaker (it tinted sheep, heather and wolves the
+  same lilac). One message slot: an equal-or-more urgent toast replaces the current one, only the
+  latest lesser toast waits. Wolf tip only when a wolf is within 30 m of Pip. The last-seconds
+  timer glows instead of fading. Opaque end/pause panels. Valley floor has rolling swells and four
+  knolls; stony patches round rocks toned down (they glowed blue at night).
+- 2026-09-25 (M2 critic r7): Hard re-tuned so expert play still races the dark: 16 sheep, need
+  13, 300 s evening, wolves from 20% (60 s), 3 wolves, faster pack. Bot result: 14/16, 2 lost,
+  1 star at 226 s. Standard stays the first-timer difficulty.
+- 2026-09-25 (M2 r8): design bug found by the bot stalling for 160 s: wolves that were not allowed
+  to strike (snatch in progress, cooldown, not yet seen) waited ~8 m from their prey, inside the
+  sheep's 13 m wolf-fear radius, so the last flock could never be driven. Waiting wolves now lurk
+  and circle at 17 m (`WOLF.lurkRange`).
+- 2026-09-25 (M2 r8): the wolf cam's second render re-drew the shadow map; it now reuses the main
+  view's shadows (`shadowMap.autoUpdate = false` for the inset). Headless fps back to ~155.
+- 2026-09-25 (M2 critic r7): one bearing everywhere (toast, inset, marker all measure Pip -> prey),
+  short compass in the inset label, no duplicate "target met" toast, darker dusk and night,
+  glints washed toward white, minimap 180x144, fixed-width counter, tips on a backing pill,
+  "hurry" keeps the "can lose" count, loss card explains the numbers and gives one tip.
+- 2026-09-25 (M2 critic r9): far-bank snatches were decided before the player could act, and a
+  later "prowling" toast could bury a snatch in progress. Now: a sticky danger alert holds the
+  message slot for the whole drag with a live distance and bearing (toasts wait underneath and do
+  not run down); drags start with a 1 s tussle and move at 2.7 m/s, and the sheep is only lost
+  9 m past the valley edge, so a sprinting Pip (12.5 m/s, bark reaches 19 m) can answer a snatch
+  from across the valley. The spawn toast names the sheep the wolf is after, not its den.
+- 2026-09-25 (M2 critic r9): wolves hunting within 32 m of Pip are added to the camera's framing
+  box, so the threat is seen in the valley and not only as an edge marker or in the inset.
+- 2026-09-25 (M2 critic r9): wolves now arrive with a visible change of light on every difficulty.
+  `moodTime` holds the golden hour until 3.5% of the day before the wolves, drops to a rose sunset
+  (red-orange sun, lilac sky fill) as they come out, keeps a long afterglow, brings the moon up with
+  about a quarter of the evening left and full night at nightfall. The how-to and the pitch say
+  "when the sun sets" instead of "after dark".
+- 2026-09-25 (M2 critic r9): HUD: the latch prompt moved under the timer (it covered the gate ring);
+  the 2- and 3-star targets show on the counter line (lit when reached, struck out when the wolves
+  make them impossible); the wolf cam inset shrank to 248x156 and moved above the stamina meters;
+  minimap region names sit beside the grazing spots so sheep dots never print over them; the
+  how-to card has a legend for the four edge-marker glyphs.
+- 2026-09-25 (M2 r10): night water was vivid royal blue before the CSS grade even touched it: it
+  now fades to slate with a hint of the moonlit sky. Rock and wall stone get a faint warm
+  emissive scaled by night so grey stone stops going indigo. Faded trees dither down to 16%
+  (a denser dither read as a dark checkered ghost). `tests/lookdev.mjs --nograde` captures each
+  time with the grade hidden, to tell renderer colour from grade colour.
+- 2026-09-25 (M2 critic r11): characters stopped reading once the light changed. Sheep get a dark
+  ink outline (body and head only, to save draw calls) and a bigger dark face with wide ears so
+  they never share a bush's silhouette. The wolf was remodelled (low-slung, heavy ruff, big
+  upright ears, long muzzle, bushy dark-tipped tail, lighter grey coat), drawn at 1.5x with an
+  ember outline and a thick pulsing ground ring (`thick_ring`, re-projected onto the terrain).
+  Wool, Pip's white coat and the wolves' grey fur take most of the light's colour back out in
+  their shader (`uWhiteKeep`, rising as the key light warms), so white stays white and grey stays
+  grey under the coral sunset and the moon.
+- 2026-09-25 (M2 critic r11): the CSS blend layers were replaced by a post-process grade: the
+  scene renders linear HDR into a 4x multisampled half-float target and one fullscreen pass tone
+  maps it (Khronos PBR Neutral, in the shader) and grades it in display space with per-phase
+  targets (saturation, a shadow tint that only reaches the darkest tones, a highlight tint that
+  spares whites, soft-light wash, contrast, a haze band over the top of the frame for the far
+  valley, vignette). Gold: amber light, cool shadows, muted greens. Sunset: coral light, violet
+  shadows. Night: blue-violet, silver highlights, saturation 0.55. The wolf cam draws into the
+  same target, so the inset is graded too. The canvas itself has no MSAA now.
+- 2026-09-25 (M2 critic r11): colour fixes found with the new grade: a 5-degree sunset sun barely
+  lit flat ground (khaki), so the sunset sun sits at 10 degrees; greens muted in the terrain
+  script; the path, rocks and wall stone moved to yellow-greys (neutral grey went purple under
+  the lilac sky fill, reddish dirt went magenta and read as a UI route).
+- 2026-09-25 (M2 critic r11): the title is now a low establishing shot across the valley into the
+  golden-hour sun (sky, horizon pines, stream), under a radial scrim instead of a flat dark one.
+- 2026-09-25 (M2 critic r11): warnings use the minimap's place names ("A wolf is after the sheep
+  in the grove!") instead of compass words, which players read as either the wolf's or the
+  sheep's direction. During a snatch the top banner carries the news (where, how far) and the
+  hint bar the instruction; the inset label is short ("Snatch! 73 m to the trees") and keeps
+  following the same wolf while it lingers. The camera leads the frame the way the flock moves
+  and keeps an 8 m margin at the bottom, above the meters and hints. The latch prompt drops the
+  objective toast it completes.

@@ -44,6 +44,10 @@ function exposeTestHooks() {
       game.timeScale = k;
     },
     level: game.level.data,
+    /** Look-dev: show the render with or without the colour grade. */
+    setGrade: (on: boolean) => {
+      game.stage.grade.enabled = on;
+    },
     /** Jump the day clock (0..1) for look-dev screenshots. */
     jumpTo: (t: number) => {
       if (game.sim) game.sim.elapsed = t * game.sim.preset.dayLength;

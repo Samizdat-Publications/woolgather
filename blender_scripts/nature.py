@@ -191,9 +191,10 @@ def main():
         birch("birch", 4),
         bush("bush_a", 5),
         bush("bush_b", 6, color="#5a8540"),
-        rock("rock_a", 7, "#8f8c86", (1.0, 0.85, 0.62)),
-        rock("rock_b", 8, "#7d7a75", (1.0, 0.7, 0.5), moss=False),
-        rock("rock_c", 9, "#9a958c", (0.8, 0.9, 0.75)),
+        # Warm, slightly yellow greys: neutral grey went purple under the lilac sunset sky fill.
+        rock("rock_a", 7, "#958d7a", (1.0, 0.85, 0.62)),
+        rock("rock_b", 8, "#827a69", (1.0, 0.7, 0.5), moss=False),
+        rock("rock_c", 9, "#a09682", (0.8, 0.9, 0.75)),
         grass("grass_a", 10),
         grass("grass_b", 11),
         flower("flower_white", "#f5f2e8", 12),

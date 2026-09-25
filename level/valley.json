@@ -52,10 +52,10 @@
   "lantern": [52.2, 34.6],
   "signpost": [-24, -7],
   "sheepGroups": [
-    { "id": "meadow", "center": [10, 14], "radius": 5, "counts": { "gentle": 3, "standard": 3, "hard": 3 } },
+    { "id": "meadow", "center": [10, 14], "radius": 5, "counts": { "gentle": 3, "standard": 3, "hard": 4 } },
     { "id": "grove", "center": [22, -48], "radius": 6, "counts": { "gentle": 3, "standard": 3, "hard": 4 } },
     { "id": "hillside", "center": [-68, -14], "radius": 7, "counts": { "gentle": 2, "standard": 4, "hard": 5 } },
-    { "id": "rocks", "center": [-18, 48], "radius": 4, "counts": { "gentle": 2, "standard": 2, "hard": 2 } }
+    { "id": "rocks", "center": [-18, 48], "radius": 4, "counts": { "gentle": 2, "standard": 2, "hard": 3 } }
   ],
   "wolfDens": [[-10, -84], [42, -80], [-108, -22], [-104, 30], [-22, 86], [30, 84]]
 }

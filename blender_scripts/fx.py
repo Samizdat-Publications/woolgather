@@ -85,6 +85,7 @@ def main():
     objs = [
         sky_dome(),
         ring("bark_ring", 0.86, 1.0),
+        ring("thick_ring", 0.66, 1.0),
         ring("soft_ring", 0.97, 1.0, 96),
         moon(),
         heart(),

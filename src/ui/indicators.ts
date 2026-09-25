@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { INSET } from '../render/wolfcam';
 
 // Screen-edge arrows for things that matter but are off camera: the fold, sheep in a wolf's jaws,
 // hunting wolves and (when no sheep are on screen) the nearest loose sheep.
@@ -17,8 +18,9 @@ export interface Marker {
 
 const v = new THREE.Vector3();
 
-// Each kind gets its own glyph so "home" and "danger" never read alike.
-const ICONS: Record<MarkerKind, string> = {
+// Each kind gets its own glyph so "home" and "danger" never read alike. The how-to card's legend
+// shows the same glyphs.
+export const MARKER_ICONS: Record<MarkerKind, string> = {
   fold: '<svg viewBox="-12 -12 24 24"><path d="M-7 1 L0 -6 L7 1 M-5 0 V7 H5 V0" fill="none" stroke="#231c2b" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/></svg>',
   wolf: '<svg viewBox="-12 -12 24 24"><path d="M-7 -7 L-3 -1 L3 -1 L7 -7 L6 3 L0 8 L-6 3 Z" fill="#231c2b"/><circle cx="-2.5" cy="1.5" r="1.3" fill="#ffd040"/><circle cx="2.5" cy="1.5" r="1.3" fill="#ffd040"/></svg>',
   grab: '<svg viewBox="-12 -12 24 24"><path d="M0 -7 V2" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><circle cx="0" cy="6.5" r="1.9" fill="#fff"/></svg>',
@@ -26,16 +28,17 @@ const ICONS: Record<MarkerKind, string> = {
     '<svg viewBox="-12 -12 24 24"><circle cx="-3" cy="0" r="4" fill="#231c2b" opacity="0.18"/><path d="M-6 2 a3.5 3.5 0 0 1 1-6 a4 4 0 0 1 7-1 a3.5 3.5 0 0 1 3 6 Z" fill="#fff" stroke="#231c2b" stroke-width="1.4"/><rect x="4" y="-2" width="4" height="4.5" rx="1.5" fill="#231c2b"/></svg>',
 };
 
-/** Set while the wolf-cam inset occupies the bottom-right corner. */
+/** Set while the wolf-cam inset occupies the bottom-left corner. */
 export const hudState = { insetVisible: false };
 
 // Screen regions taken by HUD panels (top-left counts, top-right minimap, the timer and message
 // banner across the top middle, the wolf-cam inset), in CSS pixels.
-function avoidHud(px: number, py: number, w: number) {
+function avoidHud(px: number, py: number, w: number, h: number) {
   if (px > w - 250 && py < 215) py = 230;
   if (px < 190 && py < 135) py = 150;
   if (Math.abs(px - w / 2) < 340 && py < 150) py = 165;
-  if (hudState.insetVisible && px < 320 && py > 110 && py < 330) py = 345;
+  const insetTop = h - INSET.bottom - INSET.h - 36;
+  if (hudState.insetVisible && px < INSET.left + INSET.w + 30 && py > insetTop) py = insetTop;
   return py;
 }
 
@@ -53,7 +56,7 @@ export class Indicators {
     let e = this.els.get(m.id);
     if (!e) {
       e = document.createElement('div');
-      e.innerHTML = `<div class="ind-arrow"><svg viewBox="-30 -30 60 60"><path d="M30 0 L17 -9 L17 9 Z" fill="currentColor" stroke="rgba(20,16,26,0.7)" stroke-width="2" stroke-linejoin="round"/></svg></div><div class="ind-icon">${ICONS[m.kind]}</div><div class="ind-label"></div>`;
+      e.innerHTML = `<div class="ind-arrow"><svg viewBox="-30 -30 60 60"><path d="M30 0 L17 -9 L17 9 Z" fill="currentColor" stroke="rgba(20,16,26,0.7)" stroke-width="2" stroke-linejoin="round"/></svg></div><div class="ind-icon">${MARKER_ICONS[m.kind]}</div><div class="ind-label"></div>`;
       this.root.appendChild(e);
       this.els.set(m.id, e);
     }
@@ -97,7 +100,7 @@ export class Indicators {
       nx *= k;
       ny *= k;
       const px = ((nx + 1) / 2) * w;
-      const py = avoidHud(px, ((1 - ny) / 2) * h, w);
+      const py = avoidHud(px, ((1 - ny) / 2) * h, w, h);
       e.style.transform = `translate(${px}px, ${py}px)`;
       (e.querySelector('.ind-arrow') as HTMLElement).style.transform = `rotate(${ang}rad)`;
     }

@@ -205,7 +205,12 @@ if (!flag('skip-win')) {
       ['herding', (s) => s.sheep.some((q) => q.state === 'flee') && s.elapsed > 10, 'sheep fleeing from the dog'],
       ['first-home', (s, p) => s.folded >= 1 && p.folded === 0, 'first sheep enters the fold'],
       ['bridge', (s) => s.dog && s.dog.x < -30 && s.dog.x > -42 && Math.abs(s.dog.z + 2) < 6, 'dog at the bridge'],
-      ['wolf', (s) => s.wolves.length > 0 && s.wolves.some((w) => w.state === 'stalk' || w.state === 'charge'), 'wolf hunting'],
+      [
+        'wolf',
+        (s) => s.dog && s.wolves.some((w) => (w.state === 'stalk' || w.state === 'charge') && Math.hypot(w.x - s.dog.x, w.z - s.dog.z) < 28),
+        'wolf hunting near Pip',
+        true,
+      ],
       ['sunset', (s) => s.t > 0.62, 'sunset'],
       ['dusk', (s) => s.t > 0.82, 'dusk'],
     ],
@@ -259,6 +264,7 @@ if (!flag('skip-late')) {
   await sleep(1000);
   const bot = new HerdBot(page);
   for (const [t, name] of [
+    [0.45, 'late-sunset'],
     [0.86, 'late-dusk'],
     [0.96, 'late-night'],
   ]) {

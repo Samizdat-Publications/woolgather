@@ -148,6 +148,18 @@ export class Level {
     this.circles.push({ x: valley.signpost[0], z: valley.signpost[1], r: 0.25 });
   }
 
+  /**
+   * Where in the valley a point is, in the words the minimap labels use ("in the grove"), so
+   * warnings never depend on which way a compass word is measured.
+   */
+  placeName(x: number, z: number) {
+    if (x < -44) return 'on the far bank';
+    if (z < -35) return 'in the grove';
+    if (z > 35) return x > 40 ? 'by the fold' : 'by the rocks';
+    if (x > 40) return 'by the farm';
+    return 'in the meadow';
+  }
+
   inFold(x: number, z: number, margin = 0) {
     const f = this.fold;
     return x > f.minX + margin && x < f.maxX - margin && z > f.minZ + margin && z < f.maxZ - margin;

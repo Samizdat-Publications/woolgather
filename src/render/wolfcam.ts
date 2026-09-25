@@ -4,11 +4,15 @@ import * as THREE from 'three';
 // wolf and its prey into a small scissored viewport while the drag is under way, so the player
 // sees the danger instead of reading about it.
 
-const W = 280;
-const H = 176;
-const MARGIN = 16;
-/** Sits under the top-left counter panel, away from the fold's side of the screen. */
-const TOP = 132;
+export const INSET = {
+  w: 248,
+  h: 156,
+  left: 16,
+  /** Sits just above the stamina and bark meters in the bottom-left corner. */
+  bottom: 74,
+};
+const W = INSET.w;
+const H = INSET.h;
 
 export class WolfCam {
   readonly camera = new THREE.PerspectiveCamera(36, W / H, 0.5, 260);
@@ -31,6 +35,14 @@ export class WolfCam {
 
   /** Follow a snatch at (x, y, z). Call every frame while it matters; `text` labels the inset. */
   track(x: number, y: number, z: number, text: string, dt: number) {
+    this.follow(x, y, z, dt);
+    this.label.textContent = text;
+    this.active = true;
+    this.linger = 1.4;
+  }
+
+  /** Keep the camera on a wolf while the inset lingers after the hunt stops mattering. */
+  follow(x: number, y: number, z: number, dt: number) {
     const goalPos = new THREE.Vector3(x, y + 9, z + 7.5);
     const goalLook = new THREE.Vector3(x, y + 0.8, z);
     if (!this.hasPose) {
@@ -44,9 +56,6 @@ export class WolfCam {
     }
     this.camera.position.copy(this.pos);
     this.camera.lookAt(this.look);
-    this.label.textContent = text;
-    this.active = true;
-    this.linger = 1.4;
   }
 
   /** Call once per frame after `track` (or without it when nothing is happening). */
@@ -63,22 +72,28 @@ export class WolfCam {
     return this.linger > 0;
   }
 
-  render(renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
+  /** Draw the inset into the frame's corner of `target` (the grade pass's scene target). */
+  render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, target: THREE.WebGLRenderTarget) {
     if (!this.visible) return;
-    const vw = renderer.domElement.clientWidth;
-    const vh = renderer.domElement.clientHeight;
-    const x = MARGIN;
-    const y = vh - TOP - H; // viewport y is measured from the bottom
-    renderer.setScissorTest(true);
-    renderer.setScissor(x, y, W, H);
-    renderer.setViewport(x, y, W, H);
+    // Render-target viewports are in its own pixels (canvas pixels, not CSS pixels).
+    const pr = renderer.getPixelRatio();
+    target.viewport.set(INSET.left * pr, INSET.bottom * pr, W * pr, H * pr);
+    target.scissor.copy(target.viewport);
+    target.scissorTest = true;
+    renderer.setRenderTarget(target);
+    // Reuse the shadow map the main view just rendered instead of drawing it a second time.
+    const auto = renderer.shadowMap.autoUpdate;
+    renderer.shadowMap.autoUpdate = false;
     renderer.render(scene, this.camera);
-    renderer.setScissorTest(false);
-    renderer.setViewport(0, 0, vw, vh);
+    renderer.shadowMap.autoUpdate = auto;
+    target.viewport.set(0, 0, target.width, target.height);
+    target.scissor.set(0, 0, target.width, target.height);
+    target.scissorTest = false;
+    renderer.setRenderTarget(target);
     this.frame.style.width = `${W}px`;
     this.frame.style.height = `${H}px`;
-    this.frame.style.left = `${MARGIN}px`;
-    this.frame.style.top = `${TOP}px`;
+    this.frame.style.left = `${INSET.left}px`;
+    this.frame.style.bottom = `${INSET.bottom}px`;
   }
 
   hide() {

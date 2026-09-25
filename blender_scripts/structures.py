@@ -15,7 +15,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import wg_lib as W  # noqa: E402
 
 LEVEL = json.load(open(W.LEVEL))
-STONES = ["#9a958c", "#8a857d", "#a39d92", "#7f7a73", "#948c80"]
+# Warm greys with a touch of yellow: neutral grey stone went purple under the lilac sunset sky
+# fill and flat blue by moonlight.
+STONES = ["#9c9482", "#8c8474", "#a59c8a", "#827a6a", "#968c78"]
 
 
 def stone_wall(p, a, b, rng, height=1.15, thick=0.85):
@@ -106,8 +108,8 @@ def fold(rng):
     stone_wall(walls, (hw, S), (-hw, S), rng)
     stone_wall(walls, (-hw, N), (-hw, gw + 0.45), rng)
     stone_wall(walls, (-hw, -gw - 0.45), (-hw, S), rng)
-    pillar = W.mat("pillar", "#8f887c", 0.95)
-    cap = W.mat("pillar_cap", "#a8a092", 0.95)
+    pillar = W.mat("pillar", "#928a78", 0.95)
+    cap = W.mat("pillar_cap", "#aaa08c", 0.95)
     for y in (gw + 0.25, -gw - 0.25):
         v = walls.box(pillar, loc=(-hw, y, 0.75), size=(0.95, 0.75, 1.5))
         walls.jitter(v, 0.02, seed=rng.randint(0, 99))

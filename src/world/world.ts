@@ -12,6 +12,7 @@ const tmpQ = new THREE.Quaternion();
 const tmpS = new THREE.Vector3();
 const tmpP = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0);
+const WHITE = new THREE.Color(1, 1, 1);
 
 interface Placement {
   x: number;
@@ -104,6 +105,8 @@ function waterMaterial() {
         uSky: { value: new THREE.Color('#e8d6b0') },
         uFoam: { value: new THREE.Color('#eef6f8') },
         uLight: { value: 1 },
+        uTint: { value: new THREE.Color('#7e86bc') },
+        uNight: { value: 0 },
       },
     ]),
     vertexShader: `
@@ -117,8 +120,8 @@ function waterMaterial() {
       }`,
     fragmentShader: `
       uniform float uTime;
-      uniform vec3 uDeep, uShallow, uSky, uFoam;
-      uniform float uLight;
+      uniform vec3 uDeep, uShallow, uSky, uFoam, uTint;
+      uniform float uLight, uNight;
       varying vec2 vUv;
       #include <fog_pars_fragment>
       float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -138,6 +141,10 @@ function waterMaterial() {
         col += uSky * glint * 0.2;
         col = mix(col, uFoam, smoothstep(0.84, 0.98, across) * 0.35);
         col *= uLight;
+        // By night the stream goes slate grey with a hint of the moonlit sky instead of staying
+        // daytime blue (the colour grade adds the blue back).
+        float lum = dot(col, vec3(0.3, 0.55, 0.15));
+        col = mix(col, mix(vec3(lum), uTint * lum * 1.6, 0.25), uNight * 0.9);
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -196,6 +203,8 @@ export interface WorldHandles {
   gateN: THREE.Object3D | null;
   gateS: THREE.Object3D | null;
   glowMaterials: THREE.MeshLambertMaterial[];
+  /** Rock and wall stone: a faint warm self-light at night keeps grey stone from going indigo. */
+  stoneMaterials: THREE.MeshLambertMaterial[];
   fadeables: { meshes: THREE.InstancedMesh[]; spots: Placement[]; canopy: number; height: number }[];
   lanternLight: THREE.PointLight;
 }
@@ -376,24 +385,35 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   lanternLight.position.copy(lampPos);
   root.add(lanternLight);
 
-  // Materials that glow at night (windows, lantern glass).
+  // Materials that glow at night (windows, lantern glass), and stone that must stay grey by moonlight.
   const glowMaterials: THREE.MeshLambertMaterial[] = [];
+  const stoneMaterials: THREE.MeshLambertMaterial[] = [];
   root.traverse((o) => {
     const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | THREE.MeshLambertMaterial[] | undefined;
     for (const mm of Array.isArray(m) ? m : m ? [m] : []) {
-      if (mm.emissive && mm.emissive.getHex() !== 0 && !glowMaterials.includes(mm)) glowMaterials.push(mm);
+      if (!mm.emissive) continue;
+      if (mm.emissive.getHex() !== 0) {
+        if (!glowMaterials.includes(mm)) glowMaterials.push(mm);
+      } else if (/^(stone_|drystone_|pillar|chimney_stone|house_plinth)/.test(mm.name) && !stoneMaterials.includes(mm)) {
+        mm.emissive.set(0x5a4a38);
+        mm.emissiveIntensity = 0;
+        stoneMaterials.push(mm);
+      }
     }
   });
 
-  return { root, sky, water, gateN, gateS, glowMaterials, fadeables, lanternLight };
+  return { root, sky, water, gateN, gateS, glowMaterials, stoneMaterials, fadeables, lanternLight };
 }
 
 /** Per-frame world updates: water flow, sky colours, night glow, and fading trees that block the view. */
 export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, camera: THREE.Camera, focus: { x: number; z: number }[], dt: number) {
   const wu = w.water.material.uniforms;
   wu.uTime.value = time;
-  wu.uSky.value.copy(mood.skyHorizon);
-  wu.uLight.value = 0.55 + 0.45 * (1 - mood.night);
+  // Glints are sky colour washed towards white, so sunset hues read as sparkle, not blotches.
+  wu.uSky.value.copy(mood.skyHorizon).lerp(WHITE, 0.55);
+  wu.uLight.value = 0.38 + 0.62 * (1 - mood.night);
+  wu.uTint.value.copy(mood.hemiSky);
+  wu.uNight.value = mood.night;
   const su = w.sky.material.uniforms;
   su.uTop.value.copy(mood.skyTop);
   su.uHorizon.value.copy(mood.skyHorizon);
@@ -403,6 +423,7 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   su.uTime.value = time;
   w.sky.position.copy(camera.position);
   for (const m of w.glowMaterials) m.emissiveIntensity = 0.15 + 1.6 * mood.night;
+  for (const m of w.stoneMaterials) m.emissiveIntensity = 0.75 * mood.night;
   w.lanternLight.intensity = 14 * Math.max(0, mood.night - 0.15);
 
   // Trees standing between the camera and anything that matters fade to a dither.
@@ -425,7 +446,8 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
         }
       }
       const cur = attr.getX(i);
-      const want = hide ? 0.3 : 1;
+      // Mostly gone: a denser dither read as a dark checkered ghost of the tree.
+      const want = hide ? 0.16 : 1;
       if (Math.abs(cur - want) > 0.005) {
         const next = cur + (want - cur) * k;
         for (const m of f.meshes) (m.geometry.getAttribute('instanceFade') as THREE.InstancedBufferAttribute).setX(i, next);

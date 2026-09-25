@@ -1,6 +1,7 @@
 import { DIFFICULTIES, DOG, type Difficulty } from '../game/config';
 import type { Level } from '../game/level';
 import type { Outcome, Sim } from '../game/sim';
+import { MARKER_ICONS } from './indicators';
 import { Minimap } from './minimap';
 
 // DOM overlay: HUD, toasts and the menu screens. Milestone 1 keeps it functional; milestone 4
@@ -13,14 +14,9 @@ function fmtTime(s: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-/** Rough valley region for a point, for the losses line on the end card. */
-function placeName(x: number, z: number) {
-  // Same names as the minimap labels.
-  if (x < -44) return 'on the far bank';
-  if (z < -35) return 'in the grove';
-  if (z > 35) return 'near the rocks';
-  if (x > 40) return 'near the farm';
-  return 'in the meadow';
+/** Edge-marker glyph in its badge, for the legend on the how-to card. */
+function legendIcon(kind: keyof typeof MARKER_ICONS) {
+  return `<span class="lg-icon ind-${kind}"><span class="ind-icon">${MARKER_ICONS[kind]}</span></span>`;
 }
 
 export type UiAction = 'play' | 'resume' | 'restart' | 'title' | 'howto' | 'close-howto';
@@ -33,13 +29,13 @@ export class Ui {
   private toastQueue: { text: string; kind: string }[] = [];
   private toastT = 0;
 
-  constructor(level: Level) {
+  constructor(private level: Level) {
     this.root = document.getElementById('ui')!;
     this.root.innerHTML = `
       <div class="hud" hidden>
         <div class="hud-counts">
           <div class="count-home"><span class="n-home">0</span><span class="of">/ <span class="n-total">0</span> home</span></div>
-          <div class="count-need">need <span class="n-need">0</span></div>
+          <div class="count-need">need <span class="n-need">0</span><span class="count-stars"></span></div>
           <div class="count-spare"></div>
         </div>
         <div class="hud-time">
@@ -90,9 +86,18 @@ export class Ui {
           <li><b>Space</b> bark: startles nearby sheep and scares wolves off.</li>
           <li>Drive the flock through the gate of the stone fold by the farmhouse.</li>
           <li>Sheep will not wade the stream: use the bridge or the shallow ford.</li>
-          <li>After sunset wolves try to drag stragglers into the woods. Chase them off!</li>
-          <li>Once you have enough sheep home, <b>Enter</b> latches the gate and ends the day.</li>
+          <li>When the sun sets (the red notch on the sun bar) wolves slip out of the pines to drag stragglers into the woods. Run at them or bark to make them drop their prey.</li>
+          <li>Once you have enough sheep home, <b>Enter</b> latches the gate and ends the day. More sheep home earns more stars.</li>
         </ul>
+        <div class="legend">
+          <div class="legend-title">Markers at the screen edge point to things out of view:</div>
+          <div class="legend-row">
+            <span class="lg">${legendIcon('fold')}the fold</span>
+            <span class="lg">${legendIcon('sheep')}nearest loose sheep</span>
+            <span class="lg">${legendIcon('wolf')}hunting wolf</span>
+            <span class="lg">${legendIcon('grab')}sheep in a wolf's jaws</span>
+          </div>
+        </div>
         <button class="btn primary" data-act="close-howto">Got it</button>
       </div></div>
     `;
@@ -137,18 +142,66 @@ export class Ui {
     $('.hud', this.root).hidden = !on;
   }
 
+  /**
+   * One message slot. A message at least as urgent as the one showing replaces it at once; a less
+   * urgent one waits (only the latest waiting message is kept), so stale banners never pile up.
+   */
   toast(text: string, kind = 'info') {
-    this.toastQueue.push({ text, kind });
+    const pri = (k: string) => (k === 'danger' ? 3 : k === 'info' ? 1 : 2);
+    if (this.toastT <= 0 || pri(kind) >= pri(this.toastKind)) {
+      this.toastText = text;
+      this.toastT = 3.2;
+      this.toastKind = kind;
+    } else {
+      this.toastQueue.length = 0;
+      this.toastQueue.push({ text, kind });
+    }
+    this.renderToast();
+  }
+  private toastKind = 'info';
+  private toastText = '';
+  private alertText: string | null = null;
+
+  /**
+   * A danger message that holds the slot until cleared (a sheep in a wolf's jaws). Toasts that
+   * arrive meanwhile wait underneath and show once it clears.
+   */
+  alert(text: string | null) {
+    if (text === this.alertText) return;
+    if (text && !this.alertText) {
+      // Whatever was showing is old news by the time the snatch is settled.
+      this.toastT = 0;
+      this.toastQueue.length = 0;
+    }
+    this.alertText = text;
+    this.renderToast();
+  }
+
+  /** Drop a showing or waiting info toast (e.g. the day's objective once the target is met). */
+  dropInfoToast() {
+    if (this.toastKind === 'info') this.toastT = 0;
+    this.toastQueue = this.toastQueue.filter((q) => q.kind !== 'info');
+    this.renderToast();
+  }
+
+  private renderToast() {
+    const el = $('.toast', this.root);
+    const text = this.alertText ?? (this.toastT > 0 ? this.toastText : '');
+    const cls = this.alertText ? 'toast danger sticky' : `toast ${this.toastKind}`;
+    el.hidden = !text;
+    if (el.textContent !== text) el.textContent = text;
+    if (el.className !== cls) el.className = cls;
   }
 
   hint(text: string) {
     $('.hud-hint', this.root).textContent = text;
   }
 
-  /** A prominent call to action above the hint line (e.g. latching the gate). Null hides it. */
+  /** A prominent call to action under the timer (e.g. latching the gate). Null hides it. */
   prompt(html: string | null) {
     const el = $('.hud-prompt', this.root);
     el.hidden = !html;
+    $('.hud', this.root).classList.toggle('has-prompt', !!html);
     if (html && el.innerHTML !== html) el.innerHTML = html;
   }
 
@@ -163,13 +216,12 @@ export class Ui {
     const spareEl = $('.count-spare', this.root);
     const lostTxt = sim.lost > 0 ? ` · lost ${sim.lost}` : '';
     const hurry = !sim.targetMet && sim.timeLeft < 90;
+    const spareTxt = spare > 0 ? `can lose ${spare} more` : 'no sheep to spare!';
     spareEl.textContent = sim.targetMet
       ? `target met${lostTxt}`
       : hurry
-        ? `hurry: ${need} more before dark!`
-        : spare > 0
-          ? `can lose ${spare} more${lostTxt}`
-          : `no sheep to spare!${lostTxt}`;
+        ? `hurry: ${need} more · ${spareTxt}`
+        : `${spareTxt}${lostTxt}`;
     spareEl.classList.toggle('danger', (!sim.targetMet && spare <= 0) || hurry);
     // Sun bar: a notch where the wolves come out, violet once the sun is down.
     const ws = sim.preset.wolfStart;
@@ -182,6 +234,13 @@ export class Ui {
     wl.textContent = wolvesOut ? 'the wolves are out' : `wolves come out in ${fmtTime((ws - sim.t) * sim.preset.dayLength)}`;
     wl.classList.toggle('out', wolvesOut);
     $('.count-need', this.root).classList.toggle('met', sim.targetMet);
+    // The extra-star targets, lit once reached and struck out once the wolves make them impossible.
+    const two = Math.ceil((sim.target + sim.total) / 2);
+    const tier = (n: number, s: string) =>
+      `<span class="${sim.folded >= n ? 'got' : sim.total - sim.lost < n ? 'gone' : ''}">${s} ${n}</span>`;
+    const starsHtml = ` · ${tier(two, '★★')} · ${tier(sim.total, '★★★')}`;
+    const starsEl = $('.count-stars', this.root);
+    if (starsEl.innerHTML !== starsHtml) starsEl.innerHTML = starsHtml;
     $('.t-left', this.root).textContent = fmtTime(sim.timeLeft);
     // The last minute escalates: ember text, then a pulse in the final 20 seconds.
     const timeEl = $('.hud-time', this.root);
@@ -196,25 +255,26 @@ export class Ui {
     $('.bark-fill', this.root).style.width = `${(1 - d.barkCd / DOG.barkCooldown) * 100}%`;
     this.minimap.draw(sim, time);
 
-    const toast = $('.toast', this.root);
-    this.toastT -= dt;
-    if (this.toastT <= 0) {
-      const next = this.toastQueue.shift();
-      if (next) {
-        toast.textContent = next.text;
-        toast.className = `toast ${next.kind}`;
-        toast.hidden = false;
-        this.toastT = 3.2;
-      } else {
-        toast.hidden = true;
+    // Toasts under an alert do not run down, so nothing is missed while a snatch is on.
+    if (!this.alertText && this.toastT > 0) {
+      this.toastT -= dt;
+      if (this.toastT <= 0) {
+        const next = this.toastQueue.shift();
+        if (next) {
+          this.toastText = next.text;
+          this.toastKind = next.kind;
+          this.toastT = 3.2;
+        }
       }
     }
+    this.renderToast();
   }
 
   clearToasts() {
     this.toastQueue.length = 0;
     this.toastT = 0;
-    $('.toast', this.root).hidden = true;
+    this.alertText = null;
+    this.renderToast();
   }
 
   showEnd(o: Outcome, sim: Sim) {
@@ -231,23 +291,26 @@ export class Ui {
         o.reason === 'nightfall'
           ? 'Night fell, but enough of the flock made it to the fold.'
           : o.reason === 'latched'
-            ? 'You latched the gate with the flock safe inside.'
+            ? sim.free > 0
+              ? `You latched the gate with ${sim.folded} safe inside; ${sim.free} ${sim.free === 1 ? 'was' : 'were'} left out on the hill.`
+              : 'You latched the gate with the flock safe inside.'
             : sim.lost === 0
               ? 'Not a single sheep left out on the hill.'
               : `Every sheep still with you is safe in the fold, but the wolves took ${took}.`;
     } else {
       title.textContent = o.reason === 'wolves' ? 'The wolves took too many' : 'Night has fallen';
+      const left = sim.total - sim.lost;
       sub.textContent =
         o.reason === 'wolves'
-          ? 'Too few sheep are left to make it through the winter.'
+          ? `Only ${left} sheep are left and you needed ${sim.target} home. Tip: run straight at a wolf or bark (Space) and it drops its prey.`
           : sim.folded === 0
-            ? `None of the ${sim.target} sheep you needed made it home.`
-            : `Only ${sim.folded} of the ${sim.target} sheep you needed made it home.`;
+            ? `None of the ${sim.target} sheep you needed made it home. Tip: get behind a flock and let it trot ahead of you towards the gate.`
+            : `Only ${sim.folded} of the ${sim.target} sheep you needed made it home. Tip: sprint (Shift) between flocks to save daylight.`;
     }
     const stars = o.kind === 'win' ? '★'.repeat(o.stars) + '☆'.repeat(3 - o.stars) : '';
     // Times match the in-game "Nightfall in" countdown, so they are given as daylight left.
     const dayLen = sim.preset.dayLength;
-    const losses = sim.lostLog.map((l) => `${placeName(l.x, l.z)} (${fmtTime(dayLen - l.t)} left)`).join(' · ');
+    const losses = sim.lostLog.map((l) => `${this.level.placeName(l.x, l.z)} (${fmtTime(dayLen - l.t)} left)`).join(' · ');
     const two = Math.ceil((sim.target + sim.total) / 2);
     const legend = `★ ${sim.target}+ home · ★★ ${two}+ · ★★★ all ${sim.total}`;
     stats.innerHTML = `

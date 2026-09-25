@@ -32,10 +32,21 @@ if (at) {
   const [x, z] = at.split(',').map(Number);
   await page.evaluate(([px, pz]) => window.__WG.teleportDog(px, pz), [x, z]);
 }
+// --nograde also captures each time with the colour grade pass switched off (tone mapping only),
+// to see what the renderer itself produces.
+const noGrade = args.includes('--nograde');
+const setGrade = (on) => page.evaluate((v) => window.__WG.setGrade(v), on);
 for (const t of TIMES) {
   await page.evaluate((x) => window.__WG.jumpTo(x), t);
   await page.waitForTimeout(400);
-  await page.screenshot({ path: join(OUT, `t${String(t).replace('.', '_')}.png`) });
+  const name = `t${String(t).replace('.', '_')}`;
+  await page.screenshot({ path: join(OUT, `${name}.png`) });
+  if (noGrade) {
+    await setGrade(false);
+    await page.waitForTimeout(100);
+    await page.screenshot({ path: join(OUT, `${name}-nograde.png`) });
+    await setGrade(true);
+  }
 }
 console.log(`lookdev: ${TIMES.length} shots -> ${OUT}; errors: ${errors.length ? errors.join(' | ') : 'none'}`);
 await browser.close();

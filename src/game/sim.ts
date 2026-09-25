@@ -63,14 +63,18 @@ export interface Wolf extends Body {
   respawnT: number;
   stateT: number;
   inWater: boolean;
+  /** Seconds this wolf has been inside the valley: it must be seen approaching before it charges. */
+  valleyT: number;
 }
 
 export type SimEvent =
   | { type: 'bark'; x: number; z: number }
   | { type: 'folded'; x: number; z: number; id: number; count: number }
   | { type: 'bleat'; x: number; z: number; id: number; urgent: boolean }
-  | { type: 'wolfSpawn'; x: number; z: number; id: number }
+  /** A wolf leaves the trees; (tx, tz) is the sheep it is after. */
+  | { type: 'wolfSpawn'; x: number; z: number; id: number; tx: number; tz: number }
   | { type: 'wolfScared'; x: number; z: number; id: number }
+  | { type: 'charge'; x: number; z: number; id: number }
   | { type: 'grab'; x: number; z: number; id: number }
   | { type: 'rescued'; x: number; z: number; id: number }
   | { type: 'lost'; x: number; z: number; id: number }
@@ -722,10 +726,22 @@ export class Sim {
   }
 
   private spawnWolf() {
-    // Choose the sheep the dog is furthest from, then the den nearest that sheep which is not
-    // right next to the dog.
+    // Usually the sheep the dog is furthest from. The day's first wolf instead goes for the flock
+    // Pip is working, so the player meets it on screen before any sheep is lost.
     const d = this.dog;
-    const s = this.pickTarget(d.x, d.z);
+    const first = this.wolfIds === 0;
+    let s = this.pickTarget(d.x, d.z);
+    if (first) {
+      let bd = Infinity;
+      for (const q of this.sheep) {
+        if (q.state === 'folded' || q.state === 'lost' || q.state === 'grabbed') continue;
+        const dd = Math.hypot(q.x - d.x, q.z - d.z);
+        if (dd < bd) {
+          bd = dd;
+          s = q;
+        }
+      }
+    }
     if (!s) return;
     let den = this.level.dens[0];
     let bd = Infinity;
@@ -752,11 +768,12 @@ export class Sim {
       respawnT: 0,
       stateT: 0,
       inWater: false,
+      valleyT: 0,
     };
     const slot = this.wolves.findIndex((o) => o.state === 'gone');
     if (slot >= 0) this.wolves[slot] = w;
     else this.wolves.push(w);
-    this.events.push({ type: 'wolfSpawn', x: w.x, z: w.z, id: w.id });
+    this.events.push({ type: 'wolfSpawn', x: w.x, z: w.z, id: w.id, tx: s.x, tz: s.z });
   }
 
   private scareWolf(w: Wolf) {
@@ -826,6 +843,7 @@ export class Sim {
       const dogDz = w.z - d.z;
       const dogD = Math.hypot(dogDx, dogDz) || 1;
 
+      if (w.state !== 'flee' && this.level.insideValley(w.x, w.z)) w.valleyT += dt;
       if (w.state === 'stalk' && w.target) {
         const s = w.target;
         const sx = s.x - w.x;
@@ -841,13 +859,20 @@ export class Sim {
           tz += (dogDz / dogD) * k * 2.2;
         }
         const sheepToDog = Math.hypot(s.x - d.x, s.z - d.z);
-        if (sd < WOLF.chargeRange && sheepToDog > 8 && !someoneDragging && this.snatchCd <= 0) {
+        // A wolf has to be seen creeping through the valley for a while before it may charge.
+        const seenLongEnough = w.valleyT > (w.id === 0 ? 10 : 6);
+        const mayCharge = !someoneDragging && this.snatchCd <= 0 && seenLongEnough;
+        if (mayCharge && sd < WOLF.chargeRange && sheepToDog > 8) {
           w.state = 'charge';
           w.stateT = 0;
-        } else if (sd < WOLF.chargeRange * 0.8) {
-          // Wait at a distance for the other wolf's snatch to play out.
-          tx -= (sx / sd) * 1.2;
-          tz -= (sz / sd) * 1.2;
+          this.events.push({ type: 'charge', x: w.x, z: w.z, id: w.id });
+        } else if (!mayCharge && sd < WOLF.lurkRange) {
+          // Not allowed to strike yet: lurk outside the flock's fear radius, circling. Close enough
+          // to be a visible threat, far enough that the flock can still be driven.
+          const k = (WOLF.lurkRange - sd) / WOLF.lurkRange;
+          tx = -(sx / sd) * k * 2 + (-sz / sd) * 0.6;
+          tz = -(sz / sd) * k * 2 + (sx / sd) * 0.6;
+          speed = WOLF.stalkSpeed * spd * 0.6;
         }
       } else if (w.state === 'charge' && w.target) {
         const s = w.target;
@@ -876,7 +901,8 @@ export class Sim {
         const dl = Math.hypot(dx, dz) || 1;
         tx = dx / dl;
         tz = dz / dl;
-        speed = WOLF.dragSpeed * spd;
+        // The sheep struggles for a moment before the wolf gets it moving: time for Pip to react.
+        speed = WOLF.dragSpeed * spd * clamp((w.stateT - 0.4) / 1.2, 0.2, 1);
         const s = w.target;
         // The sheep hangs from the wolf's jaws, slightly behind its nose.
         s.x = w.x + Math.sin(w.facing) * 1.1;
