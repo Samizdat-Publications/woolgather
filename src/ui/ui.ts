@@ -178,6 +178,17 @@ export class Ui {
     this.renderToast();
   }
 
+  /** Screen rectangle of the minimap panel. */
+  mapRect() {
+    const el = $('.hud-map', this.root);
+    return el.offsetParent ? el.getBoundingClientRect() : null;
+  }
+
+  /** Let things under the minimap show through it. */
+  fadeMap(on: boolean) {
+    $('.hud-map', this.root).classList.toggle('faded', on);
+  }
+
   /** Drop a showing or waiting info toast (e.g. the day's objective once the target is met). */
   dropInfoToast() {
     if (this.toastKind === 'info') this.toastT = 0;
@@ -251,7 +262,7 @@ export class Ui {
     // The sky the camera cannot show: a sun riding the end of the bar, a moon once it has set.
     const sun = $('.sunbar-sun', this.root);
     sun.style.left = `${(1 - sim.t) * 100}%`;
-    sun.classList.toggle('moon', moodTime(sim.t, ws) >= SUN_MOON_SWAP);
+    sun.classList.toggle('moon', moodTime(sim.t, ws, sim.preset.dayLength) >= SUN_MOON_SWAP);
     const d = sim.dog;
     const st = $('.stamina-fill', this.root);
     st.style.width = `${(d.stamina / DOG.staminaMax) * 100}%`;

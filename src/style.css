@@ -34,8 +34,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1622; col
 @keyframes glow-red { from { box-shadow: 0 0 0 0 rgba(255, 90, 60, 0); } to { box-shadow: 0 0 0 4px rgba(255, 90, 60, 0.75); } }
 .star-legend { font-size: 13px; opacity: 0.8; margin-top: -4px; margin-bottom: 6px; }
 .end-stats .losses { font-size: 14px; opacity: 0.85; max-width: 520px; }
-/* Bottom right, so the farmhouse and the fold gate by the top of the frame stay in view. */
-.hud-map { position: absolute; bottom: 16px; right: 16px; background: rgba(20, 16, 26, 0.6); padding: 6px; border-radius: 8px; }
+/* Top right; it fades whenever the fold, Pip or a loose sheep passes underneath. */
+.hud-map { position: absolute; top: 16px; right: 16px; transition: opacity 0.35s ease; background: rgba(20, 16, 26, 0.6); padding: 6px; border-radius: 8px; }
+.hud-map.faded { opacity: 0.22; }
 .hud-dog { position: absolute; bottom: 20px; left: 16px; display: flex; gap: 10px; align-items: flex-end; }
 .meter { display: flex; flex-direction: column; gap: 4px; }
 .meter-label { font-size: 13px; font-weight: 700; text-shadow: 0 1px 3px #000; }

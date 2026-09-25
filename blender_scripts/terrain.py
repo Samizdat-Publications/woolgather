@@ -172,12 +172,12 @@ def water_level_at(s_x, s_z):
 
 # ----------------------------------------------------------------------------- colours
 
-# Muted, slightly warm greens: the golden-hour light supplies the glow (lime greens read as a
-# bright lawn instead of a highland valley at sunset).
-GRASS_A = "#779a4f"
-GRASS_B = "#8fab5d"
-GRASS_DRY = "#b0aa68"
-GRASS_LUSH = "#5a8a4a"
+# Sage greens, light and not too saturated: warm light turns them gold rather than lime, and
+# the sunset does not push them to mustard.
+GRASS_A = "#86a068"
+GRASS_B = "#9cb07a"
+GRASS_DRY = "#b8b288"
+GRASS_LUSH = "#678a5a"
 WORN = "#9c9a6a"
 MUD = "#7a6440"
 STRAW = "#c8b068"
@@ -229,6 +229,9 @@ def color(x, z, h):
         c = mix(c, lin(GRASS_LUSH), 1 - smoothstep(STREAM_HALF, STREAM_HALF + 5, d))
     if d < STREAM_HALF + 0.3:
         c = mix(c, lin(BED_C), 1 - smoothstep(STREAM_HALF - 0.8, STREAM_HALF + 0.3, d))
+    # A dark band of wet mud at the water's edge, so the stream always reads as water in a bank.
+    if d < STREAM_HALF + 1.6:
+        c = mix(c, lin("#4a4232"), (1 - smoothstep(STREAM_HALF + 0.2, STREAM_HALF + 1.6, d)) * smoothstep(STREAM_HALF - 1.0, STREAM_HALF - 0.2, d) * 0.75)
     # The dirt path itself is a separate ribbon mesh; the ground under and beside it is just worn.
     pd = poly_dist(x, z, PATH, False)
     c = mix(c, lin(WORN), (1 - smoothstep(1.0, 2.6, pd)) * 0.6)

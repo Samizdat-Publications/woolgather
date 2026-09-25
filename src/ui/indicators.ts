@@ -31,10 +31,10 @@ export const MARKER_ICONS: Record<MarkerKind, string> = {
 /** Set while the wolf-cam inset is up, and on which side. */
 export const hudState: { insetVisible: boolean; insetSide: InsetSide } = { insetVisible: false, insetSide: 'left' };
 
-// Screen regions taken by HUD panels (top-left counts, bottom-right minimap, the timer and message
+// Screen regions taken by HUD panels (top-left counts, top-right minimap, the timer and message
 // banner across the top middle, the wolf-cam inset), in CSS pixels.
 function avoidHud(px: number, py: number, w: number, h: number) {
-  if (px > w - 250 && py > h - 215) py = h - 230;
+  if (px > w - 250 && py < 215) py = 230;
   if (px < 190 && py < 135) py = 150;
   if (Math.abs(px - w / 2) < 340 && py < 150) py = 165;
   if (hudState.insetVisible) {

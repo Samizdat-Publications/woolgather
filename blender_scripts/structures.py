@@ -114,11 +114,19 @@ def fold(rng):
         v = walls.box(pillar, loc=(-hw, y, 0.75), size=(0.95, 0.75, 1.5))
         walls.jitter(v, 0.02, seed=rng.randint(0, 99))
         walls.box(cap, loc=(-hw, y, 1.56), size=(1.1, 0.9, 0.14))
-    # Hay rack and trough inside.
+    # Hay rack and trough inside: an open slatted wooden frame with a mound of hay in it.
     wood = W.mat("rack_wood", "#7a5638", 0.85)
-    hay = W.mat("hay_loose", "#d8b862", 1.0)
-    walls.box(wood, loc=(hw - 1.6, 1.5, 0.45), size=(0.9, 3.2, 0.9))
-    v = walls.ico(hay, loc=(hw - 1.6, 1.5, 1.0), radius=0.8, scale=(0.7, 2.0, 0.5), subdiv=1)
+    hay = W.mat("hay_loose", "#c4ae7e", 1.0)
+    rx, ry = hw - 1.6, 1.5
+    for dx in (-0.42, 0.42):
+        for dy in (-1.55, 1.55):
+            walls.box(wood, loc=(rx + dx, ry + dy, 0.55), size=(0.12, 0.12, 1.1))
+        walls.box(wood, loc=(rx + dx, ry, 1.08), size=(0.1, 3.2, 0.1))
+        walls.box(wood, loc=(rx + dx, ry, 0.35), size=(0.1, 3.2, 0.08))
+        for k in range(6):
+            walls.box(wood, loc=(rx + dx, ry - 1.25 + k * 0.5, 0.72), size=(0.05, 0.06, 0.72), rot=(0.25 if dx > 0 else -0.25, 0, 0))
+    walls.box(wood, loc=(rx, ry, 0.3), size=(0.8, 3.1, 0.06))
+    v = walls.ico(hay, loc=(rx, ry, 0.72), radius=0.62, scale=(0.62, 2.3, 0.62), subdiv=1)
     walls.jitter(v, 0.08, seed=7, scale=2.5)
     water = W.mat("trough_water", "#5b88ad", 0.2)
     walls.box(wood, loc=(hw - 3.5, -4.6, 0.3), size=(2.2, 0.8, 0.6))
@@ -256,14 +264,18 @@ def lantern():
 
 
 def hay_bale():
-    hay = W.mat("hay", "#d9b45e", 1.0)
-    band = W.mat("hay_band", "#b8913f", 1.0)
+    # Muted straw rather than saturated gold (the old bales read as orange traffic drums), with
+    # rounded shoulders and a spiral of rings on each end.
+    hay = W.mat("hay", "#c4ae7e", 1.0)
+    band = W.mat("hay_band", "#a8905e", 1.0)
     p = W.Part("hay")
-    v = p.cyl(hay, loc=(0, 0, 0.95), r1=0.95, r2=0.95, depth=1.3, rot=(0, math.pi / 2, 0), seg=12)
-    p.jitter(v, 0.03, seed=3, scale=3.0)
+    v = p.cyl(hay, loc=(0, 0, 0.95), r1=0.95, r2=0.95, depth=1.1, rot=(0, math.pi / 2, 0), seg=16)
+    p.jitter(v, 0.025, seed=3, scale=3.0)
     for sx in (1, -1):
-        p.cyl(band, loc=(sx * 0.66, 0, 0.95), r1=0.6, r2=0.6, depth=0.02, rot=(0, math.pi / 2, 0), seg=12)
-        p.cyl(band, loc=(sx * 0.665, 0, 0.95), r1=0.25, r2=0.25, depth=0.02, rot=(0, math.pi / 2, 0), seg=8)
+        v = p.cyl(hay, loc=(sx * 0.6, 0, 0.95), r1=0.88, r2=0.88, depth=0.12, rot=(0, math.pi / 2, 0), seg=16)
+        p.jitter(v, 0.02, seed=4 + sx, scale=3.0)
+        for k, r in enumerate((0.72, 0.48, 0.24)):
+            p.cyl(band if k % 2 == 0 else hay, loc=(sx * (0.665 + k * 0.004), 0, 0.95 + (k - 1) * 0.03), r1=r, r2=r, depth=0.015, rot=(0, math.pi / 2, 0), seg=12)
     return p.finish()
 
 

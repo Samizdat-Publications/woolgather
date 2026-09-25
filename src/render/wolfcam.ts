@@ -46,8 +46,8 @@ export class WolfCam {
    * Follow a hunt at (x, y, z). Call every frame while it matters; `text` labels the inset and
    * `side` is the side of the screen the threat lies towards.
    */
-  track(x: number, y: number, z: number, text: string, side: InsetSide, dt: number) {
-    this.follow(x, y, z, dt);
+  track(x: number, y: number, z: number, heading: number, text: string, side: InsetSide, dt: number) {
+    this.follow(x, y, z, heading, dt);
     this.label.textContent = text;
     // Only switch sides when the inset appears, so it never jumps across the screen mid-hunt.
     if (!this.visible) this.side = side;
@@ -55,11 +55,21 @@ export class WolfCam {
     this.linger = 1.4;
   }
 
-  /** Keep the camera on a wolf while the inset lingers after the hunt stops mattering. */
-  follow(x: number, y: number, z: number, dt: number) {
-    // Close and a little low, so the wolf fills the frame.
-    const goalPos = new THREE.Vector3(x, y + 6.5, z + 6);
-    const goalLook = new THREE.Vector3(x, y + 0.8, z);
+  /**
+   * Keep the camera on a wolf (also while the inset lingers). A three-quarter side view from the
+   * camera's side of the animal: the whole wolf, the sheep in its jaws and the trees it is heading
+   * for, rather than a tight top view.
+   */
+  follow(x: number, y: number, z: number, heading: number, dt: number) {
+    // Perpendicular to the heading, on the south (screen-near) side, pulled back a little.
+    let px = Math.cos(heading);
+    let pz = -Math.sin(heading);
+    if (pz < 0) {
+      px = -px;
+      pz = -pz;
+    }
+    const goalPos = new THREE.Vector3(x + px * 9 + Math.sin(heading) * -3, y + 6, z + pz * 9 + Math.cos(heading) * -3);
+    const goalLook = new THREE.Vector3(x + Math.sin(heading) * 1.5, y + 0.9, z + Math.cos(heading) * 1.5);
     if (!this.hasPose) {
       this.pos.copy(goalPos);
       this.look.copy(goalLook);

@@ -130,7 +130,7 @@ export class Minimap {
     c.strokeStyle = '#4a3f33';
     c.lineWidth = 1.5;
     for (const s of L.segs) {
-      if (s.tag !== 'wall' && s.tag !== 'fence') continue;
+      if (s.tag !== 'wall' && s.tag !== 'fence' && s.tag !== 'field') continue;
       c.beginPath();
       c.moveTo(this.px(s.ax), this.pz(s.az));
       c.lineTo(this.px(s.bx), this.pz(s.bz));

@@ -23,6 +23,8 @@ function groundLight(m: MoodValues) {
 const GOLDEN_GROUND = groundLight(sampleMood(0, createMoodValues()));
 /** Terrain colour tint, shared by the ground and path shaders (set from the mood each frame). */
 const GROUND_TINT = { value: new THREE.Color(1, 1, 1) };
+const PLUM = new THREE.Color('#5a3c5e');
+const INDIGO = new THREE.Color('#3a3c8a');
 
 interface Placement {
   x: number;
@@ -102,8 +104,9 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
       THREE.UniformsLib.fog,
       {
         uTime: { value: 0 },
-        uDeep: { value: new THREE.Color('#2b5f86') },
-        uShallow: { value: new THREE.Color('#4f8fb4') },
+        // Deep teal, darker than the grass on its banks in every light.
+        uDeep: { value: new THREE.Color('#1d4f5c') },
+        uShallow: { value: new THREE.Color('#2e6a76') },
         uSky: { value: new THREE.Color('#e8d6b0') },
         uFoam: { value: new THREE.Color('#eef6f8') },
         uLight: { value: 1 },
@@ -153,11 +156,12 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         float ripple = smoothstep(0.6, 0.95, sin(vWorld.y * 2.6 + vWorld.x * 0.8 - uTime * 2.2) * 0.5 + 0.5);
         col = mix(col, bed + ripple * 0.12, shallow * 0.8);
         col = mix(col, uTint * (dot(col, LW) / max(dot(uTint, LW), 0.001)), uTintAmt);
-        // Broken glints drifting downstream: noise stretched along the flow, not regular waves.
-        vec2 p = vec2(vUv.x * 7.0 - uTime * 0.55, vUv.y * 3.0);
-        float n = vnoise(p * vec2(1.0, 2.2)) * 0.6 + vnoise(p * vec2(2.3, 4.1) + 7.0) * 0.4;
-        float glint = smoothstep(0.66, 0.8, n) * (1.0 - smoothstep(0.75, 1.0, across));
-        col = mix(col, uFoam, smoothstep(0.84, 0.98, across) * 0.35);
+        // Thin glints streaking downstream: noise stretched along the flow, fine across it.
+        vec2 p = vec2(vUv.x * 3.0 - uTime * 0.55, vUv.y * 11.0);
+        float n = vnoise(p) * 0.6 + vnoise(p * vec2(2.1, 1.7) + 7.0) * 0.4;
+        float glint = smoothstep(0.74, 0.86, n) * (1.0 - smoothstep(0.7, 0.95, across)) * 0.8;
+        // Foam only as a thin line where the water meets the bank.
+        col = mix(col, uFoam, smoothstep(0.9, 0.99, across) * 0.25);
         // Unlit water has to follow the light on the valley floor or it glows at dusk; the sky's
         // sparkle on the ripples stays bright in every light (moonlit glints at night).
         col *= uLight;
@@ -479,12 +483,12 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   wu.uSky.value.copy(mood.skyHorizon).lerp(WHITE, 0.55);
   // Water brightness follows the light falling on flat ground, relative to golden hour; its tint
   // is the sky it reflects: the horizon's gold and rose, then the moonlit sky.
-  wu.uLight.value = Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
+  wu.uLight.value = 0.9 * Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
   wu.uGlint.value = 0.2 + 0.12 * mood.night;
   GROUND_TINT.value.copy(mood.ground);
-  wu.uTint.value.copy(mood.skyHorizon).lerp(mood.hemiSky, mood.night);
-  // Blue by day; the sky's colour takes over from the sunset on.
-  wu.uTintAmt.value = 0.1 + 0.45 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
+  // Only a touch of the evening's colour: deep teal by day, dusky plum at sunset, indigo at night.
+  wu.uTint.value.copy(mood.skyHorizon).lerp(PLUM, 0.5).lerp(INDIGO, mood.night);
+  wu.uTintAmt.value = 0.06 + 0.26 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
   const su = w.sky.material.uniforms;
   su.uTop.value.copy(mood.skyTop);
   su.uHorizon.value.copy(mood.skyHorizon);
@@ -493,7 +497,7 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   su.uNight.value = mood.night;
   su.uTime.value = time;
   w.sky.position.copy(camera.position);
-  for (const m of w.glowMaterials) m.emissiveIntensity = 0.15 + 1.6 * mood.night;
+  for (const m of w.glowMaterials) m.emissiveIntensity = 0.2 + 3.2 * mood.night;
   for (const m of w.stoneMaterials) m.emissiveIntensity = 0.75 * mood.night;
   // The fold lantern is the one warm light at night: strong enough to pool on the grass.
   w.lanternLight.intensity = 32 * Math.max(0, mood.night - 0.15);

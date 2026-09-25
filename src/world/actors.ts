@@ -217,8 +217,9 @@ export class Actors {
     const warm = 1 - Math.min(1, mood.keyColor.b / Math.max(0.01, mood.keyColor.r));
     this.whiteKeep.value = Math.min(0.85, 0.2 + 0.6 * warm * Math.min(1, mood.keyIntensity / 2) + 0.3 * night);
     for (const m of this.whiteMats) m.emissiveIntensity = 1 + 0.4 * night;
-    // Warm rim from the low sun, silver by moonlight.
-    this.rim.value.setRGB(1, 0.72, 0.52).lerp(RIM_MOON, night).multiplyScalar(0.06 + 0.5 * night);
+    // Rim light: faint and warm by day, rose-pink through the sunset and dusk, silver by moonlight.
+    const sunset = Math.min(1, Math.max(0, (mood.t - 0.4) / 0.1)) * Math.min(1, Math.max(0, (0.92 - mood.t) / 0.08));
+    this.rim.value.setRGB(1, 0.64 - 0.06 * sunset, 0.56 + 0.1 * sunset).lerp(RIM_MOON, night).multiplyScalar(0.06 + 0.16 * sunset + 0.45 * night);
     // Gameplay rings belong to play, not to the pause menu or the results card.
     this.zone.mesh.visible = showRings;
     this.marker.mesh.visible = showRings;

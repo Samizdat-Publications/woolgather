@@ -411,3 +411,28 @@ Newest at the bottom. Record every non-obvious choice.
   camera is closer. A reachable snatch shows the countdown in the banner and a picture labelled
   "Snatch!" in the inset; an unreachable one gets one calm line ("too far to save it") and no
   countdown or inset.
+- 2026-09-25 (M2 critic r17): full night arrived while the HUD still said "Nightfall in 0:37".
+  The timeline is now in seconds (`moodTime(t, wolfStart, dayLength)`): golden hour, the drop to
+  sunset as the wolves come out, a rose afterglow, a deep rose-violet dusk over the last 75 s
+  (long, light shadows: the key's minimum angle relaxes from 26 to 15 degrees), and night proper
+  (the moon) only in the final 3 s, at nightfall. Measured grass luma falls 0.36, 0.36, 0.33,
+  0.25, 0.22, 0.21, 0.18 and night is the darkest; hue runs gold (55), rose-gold (35), rose
+  (328), violet (271, 256), blue at night (235). Each grade phase has its own contrast pivot (a
+  daytime pivot crushed dusk frames to black).
+- 2026-09-25 (M2 critic r17): grass moved to sage (warm light turns it gold, not lime or
+  mustard); the sunset key is coral-pink with pink rim light on the animals; the haze stays on the
+  pine line at the top of the frame. The stream is deep teal and always darker than its banks
+  (luma 0.7-0.9 of the grass), taking only a touch of the evening's colour (plum at sunset,
+  indigo at night), with thin glint streaks along the flow, a thin foam line and a dark wet-mud
+  edge on the banks. Hay is muted straw with rounded ends and ring spirals; the fold's hay rack is
+  an open slatted frame. Bushes are lighter so they are not mistaken for black sheep.
+- 2026-09-25 (M2 critic r17): the wolf has a dark umber back and ruff over pale underparts (always
+  darker than the sheep), broader shoulders and a wider stance; `characters.py -- --topdown`
+  renders every character from the game camera's pitch in 8 directions for checking. The inset is
+  a three-quarter side view from the camera's side of the wolf, shown only for wolves off screen.
+  The minimap is back at the top right and fades to 22% whenever the fold, Pip or a loose sheep is
+  under it. Farmhouse windows glow brighter at night; the title shot's air is thinner.
+- 2026-09-25 (M2 r18): the field walls stopped wolves dragging sheep home (they walked into them
+  and stalled). Field walls have their own collision tag: sheep and Pip go round, wolves leap
+  them. They also sat where Pip's outrun circles the far-bank flock and slowed the herding to a
+  crawl; they now run 6-8 m inside the forest edge.

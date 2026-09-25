@@ -92,8 +92,9 @@ export class Stage {
     this.hemi.groundColor.copy(m.hemiGround);
     this.hemi.intensity = m.hemiIntensity;
     this.fog.color.copy(m.fog);
-    this.fog.near = m.fogNear;
-    this.fog.far = m.fogFar;
+    // The title's long view across the valley needs thinner air than the herding view.
+    this.fog.near = m.fogNear * (this.titleShot ? 1.8 : 1);
+    this.fog.far = m.fogFar * (this.titleShot ? 1.5 : 1);
     this.key.shadow.intensity = m.shadow;
     this.grade.hazeScale = this.titleShot ? 0 : 1;
     this.grade.apply(t, m.exposure);
@@ -103,7 +104,8 @@ export class Stage {
     tmpV.copy(this.camera.position).addScaledVector(dir, 800).project(this.camera);
     const behind = tmpV.z > 1;
     const glow = moon ? MOON_GLOW : tmpC.copy(m.sunGlow).lerp(m.skyHorizon, 0.4);
-    const amount = this.titleShot ? 0 : moon ? 0.07 : t < 0.3 ? 0.16 : t < 0.5 ? 0.16 + (t - 0.3) * 0.6 : 0.28 - (t - 0.5) * 1.2;
+    // Strongest through sunset and dusk, when the western sky is the brightest thing in the world.
+    const amount = this.titleShot ? 0 : moon ? 0.07 : t < 0.3 ? 0.16 : t < 0.5 ? 0.16 + (t - 0.3) * 0.8 : Math.max(0.1, 0.32 - (t - 0.5) * 0.5);
     this.grade.setSun(behind ? -tmpV.x : tmpV.x, behind ? -tmpV.y : tmpV.y, glow, Math.max(0, amount));
     return m;
   }
@@ -163,7 +165,9 @@ export class Stage {
     // a real low sun laid tree shadows across the whole valley in near-black stripes and barely
     // lit flat ground. The sky still shows the true low sun; the light just stays playable.
     const kd = this.mood.keyDir;
-    const elev = Math.max(Math.asin(Math.min(1, Math.max(-1, kd.y))), THREE.MathUtils.degToRad(26));
+    // Relaxed through the dusk (down to 15 degrees) for the long, light shadows of the last minute.
+    const minElev = THREE.MathUtils.degToRad(26 - 11 * Math.min(1, Math.max(0, (this.mood.t - 0.6) / 0.14)));
+    const elev = Math.max(Math.asin(Math.min(1, Math.max(-1, kd.y))), minElev);
     const horiz = Math.hypot(kd.x, kd.z) || 1;
     const dx = (kd.x / horiz) * Math.cos(elev);
     const dz = (kd.z / horiz) * Math.cos(elev);

@@ -226,3 +226,15 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Night: the danger ring keeps its red, the lantern pools light](m2-assets-r17-late-dusk.png)
 *Night: the danger ring keeps its red, the lantern pools light*
 
+
+## m2-assets-r19 (2026-09-25)
+
+![Rose afterglow: sage-gold grass, a plum river, the umber wolf](m2-assets-r19-wolf.png)
+*Rose afterglow: sage-gold grass, a plum river, the umber wolf*
+
+![The last minute: a deep rose-violet dusk before nightfall](m2-assets-r19-late-dusk.png)
+*The last minute: a deep rose-violet dusk before nightfall*
+
+![Straw hay and a slatted rack; a full fold at the end of the day](m2-assets-r19-latch-end.png)
+*Straw hay and a slatted rack; a full fold at the end of the day*
+

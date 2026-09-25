@@ -950,7 +950,7 @@ export class Sim {
       w.vz = lerp(w.vz, (tz / tl) * max, 1 - Math.exp(-rate * dt));
       w.x += w.vx * dt;
       w.z += w.vz * dt;
-      collideStatic(this.level, w, { boundary: false, gate: false });
+      collideStatic(this.level, w, { boundary: false, gate: false, field: false });
       w.speed = Math.hypot(w.vx, w.vz);
       // Dragging wolves back away towards the trees, facing their prey (and the valley).
       if (w.state === 'drag') w.facing = dampAngle(w.facing, Math.atan2(-w.vx, -w.vz), 4, dt);

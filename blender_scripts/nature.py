@@ -67,9 +67,9 @@ def birch(name, seed):
     return p.finish()
 
 
-def bush(name, seed, color="#4f7a36"):
+def bush(name, seed, color="#5d8a44"):
     leaf = W.mat(f"bush_{color}", color)
-    leaf2 = W.mat("bush_dark", "#436a2f")
+    leaf2 = W.mat("bush_dark", "#50783a")
     berry = W.mat("berry", "#c9463d", 0.6)
     r = W.rng(seed)
     p = W.Part(name)
@@ -97,8 +97,8 @@ def rock(name, seed, color, size=(1.0, 0.85, 0.6), moss=True):
 
 
 def grass(name, seed):
-    blade = W.mat("grass_blade", "#86a64a")
-    blade2 = W.mat("grass_blade_b", "#9ab556")
+    blade = W.mat("grass_blade", "#95a877")
+    blade2 = W.mat("grass_blade_b", "#a8b88a")
     r = W.rng(seed)
     p = W.Part(name)
     for i in range(7):
@@ -235,7 +235,7 @@ def main():
         oak("oak", 3),
         birch("birch", 4),
         bush("bush_a", 5),
-        bush("bush_b", 6, color="#5a8540"),
+        bush("bush_b", 6, color="#6a9450"),
         # Warm, slightly yellow greys: neutral grey went purple under the lilac sunset sky fill.
         rock("rock_a", 7, "#958d7a", (1.0, 0.85, 0.62)),
         rock("rock_b", 8, "#827a69", (1.0, 0.7, 0.5), moss=False),

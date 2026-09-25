@@ -14,6 +14,8 @@ export interface CollideOpts {
   boundary: boolean;
   /** Collide with the invisible gate line (only folded sheep). */
   gate: boolean;
+  /** Collide with the low field walls on the rim (wolves leap them; default yes). */
+  field?: boolean;
 }
 
 function slide(b: Body, nx: number, nz: number) {
@@ -27,6 +29,7 @@ function slide(b: Body, nx: number, nz: number) {
 function segAllowed(s: SegCol, o: CollideOpts) {
   if (s.tag === 'boundary') return o.boundary;
   if (s.tag === 'gate') return o.gate;
+  if (s.tag === 'field') return o.field ?? true;
   return true;
 }
 

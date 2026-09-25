@@ -118,26 +118,26 @@ def sheep():
 
 
 def wolf():
-    # Built to read from the herding camera, i.e. from above: a long buff-grey body with a dark
-    # saddle down the spine, a pale muzzle and chest, big ears splayed outwards and a thick brush
-    # of a tail held out straight behind. (Earlier versions read as a foal, then as a dark
-    # smudge.)
-    grey = W.mat("wolf_grey", "#aca498", 0.9)
-    light = W.mat("wolf_light", "#e2ddd2", 0.9)
-    dark = W.mat("wolf_dark", "#5a544c", 0.85)
+    # Built to read from the herding camera, i.e. from above: a dark umber back and ruff (always
+    # darker than the cream sheep), a pale muzzle, chest and belly, big dark ears splayed
+    # outwards, legs set wide enough to show from above, and a thick brush of a tail held low.
+    # (Earlier versions read as a foal, then as a dark smudge, then as a pale tube head-on.)
+    grey = W.mat("wolf_grey", "#77695c", 0.9)
+    light = W.mat("wolf_light", "#d9d0bf", 0.9)
+    dark = W.mat("wolf_dark", "#40362e", 0.85)
     nose = W.mat("wolf_nose", "#111114", 0.5)
     glow = W.mat("wolf_eyes", "#ffc045", 0.4, emit="#ffb030", emit_strength=4.0)
 
     root = W.empty("wolf")
     b = W.Part("body")
-    v = b.sphere(grey, loc=(0, 0.08, 0.0), scale=(0.28, 0.72, 0.25), seg=10, rings=7)
+    v = b.sphere(grey, loc=(0, 0.08, 0.0), scale=(0.33, 0.72, 0.26), seg=10, rings=7)
     b.jitter(v, 0.02, seed=51)
-    v = b.ico(grey, loc=(0, -0.38, 0.1), radius=0.34, scale=(1.2, 0.95, 1.0), subdiv=1)  # shoulder ruff
+    v = b.ico(dark, loc=(0, -0.38, 0.1), radius=0.36, scale=(1.45, 0.95, 1.0), subdiv=1)  # broad shoulder ruff
     b.jitter(v, 0.045, seed=52, scale=4.0)
     b.sphere(light, loc=(0, 0.02, -0.16), scale=(0.2, 0.54, 0.11), seg=8, rings=5)  # belly
     v = b.ico(light, loc=(0, -0.58, -0.02), radius=0.2, scale=(1.1, 0.8, 1.1))  # chest
     b.jitter(v, 0.02, seed=53)
-    v = b.sphere(dark, loc=(0, 0.1, 0.17), scale=(0.15, 0.62, 0.12), seg=8, rings=5)  # saddle stripe
+    v = b.sphere(dark, loc=(0, 0.1, 0.15), scale=(0.27, 0.66, 0.15), seg=8, rings=5)  # dark back
     b.jitter(v, 0.015, seed=55)
     body = b.finish(parent=root, pivot=(0, 0, 0.64))
 
@@ -164,9 +164,9 @@ def wolf():
 
     # A thick brush of a tail held out behind rather than hanging down.
     t = W.Part("tail")
-    t.limb(grey, (0, 0, 0), (0, 0.42, -0.08), 0.12, 0.17, seg=8)
-    t.limb(grey, (0, 0.42, -0.08), (0, 0.78, -0.16), 0.17, 0.13, seg=8)
-    v = t.ico(dark, loc=(0, 0.86, -0.18), radius=0.15, scale=(1, 1.3, 1))  # dark brush tip
+    t.limb(dark, (0, 0, 0), (0, 0.42, -0.14), 0.12, 0.17, seg=8)
+    t.limb(grey, (0, 0.42, -0.14), (0, 0.76, -0.3), 0.17, 0.13, seg=8)
+    v = t.ico(dark, loc=(0, 0.83, -0.35), radius=0.15, scale=(1, 1.3, 1))  # dark brush tip
     t.jitter(v, 0.02, seed=57)
     t.finish(parent=body, pivot=(0, 0.74, 0.1))
 
@@ -175,7 +175,7 @@ def wolf():
         L.limb(grey, (0, 0, 0.04), (0, 0, -0.28), 0.08, 0.057, seg=6)
         L.limb(light, (0, 0, -0.28), (0, -0.02, -0.5), 0.057, 0.046, seg=6)
         L.ico(dark, loc=(0, -0.04, -0.51), radius=0.06, scale=(1, 1.35, 0.55))
-        L.finish(parent=body, pivot=(0.14 * sx, 0.46 * sy if sy > 0 else -0.42, -0.1))
+        L.finish(parent=body, pivot=(0.19 * sx, 0.46 * sy if sy > 0 else -0.42, -0.1))
     return root
 
 
@@ -187,6 +187,10 @@ def main():
         W.export_glb(f"{name}.glb", [root])
         if preview:
             W.render_preview(f"{name}.png", [root], elev=24, azim=40)
+        if "--topdown" in W.args():
+            # As the herding camera sees it (about 48 degrees down), facing 8 ways.
+            for i in range(8):
+                W.render_preview(f"{name}_td_{i}.png", [root], elev=48, azim=i * 45, size=280)
 
 
 main()

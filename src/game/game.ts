@@ -205,7 +205,7 @@ export class Game {
     this.actors.root.visible = !!sim;
     let mood;
     if (sim) {
-      mood = this.stage.applyMood(moodTime(sim.t, sim.preset.wolfStart));
+      mood = this.stage.applyMood(moodTime(sim.t, sim.preset.wolfStart, sim.preset.dayLength));
       this.actors.sync(sim, this.mode === 'paused' ? 0 : rawDt, mood, this.mode === 'playing');
       this.ui.update(sim, this.mode === 'paused' ? 0 : rawDt, this.clock);
       this.ui.minimap.setNight(mood.night);
@@ -228,7 +228,10 @@ export class Game {
     if (this.world.gateS) this.world.gateS.rotation.y = -open;
     this.stage.updateCamera(this.mode === 'paused' ? 0 : rawDt);
     updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt);
-    if (sim && (this.mode === 'playing' || this.mode === 'paused')) this.indicators.update(this.stage.camera, this.markers(sim));
+    if (sim && (this.mode === 'playing' || this.mode === 'paused')) {
+      this.indicators.update(this.stage.camera, this.markers(sim));
+      this.ui.fadeMap(this.behindMap(sim));
+    }
     else this.indicators.clear();
     if (sim && this.mode === 'playing') this.trackSnatch(sim, rawDt);
     if (this.mode === 'playing' || this.mode === 'paused') this.wolfCam.update(this.mode === 'paused' ? 0 : rawDt);
@@ -239,22 +242,21 @@ export class Game {
   }
 
   /**
-   * Wolf cam: show a hunt the player cannot see, from the moment a wolf lines up a straggler, and
-   * while it drags its prey away show how far it still has to go to reach the trees.
+   * Wolf cam: show a hunt the player cannot see, from the moment a wolf lines up a straggler
+   * until the snatch is settled.
    */
   private trackSnatch(sim: Sim, dt: number) {
-    const d = sim.dog;
     const L = this.level;
     const offScreen = (x: number, z: number) => {
       tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
       return !(tmpV.z < 1 && Math.abs(tmpV.x) < 0.85 && Math.abs(tmpV.y) < 0.8);
     };
-    let best: { x: number; z: number; text: string; rank: number; id: number } | null = null;
+    let best: { x: number; z: number; text: string; rank: number; id: number; heading: number } | null = null;
     for (const w of sim.wolves) {
       const s = w.target;
       if (!s || w.state === 'gone' || w.state === 'flee') continue;
-      const far = Math.hypot(s.x - d.x, s.z - d.z);
-      if (!offScreen(w.x, w.z) && far < 30) continue;
+      // The inset is for hunts out of view; a wolf on screen is shown by the main camera.
+      if (!offScreen(w.x, w.z)) continue;
       // The top banner says where; the inset's own label only says what, and how long is left.
       let rank = 0;
       let text = '';
@@ -271,18 +273,18 @@ export class Game {
         rank = 1;
         text = `Wolf stalking sheep ${L.placeName(s.x, s.z)}`;
       }
-      if (rank && (!best || rank > best.rank)) best = { x: w.x, z: w.z, text, rank, id: w.id };
+      if (rank && (!best || rank > best.rank)) best = { x: w.x, z: w.z, text, rank, id: w.id, heading: w.facing };
     }
     if (best) {
       this.insetWolf = best.id;
       // The inset opens on the side of the screen the threat lies towards.
       tmpV.set(best.x, this.terrain.height(best.x, best.z), best.z).project(this.stage.camera);
       const side = (tmpV.z > 1 ? -tmpV.x : tmpV.x) < 0 ? 'left' : 'right';
-      this.wolfCam.track(best.x, this.terrain.height(best.x, best.z), best.z, best.text, side, dt);
+      this.wolfCam.track(best.x, this.terrain.height(best.x, best.z), best.z, best.heading, best.text, side, dt);
     } else if (this.wolfCam.visible) {
       // While the inset lingers, stay on the same wolf rather than on the spot it left.
       const w = sim.wolves.find((o) => o.id === this.insetWolf && o.state !== 'gone');
-      if (w) this.wolfCam.follow(w.x, this.terrain.height(w.x, w.z), w.z, dt);
+      if (w) this.wolfCam.follow(w.x, this.terrain.height(w.x, w.z), w.z, w.facing, dt);
     }
   }
   private insetWolf = -1;
@@ -456,6 +458,24 @@ export class Game {
   private lossNoted = false;
   /** Wolves already announced as stalking. */
   private stalkWarned = new Set<number>();
+
+  /** Is the fold, Pip or a loose sheep under the minimap? Then it fades so they show through. */
+  private behindMap(sim: Sim) {
+    const r = this.ui.mapRect();
+    if (!r) return false;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const under = (x: number, z: number) => {
+      tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
+      if (tmpV.z > 1) return false;
+      const px = ((tmpV.x + 1) / 2) * w;
+      const py = ((1 - tmpV.y) / 2) * h;
+      return px > r.left - 24 && px < r.right + 24 && py > r.top - 24 && py < r.bottom + 24;
+    };
+    const f = this.level.fold;
+    if (under(f.cx, f.cz) || under(f.minX, f.cz) || under(sim.dog.x, sim.dog.z)) return true;
+    return sim.sheep.some((s) => s.state !== 'lost' && under(s.x, s.z));
+  }
 
   /** Is (x, z) inside the main view (with a margin)? */
   private onScreen(x: number, z: number) {

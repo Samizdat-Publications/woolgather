@@ -17,7 +17,7 @@ export interface SegCol {
   bz: number;
   r: number;
   /** Tags let some movers ignore some walls (wolves pass through the valley edge). */
-  tag: 'wall' | 'fence' | 'boundary' | 'rail' | 'gate';
+  tag: 'wall' | 'fence' | 'boundary' | 'rail' | 'gate' | 'field';
 }
 export interface RectCol {
   minX: number;
@@ -103,9 +103,9 @@ export class Level {
     // Invisible line across the gate that only folded sheep respect.
     wall(f.minX, f.gateZ0, f.minX, f.gateZ1, 0.3, 'gate');
     for (const [[ax, az], [bx, bz]] of valley.fold.wings) wall(ax, az, bx, bz, 0.22, 'fence');
-    // Old dry-stone field walls along the rim of the valley.
+    // Old dry-stone field walls along the rim of the valley: sheep and Pip go round, wolves leap them.
     for (const line of valley.fieldWalls) {
-      for (let i = 0; i < line.length - 1; i++) wall(line[i][0], line[i][1], line[i + 1][0], line[i + 1][1], 0.45);
+      for (let i = 0; i < line.length - 1; i++) wall(line[i][0], line[i][1], line[i + 1][0], line[i + 1][1], 0.45, 'field');
     }
 
     // Bridge railings.
