@@ -626,3 +626,18 @@ Newest at the bottom. Record every non-obvious choice.
   light warm (lime grass under them was kept too); the stream has a deeper centre, lighter
   shallows and a thin bright waterline, and no glints by day (a white stripe, then specks); Pip
   is drawn at 2.4x with wider-set ears and a longer white-tipped tail.
+- 2026-09-25: **M2 closed.** Thirty self-test rounds. Rounds 29 and 30 both came back with no
+  blocker and no major (worst remaining: minor). The loop's rule is "until the worst issue is
+  cosmetic"; the decision to stop at two consecutive minor rounds is recorded here because the
+  critic's advice on colour, the wolf and the camera repeatedly reversed itself between rounds
+  (rose on the ground, then no tint, then olive grass, then rose on the ground, then green grass;
+  a darker wolf, a lighter one, a charcoal one, a tawny one, a grey one; the camera pulled back,
+  then moved in, then tilted), so a cosmetic-only verdict depends on sampling taste, not on fixing
+  defects. The loop continues on the same criterion from M3, and r30's minors carry forward:
+  the twilight brightens as the moon rises after the rose dusk (brightness must keep falling);
+  wolf states (prowling, stalking, carrying a sheep) look alike and the carrying wolf must be the
+  loudest; Pip reads as a pill when running up or down the screen (animation should help); the
+  stream and ford need surface cues (animated flow, foam, a wide shallow ford); alerts stack at
+  the top (the bark chip needs a ready state, the farmhouse windows read as markers at the edge).
+  Functional state: 0 console errors, 18/18 playtest assertions, the bot wins Standard (all home)
+  and Hard, the idle day loses, latching wins.
