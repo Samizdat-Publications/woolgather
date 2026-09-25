@@ -207,10 +207,10 @@ function glowTexture() {
   c.width = c.height = 32;
   const g = c.getContext('2d')!;
   const grad = g.createRadialGradient(16, 16, 0, 16, 16, 16);
-  grad.addColorStop(0, 'rgba(255,255,235,1)');
-  grad.addColorStop(0.28, 'rgba(228,255,110,0.95)');
-  grad.addColorStop(0.55, 'rgba(180,255,70,0.4)');
-  grad.addColorStop(1, 'rgba(170,255,90,0)');
+  grad.addColorStop(0, 'rgba(245,255,150,1)');
+  grad.addColorStop(0.3, 'rgba(215,255,90,0.9)');
+  grad.addColorStop(0.6, 'rgba(170,240,60,0.3)');
+  grad.addColorStop(1, 'rgba(150,230,50,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 32, 32);
   const t = new THREE.CanvasTexture(c);
@@ -249,7 +249,7 @@ class SoftPuffs {
       new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
-        uniforms: { uColor: { value: new THREE.Color(color) }, uScale: { value: 400 } },
+        uniforms: { uColor: { value: new THREE.Color(color) }, uScale: { value: 400 }, uAlpha: { value: 1 } },
         vertexShader: `
           attribute float size;
           attribute float alpha;
@@ -266,6 +266,7 @@ class SoftPuffs {
           }`,
         fragmentShader: `
           uniform vec3 uColor;
+          uniform float uAlpha;
           varying float vA;
           varying float vSeed;
           void main() {
@@ -273,7 +274,7 @@ class SoftPuffs {
             float ang = atan(q.y, q.x);
             // A lumpy outline, different for every puff.
             float d = length(q) * 2.0 * (1.0 + 0.16 * sin(ang * 3.0 + vSeed) + 0.1 * sin(ang * 5.0 + vSeed * 1.7));
-            float a = vA * (1.0 - smoothstep(0.3, 1.0, d));
+            float a = vA * uAlpha * (1.0 - smoothstep(0.3, 1.0, d));
             if (a < 0.01) discard;
             gl_FragColor = vec4(uColor, a);
           }`,
@@ -285,6 +286,10 @@ class SoftPuffs {
 
   get color() {
     return this.points.material.uniforms.uColor.value as THREE.Color;
+  }
+
+  set opacity(v: number) {
+    this.points.material.uniforms.uAlpha.value = v;
   }
 
   add(x: number, y: number, z: number, vx: number, vy: number, vz: number, size: number, life: number, alpha: number, grow = 1.8) {
@@ -395,7 +400,7 @@ export class Particles {
             vec4 mv = modelViewMatrix * vec4(p, 1.0);
             float blink = pow(max(0.0, sin(uTime * (0.9 + fract(phase) * 0.8) + phase)), 1.6);
             vA = uNight * blink;
-            gl_PointSize = uScale * 0.9 / -mv.z * (0.75 + blink * 0.5);
+            gl_PointSize = uScale * 0.5 / -mv.z * (0.75 + blink * 0.5);
             gl_Position = projectionMatrix * mv;
           }`,
         fragmentShader: `
@@ -515,6 +520,7 @@ export class Particles {
 
   update(dt: number, camera: THREE.Camera, time: number, night: number, bufH: number) {
     this.dustPool.color.copy(DUST_DAY).lerp(DUST_NIGHT, night);
+    this.dustPool.opacity = 1 - 0.5 * night;
     this.dustPool.update(dt, camera, bufH);
     this.sprayPool.update(dt, camera, bufH);
     this.dropPool.update(dt, this.terrain, camera);

@@ -726,3 +726,25 @@ Newest at the bottom. Record every non-obvious choice.
   hue, and its eyes shine brighter from the sunset on; fleeing sheep bound and grazing heads go
   lower. The stream's body is darker with narrower sky streaks (a lavender wash read as fog);
   birch leaves are a touch deeper (a sunlit birch glowed like a flat cut-out).
+- 2026-09-25 (M3 critic r5, worst: minor): three small fixes before the close. The wolves'
+  eye-shine sprite was 2 m across over the head (it read as a candle on the crown): it is small and
+  low on the face. Fireflies are small warm yellow-green points (big pale discs, graded towards
+  lavender, read as snow or lens bokeh). Dust fades with the light (a pale puff at night read as
+  smoke). Closing playtest: 0 console errors, 20/20 assertions, the bot wins Standard with all 12
+  home in 150 s, the idle day loses to the wolves.
+- 2026-09-25: **M3 closed.** Five critic rounds; rounds 4 and 5 both came back with the worst
+  remaining issue minor, the same stop rule as M2 (two consecutive minor rounds), for the same
+  reason: the critics' colour advice keeps reversing (round 3 wanted a saturated amber gold, round
+  4 called the result a mustard wash and asked for green grass; round 3 asked for Pip's halo to go,
+  round 4 for a rim to come back). Minors carried forward:
+  UI (M4): the result card covers Pip (frame the fold and Pip in the uncovered side, with a happy
+  pose); when the target is met the camera should fit Pip and the fold gate; the snatch's "!" sits
+  on the carried sheep and edge markers repeat things already on screen (icons beside their
+  target, markers hidden while it is in view); the minimap covers the fold's corner as sheep reach
+  the gate; the reach ring could thin further after the tutorial.
+  Polish (M5): Pip reads as a sliver when he runs straight up or down the screen (a top-down
+  silhouette: splayed ears, a plumed tail carried out, an idle three-quarter "eye" stance towards
+  the sheep); the carried sheep could hang higher with dangling legs; the golden hour's shaded
+  faces of trees, bushes and rocks go near-black (more cool fill), soft dark relief blotches sit
+  at the frame edges, and the stream at sunset could be the brightest, most reflective surface;
+  the title shot has a dark canopy behind the buttons.

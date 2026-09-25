@@ -448,3 +448,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Night in deep indigo with moon shadows and the fold's lantern](m3-feel-r5-late-night.png)
 *Night in deep indigo with moon shadows and the fold's lantern*
 
+
+## m3-close (2026-09-25)
+
+![M3 closed: herding in the golden hour](m3-close-herding.png)
+*M3 closed: herding in the golden hour*
+
+![A wolf stalks under the rose sunset](m3-close-wolf.png)
+*A wolf stalks under the rose sunset*
+
+![A snatch, followed in the close-up](m3-close-snatch.png)
+*A snatch, followed in the close-up*
+
+![Nightfall at the fold, fireflies over the grass](m3-close-night.png)
+*Nightfall at the fold, fireflies over the grass*
+
