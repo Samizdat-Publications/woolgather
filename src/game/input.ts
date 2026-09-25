@@ -1,7 +1,7 @@
 // Keyboard + gamepad, reduced to intents. Movement is screen relative: up = north = -Z.
 // Ctrl is deliberately unused: Ctrl+W closes the browser tab and cannot be intercepted.
 
-type Edge = 'bark' | 'pause' | 'latch' | 'confirm' | 'back' | 'any';
+type Edge = 'bark' | 'pause' | 'latch' | 'confirm' | 'back' | 'mute' | 'any';
 
 const MOVE_KEYS: Record<string, [number, number]> = {
   KeyW: [0, -1],
@@ -42,6 +42,7 @@ export class Input {
         this.edges.add('confirm');
       }
       if (e.code === 'Escape' || e.code === 'Backspace') this.edges.add('back');
+      if (e.code === 'KeyM') this.edges.add('mute');
     });
     window.addEventListener('keyup', (e) => this.held.delete(e.code));
     window.addEventListener('blur', () => this.held.clear());

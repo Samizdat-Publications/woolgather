@@ -394,3 +394,15 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![The last seconds: amber lanterns, moonlit fold](m2-assets-r30-late-night.png)
 *The last seconds: amber lanterns, moonlit fold*
 
+
+## m3-feel-r2 (2026-09-25)
+
+![Feel: animated gaits; a stalking wolf's calm ring; the bark chip lit gold when ready](m3-feel-r2-wolf.png)
+*Feel: animated gaits; a stalking wolf's calm ring; the bark chip lit gold when ready*
+
+![A carry is the loudest thing on screen: fast ring, alarm ripple, the red ! over the sheep](m3-feel-r2-snatch.png)
+*A carry is the loudest thing on screen: fast ring, alarm ripple, the red ! over the sheep*
+
+![Hearts rise as sheep reach the fold by lantern light](m3-feel-r2-late-night.png)
+*Hearts rise as sheep reach the fold by lantern light*
+

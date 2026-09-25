@@ -641,3 +641,25 @@ Newest at the bottom. Record every non-obvious choice.
   the top (the bark chip needs a ready state, the farmhouse windows read as markers at the edge).
   Functional state: 0 console errors, 18/18 playtest assertions, the bot wins Standard (all home)
   and Hard, the idle day loses, latching wins.
+- 2026-09-25 (M3): the feel modules are wired. Sound: GameAudio turns sim events into
+  synthesised sound placed around Pip (bark, bleats kept sparse, howls at sundown and as wolves
+  leave the trees, growls, yelps, splashes, footsteps by surface, fold chimes, rescue/loss/win/lose
+  stings), with ambience (wind, stream by distance, crickets at night) and adaptive music whose
+  tension layer follows the wolves (stalking near Pip, a charge, a snatch) and the last minute;
+  M mutes; browsers unlock audio on the first key or click. Animation: procedural gaits per
+  animal (walk, trot, gallop blended by speed, stride from ground speed so feet do not skate),
+  Pip's crouch when creeping, head turned to the sheep he is working, bark jerk, tail wag; sheep
+  graze-nibble, startle-jump, pronk in panic and kick in the jaws; wolves skulk low, brace while
+  dragging, flatten their ears to charge and tuck the tail to flee. Particles: dust behind a
+  sprinting Pip, bolting sheep and charging wolves; splashes; wool tufts on a grab and a rescue;
+  a heart over each sheep that makes it home; the bark's ripple; fireflies near cover at night.
+  Hit-stop on a rescue (and briefly when a wolf is sent running), shake on a grab and a bark.
+  The playtest checks the audio context runs and sounds play all day (20 assertions).
+- 2026-09-25 (M3, r30 carry-overs): brightness now falls steadily through the handover from sun
+  to moon (the key light dipped almost to nothing while they swapped, then the moon brightened
+  the valley again: 76, 38, 70); the key stays low with faint shadows through the swap, the sky
+  fill carries the light, the moon is capped: 110 at golden hour, 101, 83, 65, 59, 53, 46, 38 at
+  nightfall. Wolf states look different: stalking a calm small ring and a faint tether, a charge
+  a bigger faster ring with the prey marked, a carry the biggest fastest ring with an alarm ring
+  swelling out and the red "!" floating over the sheep even on screen. The bark chip turns solid
+  gold when ready; the stream shows slow lighter streaks drifting downstream.

@@ -45,6 +45,11 @@ export class GameAudio {
     return this.engine.toggleMute();
   }
 
+  /** For the self-test: is the context running, and how many sounds have played. */
+  debug() {
+    return { state: this.engine.ctx?.state ?? 'none', played: this.sfx.played, muted: this.engine.settings.muted };
+  }
+
   onEvents(events: SimEvent[], sim: Sim) {
     const now = this.engine.now;
     for (const e of events) {

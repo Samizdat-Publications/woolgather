@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Sim } from '../game/sim';
 import type { MoodValues } from '../render/daycycle';
+import { AnimState, animateDog, animateSheep, animateWolf, sheepBleat } from './anim';
 import type { Assets } from './assets';
 import type { Terrain } from './terrain';
 
@@ -200,7 +201,9 @@ export class Actors {
   readonly root = new THREE.Group();
   readonly dog: Rig;
   private sheep: Rig[] = [];
-  private wolves = new Map<number, { rig: Rig; danger: GroundRing; under: GroundRing; glow: THREE.Sprite; dash: GroundDash; mark: GroundRing }>();
+  private wolves = new Map<number, { rig: Rig; danger: GroundRing; under: GroundRing; glow: THREE.Sprite; dash: GroundDash; mark: GroundRing; anim: AnimState }>();
+  private dogAnim = new AnimState();
+  private sheepAnim: AnimState[] = [];
   private glowMat = new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffb040, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
   private marker: GroundRing;
   private zone: GroundRing;
@@ -308,6 +311,19 @@ export class Actors {
     const dr = this.dog.root;
     dr.position.set(d.x, h(d.x, d.z), d.z);
     dr.rotation.y = d.facing;
+    let lookAt: number | null = null;
+    let best = 22 * 22;
+    for (const s of sim.sheep) {
+      if (s.state === 'folded' || s.state === 'lost') continue;
+      const dd = (s.x - d.x) ** 2 + (s.z - d.z) ** 2;
+      if (dd < best) {
+        best = dd;
+        let a = Math.atan2(s.x - d.x, s.z - d.z) - d.facing;
+        a = Math.atan2(Math.sin(a), Math.cos(a));
+        lookAt = Math.abs(a) < 1.6 ? a : null;
+      }
+    }
+    animateDog(this.dog, this.dogAnim, d, dt, this.time, lookAt);
     this.marker.place(d.x + Math.sin(d.facing) * 1.9, d.z + Math.cos(d.facing) * 1.9, 0.62, -d.facing);
 
     this.zoneR += (sim.dogThreatRadius - this.zoneR) * (1 - Math.exp(-8 * dt));
@@ -329,6 +345,7 @@ export class Actors {
 
     while (this.sheep.length < sim.sheep.length) {
       const n = this.sheep.length;
+      this.sheepAnim.push(new AnimState());
       const r = rig(this.a.sheep, SCALE.sheep * (0.93 + 0.14 * (((n * 0.618) % 1 + 1) % 1)));
       this.sheep.push(r);
       this.root.add(r.root);
@@ -342,7 +359,7 @@ export class Actors {
       // its dark face and legs show.
       r.root.position.set(s.x, h(s.x, s.z) + (grabbed ? 0.35 : 0), s.z);
       r.root.rotation.set(0, s.facing, grabbed ? 0.6 : 0);
-      if (r.head) r.head.rotation.x = s.state === 'graze' ? 0.75 : s.fear > 0.3 ? -0.15 : 0;
+      animateSheep(r, this.sheepAnim[i], s, dt, this.time);
     });
 
     for (const m of this.eyeMats) m.emissiveIntensity = 0.6 + 3.5 * night;
@@ -372,24 +389,41 @@ export class Actors {
         const dash = new GroundDash(0xff4a30, this.terrain);
         const mark = new GroundRing(this.a.fx.get('bark_ring')!, 0xff4a30, this.terrain, 0.1);
         this.root.add(r.root, under.mesh, danger.mesh, dash.mesh, mark.mesh);
-        v = { rig: r, danger, under, glow, dash, mark };
+        v = { rig: r, danger, under, glow, dash, mark, anim: new AnimState() };
         this.wolves.set(w.id, v);
       }
       const y = h(w.x, w.z);
       v.rig.root.position.set(w.x, y, w.z);
       v.rig.root.rotation.y = w.facing;
-      const pulse = 0.5 + 0.5 * Math.sin(this.time * 7);
+      animateWolf(v.rig, v.anim, w, dt, this.time);
+      // Each state has its own look, loudest for the wolf that has a sheep: stalking is a calm
+      // ring and a faint tether; a charge a bigger, faster ring with the tether and the prey
+      // marked; a carry the biggest, fastest ring and an alarm ring rippling out from it.
+      const carrying = w.state === 'drag';
+      const charging = w.state === 'charge';
+      const rate = carrying ? 13 : charging ? 10 : 4;
+      const pulse = 0.5 + 0.5 * Math.sin(this.time * rate);
       v.danger.mesh.visible = v.under.mesh.visible = w.state !== 'flee';
       if (v.danger.mesh.visible) {
-        v.danger.place(w.x, w.z, 3.2 + 0.2 * pulse, this.time * 0.8);
-        v.under.place(w.x, w.z, 3.35);
+        const r = carrying ? 3.7 + 0.35 * pulse : charging ? 3.4 + 0.25 * pulse : 2.9 + 0.12 * pulse;
+        v.danger.place(w.x, w.z, r, this.time * (carrying ? 2.2 : 0.8));
+        v.under.place(w.x, w.z, r + 0.15);
       }
-      v.danger.mesh.material.opacity = 0.7 + 0.25 * pulse;
+      v.danger.mesh.material.opacity = carrying ? 0.85 + 0.15 * pulse : charging ? 0.75 + 0.2 * pulse : 0.5 + 0.12 * pulse;
       const prey = w.target;
-      const marking = !!prey && (w.state === 'stalk' || w.state === 'charge') && (prey.x - w.x) ** 2 + (prey.z - w.z) ** 2 < 26 * 26;
-      v.dash.mesh.visible = v.mark.mesh.visible = marking;
-      if (marking && prey) {
-        v.dash.place(w.x, w.z, prey.x, prey.z, (this.time * 0.9) % 1);
+      const tether = !!prey && (w.state === 'stalk' || charging) && (prey.x - w.x) ** 2 + (prey.z - w.z) ** 2 < 26 * 26;
+      v.dash.mesh.visible = tether;
+      v.mark.mesh.visible = (tether && charging) || carrying;
+      if (tether && prey) {
+        v.dash.place(w.x, w.z, prey.x, prey.z, (this.time * (charging ? 1.6 : 0.6)) % 1, charging ? 0.32 : 0.18);
+        v.dash.mesh.material.opacity = charging ? 0.85 : 0.45;
+      }
+      if (carrying) {
+        // The alarm: a ring swelling out from the carrying wolf, over and over.
+        const k = (this.time * 1.2) % 1;
+        v.mark.place(w.x, w.z, 4 + 5 * k);
+        v.mark.mesh.material.opacity = 0.7 * (1 - k);
+      } else if (tether && charging && prey) {
         v.mark.place(prey.x, prey.z, 1.5 + 0.25 * pulse);
         v.mark.mesh.material.opacity = 0.5 + 0.4 * pulse;
       }
@@ -400,6 +434,12 @@ export class Actors {
         this.wolves.delete(id);
       }
     }
+  }
+
+  /** A sheep lifts its head to bleat (index in the sim's list). */
+  bleat(index: number) {
+    const st = this.sheepAnim[index];
+    if (st) sheepBleat(st);
   }
 
   /** Points the camera should keep clear of trees: Pip first, then every wolf, then nearby sheep. */

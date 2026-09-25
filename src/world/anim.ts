@@ -85,7 +85,7 @@ function crouch(r: Rig, p: RestPose, amount: number, bob: number) {
 export function animateDog(r: Rig, st: AnimState, d: Dog, dt: number, time: number, lookAt: number | null) {
   const p = rest(r, st);
   const fwd = d.vx * Math.sin(d.facing) + d.vz * Math.cos(d.facing);
-  gait(r, st, fwd, dt, 0.96, 3.5, 11.5, 0.8);
+  gait(r, st, fwd, dt, 1.1, 3.5, 11.5, 0.8);
   // Turn rate for a lean into corners.
   let df = d.facing - st.prevFacing;
   df = Math.atan2(Math.sin(df), Math.cos(df));
@@ -131,7 +131,7 @@ export function animateSheep(r: Rig, st: AnimState, s: Sheep, dt: number, time: 
     return;
   }
   const fwd = s.vx * Math.sin(s.facing) + s.vz * Math.cos(s.facing);
-  gait(r, st, fwd, dt, 0.57, 1.6, 7.5, 0.7);
+  gait(r, st, fwd, dt, 0.74, 1.6, 7.5, 0.7);
   st.hopT += dt;
   const startle = st.hopT < 0.38 ? Math.sin((st.hopT / 0.38) * Math.PI) * 0.3 : 0;
   // Panicked sheep pronk: stiff-legged bounces.
@@ -157,7 +157,7 @@ export function sheepBleat(st: AnimState) {
 export function animateWolf(r: Rig, st: AnimState, w: Wolf, dt: number, time: number) {
   const p = rest(r, st);
   const fwd = w.vx * Math.sin(w.facing) + w.vz * Math.cos(w.facing);
-  gait(r, st, fwd, dt, 0.81, 5.5, 9.5, 0.85);
+  gait(r, st, fwd, dt, 1.05, 5.5, 9.5, 0.85);
   const stalking = w.state === 'stalk';
   const dragging = w.state === 'drag';
   const fleeing = w.state === 'flee';

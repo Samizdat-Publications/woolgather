@@ -191,6 +191,9 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         float sheen = vnoise(vec2(vUv.x * 1.6 - uTime * 0.18, vUv.y * 4.0)) * 0.6 + vnoise(vec2(vUv.x * 4.5 - uTime * 0.3, vUv.y * 9.0) + 3.0) * 0.4;
         float refl = uReflect * (0.2 + 0.8 * smoothstep(0.2, 0.9, across)) * (0.5 + 0.5 * smoothstep(0.3, 0.75, sheen));
         col = mix(col, uTint * 0.95, refl);
+        // Slow lighter streaks drifting downstream: the current, readable in any light.
+        float streak = smoothstep(0.6, 0.82, vnoise(vec2(vUv.x * 2.4 - uTime * 0.32, vUv.y * 6.5)));
+        col = mix(col, col * 1.3 + vec3(0.025, 0.03, 0.035), streak * 0.4 * (1.0 - smoothstep(0.7, 0.95, across)));
         // Thin glints streaking downstream: noise stretched along the flow, fine across it.
         vec2 p = vec2(vUv.x * 3.0 - uTime * 0.55, vUv.y * 11.0);
         float n = vnoise(p) * 0.6 + vnoise(p * vec2(2.1, 1.7) + 7.0) * 0.4;

@@ -193,6 +193,12 @@ async function playToEnd(runName, { botOn, scale, shotsAt }) {
   await sleep(1500);
   await shot(`${runName}-end`, `end screen (${run.outcome?.kind ?? run.outcome})`);
   check(`${runName}: end screen visible`, await page.locator('.end-screen').isVisible());
+  if (runName === 'win') {
+    // Feel: the synthesised sound is running and has been making noise all day.
+    const a = await page.evaluate(() => window.__WG.audioState());
+    check('audio: context running', a.state === 'running', JSON.stringify(a));
+    check('audio: sounds played', a.played > 20, JSON.stringify(a));
+  }
   check(`${runName}: expected outcome ${runName}`, run.outcome?.kind === runName, JSON.stringify(run.outcome));
 }
 

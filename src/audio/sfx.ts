@@ -12,6 +12,9 @@ export interface Where {
 const HERE: Where = { pan: 0, level: 1 };
 
 export class Sfx {
+  /** Sounds started so far (for the self-test). */
+  played = 0;
+
   constructor(private e: AudioEngine) {}
 
   private get ctx() {
@@ -21,6 +24,7 @@ export class Sfx {
   /** Output chain for one sound: panner -> level -> effects bus, plus a reverb send. */
   private out(w: Where, gain: number, wet = 0.15) {
     const ctx = this.ctx!;
+    this.played++;
     const g = ctx.createGain();
     g.gain.value = gain * w.level;
     const p = ctx.createStereoPanner();

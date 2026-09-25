@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GameAudio } from '../audio/audio';
 import { moodTime } from '../render/daycycle';
 import { Stage } from '../render/stage';
 import { INSET, WolfCam } from '../render/wolfcam';
@@ -6,6 +7,7 @@ import { hudState, Indicators, type Marker } from '../ui/indicators';
 import { PerfOverlay } from '../ui/perf';
 import { Ui, type UiAction } from '../ui/ui';
 import { Actors } from '../world/actors';
+import { Particles } from '../world/particles';
 import { loadAssets } from '../world/assets';
 import { Terrain } from '../world/terrain';
 import { buildWorld, treeHoles, updateWorld, type WorldHandles } from '../world/world';
@@ -32,7 +34,9 @@ export class Game {
   readonly ui: Ui;
   readonly indicators: Indicators;
   readonly wolfCam: WolfCam;
+  readonly audio: GameAudio;
   actors: Actors | null = null;
+  particles: Particles | null = null;
   world: WorldHandles | null = null;
   mode: Mode = 'title';
   sim: Sim | null = null;
@@ -60,6 +64,7 @@ export class Game {
     this.ui = new Ui(this.level);
     this.indicators = new Indicators(this.ui.root.querySelector('.hud') as HTMLElement);
     this.wolfCam = new WolfCam(this.ui.root.querySelector('.hud') as HTMLElement);
+    this.audio = new GameAudio(this.level);
     if (opts.difficulty) this.ui.setDifficulty(opts.difficulty);
     this.ui.onAction = (a) => this.onUi(a);
     this.toTitle();
@@ -73,6 +78,12 @@ export class Game {
     this.stage.scene.add(this.world.root);
     this.actors = new Actors(assets, this.terrain);
     this.stage.scene.add(this.actors.root);
+    // Fireflies drift near cover: bushes and the trees inside the valley.
+    const spots: { x: number; z: number }[] = [];
+    for (const [x, z] of this.level.data.bushes) for (let k = 0; k < 2; k++) spots.push({ x: x + (Math.random() - 0.5) * 6, z: z + (Math.random() - 0.5) * 6 });
+    for (const t of this.level.trees) spots.push({ x: t.x + (Math.random() - 0.5) * 5, z: t.z + (Math.random() - 0.5) * 5 });
+    this.particles = new Particles(assets, this.terrain, spots);
+    this.stage.scene.add(this.particles.root);
     this.ready = true;
   }
 
@@ -128,6 +139,7 @@ export class Game {
     this.endCardT = 0;
     const seed = this.opts.seed + this.runs - 1;
     this.sim = new Sim(this.level, this.ui.difficulty, seed);
+    this.audio.newDay(seed);
     const d = this.sim.dog;
     this.stage.snapTo(d.x, this.terrain.height(d.x, d.z), d.z, BASE_ZOOM);
     this.ui.clearToasts();
@@ -144,6 +156,9 @@ export class Game {
   }
 
   private frameMs: number[] = [];
+  /** Seconds of hit-stop left (the action nearly freezes on a rescue). */
+  private hitStop = 0;
+  private dustT = 0;
 
   /** Average frames per second over the last ~2 seconds of real frames. */
   fps() {
@@ -159,7 +174,11 @@ export class Game {
     if (this.frameMs.length > 120) this.frameMs.shift();
     const rawDt = Math.min(0.05, Math.max(0, (now - this.last) / 1000));
     this.last = now;
-    const dt = rawDt * this.timeScale;
+    let dt = rawDt * this.timeScale;
+    if (this.hitStop > 0) {
+      this.hitStop -= rawDt;
+      dt *= 0.06;
+    }
     this.clock += rawDt;
     this.input.poll();
     this.tick(dt, rawDt);
@@ -171,6 +190,10 @@ export class Game {
     const input = this.input;
     const sim = this.sim;
 
+    if (input.pressed('mute')) {
+      const muted = this.audio.toggleMute();
+      this.ui.toast(muted ? 'Sound off (M to turn it back on)' : 'Sound on', 'info');
+    }
     if (this.mode === 'title') {
       if (input.pressed('confirm') && this.howtoFrom === null) this.newDay();
     } else if (this.mode === 'playing' && sim) {
@@ -180,10 +203,13 @@ export class Game {
         // Fixed-ish substeps keep the flocking stable at low frame rates.
         const steps = Math.max(1, Math.ceil(dt / (1 / 60)));
         for (let i = 0; i < steps; i++) sim.update(dt / steps, input);
+        this.audio.onEvents(sim.events, sim);
+        this.effects(sim, dt);
         this.handleEvents(sim.events);
         sim.events.length = 0;
         this.updateHints(sim, dt);
         if (sim.outcome) {
+          this.audio.outcome(sim.outcome.kind === 'win');
           this.setMode('ended');
           // A win swings the gate shut; the card follows once the moment has landed.
           if (sim.outcome.kind === 'win') this.gateTarget = 0;
@@ -224,6 +250,8 @@ export class Game {
       this.stage.setTitleShot(-10, this.terrain.ground(-10, 4) + 1, 4, 0.1 + Math.sin(this.titleAngle) * 0.2);
       mood = this.stage.applyMood(0.28);
     }
+    this.audio.update(rawDt, sim, mood.t, mood.night, this.mode, sim && this.mode === 'playing' ? this.tension(sim) : 0);
+    this.particles?.update(this.mode === 'paused' ? 0 : dt, this.stage.camera, this.clock, mood.night);
     this.gateOpen += (this.gateTarget - this.gateOpen) * (1 - Math.exp(-3.5 * rawDt));
     const open = this.gateOpen * 1.65;
     if (this.world.gateN) this.world.gateN.rotation.y = open;
@@ -463,7 +491,7 @@ export class Game {
     // The wolf-cam inset stands in for the edge marker of the hunt it is showing.
     const shown = this.wolfCam.visible ? sim.wolves.find((w) => w.id === this.insetWolf && w.state !== 'gone') : undefined;
     for (const s of sim.sheep) {
-      if (s.state === 'grabbed' && shown?.target !== s) out.push({ id: `g${s.id}`, kind: 'grab', x: s.x, y: h(s.x, s.z) + 1, z: s.z });
+      if (s.state === 'grabbed' && shown?.target !== s) out.push({ id: `g${s.id}`, kind: 'grab', x: s.x, y: h(s.x, s.z) + 1, z: s.z, iconOnScreen: true });
     }
     for (const w of sim.wolves) {
       if ((w.state === 'stalk' || w.state === 'charge') && w !== shown) out.push({ id: `w${w.id}`, kind: 'wolf', x: w.x, y: h(w.x, w.z) + 1, z: w.z });
@@ -492,6 +520,80 @@ export class Game {
       out.push({ id: 'reach', kind: 'note', x: d.x, y: h(d.x, d.z - r), z: d.z - r, labelOnScreen: "Pip's reach: sheep inside it move away", onScreenOnly: true });
     }
     return out;
+  }
+
+  /**
+   * Feel: particles and hit feedback for what the sim just did, and a steady kick of dust from
+   * anything running.
+   */
+  private effects(sim: Sim, dt: number) {
+    const p = this.particles;
+    if (!p || !this.actors) return;
+    const d = sim.dog;
+    for (const e of sim.events) {
+      switch (e.type) {
+        case 'bark':
+          p.ripple(d.x, d.z, 1.5, DOG.barkRadius, 0.55);
+          break;
+        case 'splash':
+          p.splash(e.x, e.z, e.big);
+          break;
+        case 'grab':
+          p.tufts(e.x, e.z, 10);
+          break;
+        case 'rescued':
+          p.tufts(e.x, e.z, 7);
+          p.ripple(e.x, e.z, 1, 7, 0.6);
+          this.hitStop = 0.12;
+          this.stage.addShake(0.3);
+          break;
+        case 'wolfScared':
+          p.dust(e.x, e.z, 0, 0, 1.6);
+          this.hitStop = Math.max(this.hitStop, 0.05);
+          break;
+        case 'folded':
+          p.heart(e.x, e.z);
+          break;
+        case 'charge':
+          p.dust(e.x, e.z, 0, 0, 1.3);
+          break;
+        case 'bleat': {
+          const i = sim.sheep.findIndex((s) => s.id === e.id);
+          if (i >= 0) this.actors.bleat(i);
+          break;
+        }
+      }
+    }
+    // Dust behind anything running: Pip at a sprint, bolting sheep, charging wolves.
+    this.dustT += dt;
+    if (this.dustT < 0.08) return;
+    this.dustT = 0;
+    const kick = (x: number, z: number, vx: number, vz: number, size: number) => {
+      const sp = Math.hypot(vx, vz) || 1;
+      p.dust(x - (vx / sp) * 0.8, z - (vz / sp) * 0.8, vx / sp, vz / sp, size);
+    };
+    if (d.sprinting && d.speed > 6 && !d.inWater) kick(d.x, d.z, d.vx, d.vz, 1);
+    for (const s of sim.sheep) {
+      if ((s.state === 'flee' || s.state === 'panic') && s.speed > 5 && !s.inWater && Math.random() < 0.35) kick(s.x, s.z, s.vx, s.vz, 0.8);
+    }
+    for (const w of sim.wolves) {
+      if ((w.state === 'charge' || w.state === 'flee') && w.speed > 6 && !w.inWater) kick(w.x, w.z, w.vx, w.vz, 1.1);
+    }
+  }
+
+  /** 0..1: how close the danger is, for the music. */
+  private tension(sim: Sim) {
+    const d = sim.dog;
+    let t = sim.timeLeft < 60 ? 0.3 + 0.3 * (1 - sim.timeLeft / 60) : 0;
+    for (const w of sim.wolves) {
+      if (w.state === 'drag') t = Math.max(t, this.dragFeasible === false ? 0.55 : 1);
+      else if (w.state === 'charge') t = Math.max(t, 0.85);
+      else if (w.state === 'stalk') {
+        const near = Math.hypot(w.x - d.x, w.z - d.z) < 45 || (w.target && Math.hypot(w.x - w.target.x, w.z - w.target.z) < 18);
+        t = Math.max(t, near ? 0.6 : 0.35);
+      }
+    }
+    return Math.min(1, t);
   }
 
   private handleEvents(events: SimEvent[]) {

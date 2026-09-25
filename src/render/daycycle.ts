@@ -43,18 +43,19 @@ const KEYS: Mood[] = [
   // the grass turns gold under it and the pink falls on the fleece, stone and water.
   { t: 0.45, elev: 10, azim: 259, keyColor: '#ffa98e', keyIntensity: 4.0, hemiSky: '#9a90dc', hemiGround: '#76785e', hemiIntensity: 1.6, fog: '#e79a8c', fogNear: 72, fogFar: 240, skyTop: '#565c9e', skyHorizon: '#ff8f8a', sunGlow: '#ff9460', exposure: 1.14, night: 0.1, shadow: 0.5, ground: '#fff2e6' },
   { t: 0.6, elev: 6, azim: 264, keyColor: '#ff9ea0', keyIntensity: 3.4, hemiSky: '#9688d8', hemiGround: '#727260', hemiIntensity: 1.6, fog: '#c890a4', fogNear: 66, fogFar: 232, skyTop: '#474a90', skyHorizon: '#e87c96', sunGlow: '#ff7860', exposure: 1.12, night: 0.2, shadow: 0.5, ground: '#fff0ea' },
-  // The sun drops below the hills as the last 75 seconds begin; the key light is almost off while
-  // sun and moon swap, so shadows never visibly swing.
-  { t: 0.628, elev: 2, azim: 267, keyColor: '#e890a8', keyIntensity: 0.05, hemiSky: '#9488cc', hemiGround: '#6a6478', hemiIntensity: 1.6, fog: '#a07aa0', fogNear: 62, fogFar: 224, skyTop: '#383c84', skyHorizon: '#d0708a', sunGlow: '#e8788e', exposure: 1.12, night: 0.28, shadow: 0.4, ground: '#faeef6' },
+  // The sun drops below the hills as the violet twilight begins; while sun and moon swap the key
+  // light is low and its shadows faint (so they never visibly swing), and the sky fill carries the
+  // light, so the valley keeps darkening steadily instead of dipping and brightening again.
+  { t: 0.628, elev: 2, azim: 267, keyColor: '#e890a8', keyIntensity: 0.6, hemiSky: '#9488cc', hemiGround: '#6a6478', hemiIntensity: 2.4, fog: '#a07aa0', fogNear: 62, fogFar: 224, skyTop: '#383c84', skyHorizon: '#d0708a', sunGlow: '#e8788e', exposure: 1.12, night: 0.28, shadow: 0.15, ground: '#faeef6' },
   // Twilight: the western sky still glows rose (haze, glow, water) while a cool moon rises in the
   // east as the key light: silver on the tops of things, soft shadows, lilac fill. Full night
   // falls at nightfall.
-  { t: SUN_MOON_SWAP, elev: 30, azim: 112, keyColor: '#c8d2f4', keyIntensity: 0.05, hemiSky: '#9088c8', hemiGround: '#6a6478', hemiIntensity: 1.55, fog: '#9a78a0', fogNear: 62, fogFar: 222, skyTop: '#343a80', skyHorizon: '#c86e8a', sunGlow: '#e0708a', exposure: 1.1, night: 0.3, shadow: 0.42, ground: '#f6eef8' },
-  { t: 0.7, elev: 32, azim: 114, keyColor: '#c8c0f4', keyIntensity: 2.2, hemiSky: '#8a86c4', hemiGround: '#62607a', hemiIntensity: 1.25, fog: '#8a70a0', fogNear: 60, fogFar: 220, skyTop: '#2c3276', skyHorizon: '#b06a8c', sunGlow: '#c8708e', exposure: 1.08, night: 0.38, shadow: 0.4, ground: '#f0eefa' },
-  { t: 0.8, elev: 36, azim: 116, keyColor: '#c4c0f6', keyIntensity: 2.2, hemiSky: '#8676c0', hemiGround: '#5a5a74', hemiIntensity: 1.05, fog: '#6c6294', fogNear: 58, fogFar: 214, skyTop: '#222866', skyHorizon: '#8a6292', sunGlow: '#a07098', exposure: 1.04, night: 0.5, shadow: 0.42, ground: '#eceafc' },
-  { t: 0.88, elev: 38, azim: 118, keyColor: '#c0c0f8', keyIntensity: 2.2, hemiSky: '#7466b4', hemiGround: '#54566e', hemiIntensity: 0.7, fog: '#4c4c80', fogNear: 56, fogFar: 208, skyTop: '#181e52', skyHorizon: '#5c5088', sunGlow: '#8878b0', exposure: 1.0, night: 0.62, shadow: 0.6, ground: '#e8e8fe' },
+  { t: SUN_MOON_SWAP, elev: 30, azim: 112, keyColor: '#c8d2f4', keyIntensity: 0.6, hemiSky: '#9088c8', hemiGround: '#6a6478', hemiIntensity: 2.3, fog: '#9a78a0', fogNear: 62, fogFar: 222, skyTop: '#343a80', skyHorizon: '#c86e8a', sunGlow: '#e0708a', exposure: 1.1, night: 0.3, shadow: 0.15, ground: '#f6eef8' },
+  { t: 0.7, elev: 32, azim: 114, keyColor: '#c8c0f4', keyIntensity: 1.4, hemiSky: '#8a86c4', hemiGround: '#62607a', hemiIntensity: 1.6, fog: '#8a70a0', fogNear: 60, fogFar: 220, skyTop: '#2c3276', skyHorizon: '#b06a8c', sunGlow: '#c8708e', exposure: 1.06, night: 0.38, shadow: 0.4, ground: '#f0eefa' },
+  { t: 0.8, elev: 36, azim: 116, keyColor: '#c4c0f6', keyIntensity: 1.5, hemiSky: '#8676c0', hemiGround: '#5a5a74', hemiIntensity: 1.45, fog: '#6c6294', fogNear: 58, fogFar: 214, skyTop: '#222866', skyHorizon: '#8a6292', sunGlow: '#a07098', exposure: 1.08, night: 0.5, shadow: 0.42, ground: '#eceafc' },
+  { t: 0.88, elev: 38, azim: 118, keyColor: '#c0c0f8', keyIntensity: 1.6, hemiSky: '#7466b4', hemiGround: '#54566e', hemiIntensity: 1.25, fog: '#4c4c80', fogNear: 56, fogFar: 208, skyTop: '#181e52', skyHorizon: '#5c5088', sunGlow: '#8878b0', exposure: 1.08, night: 0.62, shadow: 0.6, ground: '#e8e8fe' },
   // Night, at nightfall itself: a strong cool-white moon over a dim blue-violet fill.
-  { t: 1.0, elev: 42, azim: 120, keyColor: '#bcc2ff', keyIntensity: 2.1, hemiSky: '#5a4a9c', hemiGround: '#4a4f66', hemiIntensity: 0.5, fog: '#2e3264', fogNear: 52, fogFar: 200, skyTop: '#0c1034', skyHorizon: '#2a2c5c', sunGlow: '#6878c0', exposure: 0.9, night: 1, shadow: 0.72, ground: '#e4e4ff' },
+  { t: 1.0, elev: 42, azim: 120, keyColor: '#bcc2ff', keyIntensity: 1.7, hemiSky: '#5a4a9c', hemiGround: '#4a4f66', hemiIntensity: 0.95, fog: '#2e3264', fogNear: 52, fogFar: 200, skyTop: '#0c1034', skyHorizon: '#2a2c5c', sunGlow: '#6878c0', exposure: 1.06, night: 1, shadow: 0.72, ground: '#e4e4ff' },
 ];
 
 

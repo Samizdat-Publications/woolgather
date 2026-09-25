@@ -40,6 +40,8 @@ function exposeTestHooks() {
   // Test hooks for the Playwright self-test. Read-only except the time scale and scenario setup.
   (window as unknown as { __WG: unknown }).__WG = {
     state: () => game.snapshot(),
+    /** Is the audio running, and how many sounds have played. */
+    audioState: () => game.audio.debug(),
     setTimeScale: (k: number) => {
       game.timeScale = k;
     },

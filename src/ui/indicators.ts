@@ -16,6 +16,8 @@ export interface Marker {
   labelOnScreen?: string;
   /** A label only: nothing at the screen edge when the point is off screen. */
   onScreenOnly?: boolean;
+  /** Also float the icon over the thing while it is in view (the loudest alerts). */
+  iconOnScreen?: boolean;
 }
 
 const v = new THREE.Vector3();
@@ -89,6 +91,15 @@ export class Indicators {
       const inFrame = !behind && Math.abs(nx) < 1 && Math.abs(ny) < 1;
       const onScreen = inFrame && Math.abs(nx) < 0.92 && ny > -0.8 && ny < 0.66;
       const label = e.querySelector('.ind-label') as HTMLElement;
+      if (onScreen && m.iconOnScreen) {
+        // The icon floats over the thing itself, no arrow.
+        e.hidden = false;
+        e.classList.add('beside');
+        e.classList.remove('on-screen');
+        label.textContent = '';
+        e.style.transform = `translate(${((nx + 1) / 2) * w}px, ${Math.max(30, ((1 - ny) / 2) * h - 62)}px)`;
+        continue;
+      }
       if (onScreen) {
         if (m.labelOnScreen) {
           e.hidden = false;
