@@ -236,16 +236,20 @@ export class Game {
       this.ui.fadePanels(this.subjectsOnScreen(sim));
     }
     else this.indicators.clear();
-    if (sim && this.mode === 'playing') this.trackSnatch(sim, rawDt);
+    if (sim && this.mode === 'playing') this.trackSnatch(sim, dt);
     if (this.mode === 'playing' || this.mode === 'paused') this.wolfCam.update(this.mode === 'paused' ? 0 : rawDt);
     else this.wolfCam.hide();
     hudState.insetVisible = this.wolfCam.visible;
     hudState.insetRect = this.wolfCam.rect;
     hudState.mapRect = this.ui.mapRect();
+    const forest = this.world.forest;
     this.stage.render((r, target) => {
-      // Tree cut-outs are placed for the main view only.
+      // Tree cut-outs are placed for the main view only; the close-up follows a wolf into the
+      // pines, so the forest ring is left out of it (the camera would sit inside the trees).
       treeHoles(false);
+      for (const f of forest) f.visible = false;
       this.wolfCam.render(r, this.stage.scene, target);
+      for (const f of forest) f.visible = true;
       treeHoles(true);
     });
   }

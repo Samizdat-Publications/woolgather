@@ -95,7 +95,9 @@ export class WolfCam {
     // Close enough that the sheep in the wolf's jaws fills a real part of the picture.
     const goalPos = new THREE.Vector3(x + px * 7.5 + Math.sin(heading) * 0.5, y + 4.6, z + pz * 7.5 + Math.cos(heading) * 0.5);
     const goalLook = new THREE.Vector3(x + Math.sin(heading) * 2.4, y + 1.1, z + Math.cos(heading) * 2.4);
-    if (!this.hasPose) {
+    // Snap rather than glide when the hunt has got far ahead (a fast drag, or a sped-up clock):
+    // the picture must never lose the wolf and its sheep.
+    if (!this.hasPose || this.look.distanceTo(goalLook) > 5) {
       this.pos.copy(goalPos);
       this.look.copy(goalLook);
       this.hasPose = true;

@@ -23,6 +23,8 @@ function groundLight(m: MoodValues) {
 const GOLDEN_GROUND = groundLight(sampleMood(0, createMoodValues()));
 /** Terrain colour tint, shared by the ground and path shaders (set from the mood each frame). */
 const GROUND_TINT = { value: new THREE.Color(1, 1, 1) };
+/** Trees are drawn larger than their Blender size, in scale with the enlarged animals. */
+const TREE_SCALE = 1.35;
 /** Direction the hill shading is lit from (the sun, then the moon), level with the horizon. */
 const HILL_DIR = { value: new THREE.Vector3(-1, 0, 0) };
 const LAVENDER = new THREE.Color('#c8b4e8');
@@ -261,6 +263,8 @@ export interface WorldHandles {
   stoneMaterials: THREE.MeshLambertMaterial[];
   fadeables: { meshes: THREE.InstancedMesh[]; spots: Placement[]; canopy: number; height: number }[];
   lanternLights: THREE.PointLight[];
+  /** The forest ring round the valley (hidden in the wolf-cam close-up, which would sit in it). */
+  forest: THREE.Object3D[];
   /** Ground height lookup (for placing screen-space effects). */
   heightAt: (x: number, z: number) => number;
 }
@@ -298,7 +302,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
           diffuseColor.rgb *= uGround;
           vec3 hl = normalize(uHillDir * 0.8 + vec3(0.0, 0.6, 0.0));
           float hs = dot(normalize(vWorldN), hl) - hl.y;
-          diffuseColor.rgb *= clamp(1.0 + (hs > 0.0 ? 1.1 : 0.45) * hs, 0.84, 1.3);`,
+          diffuseColor.rgb *= clamp(1.0 + (hs > 0.0 ? 1.1 : 0.22) * hs, 0.92, 1.3);`,
         );
     };
     m.customProgramCacheKey = () => (smooth ? 'wg-ground-smooth' : 'wg-ground');
@@ -342,7 +346,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   for (const [kind, info] of Object.entries(kinds)) {
     const spots = level.trees
       .filter((t) => t.kind === kind)
-      .map((t) => ({ x: t.x, y: g(t.x, t.z) - 0.1, z: t.z, rot: rng.range(0, Math.PI * 2), scale: t.s }));
+      .map((t) => ({ x: t.x, y: g(t.x, t.z) - 0.1, z: t.z, rot: rng.range(0, Math.PI * 2), scale: t.s * TREE_SCALE }));
     if (!spots.length) continue;
     const inst = instance(a.nature.get(info.proto)!, spots, { fade: true });
     root.add(inst.group);
@@ -360,12 +364,13 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
     const d = level.boundaryDistance(x, z);
     if (d < 2.2 || d > 36) continue;
     if (level.streamQuery(x, z).d < level.streamHalf + 2.5) continue;
-    const s: Placement = { x, y: g(x, z) - 0.15, z, rot: rng.range(0, Math.PI * 2), scale: rng.range(0.9, 1.45), sy: rng.range(0.9, 1.15) };
+    const s: Placement = { x, y: g(x, z) - 0.15, z, rot: rng.range(0, Math.PI * 2), scale: rng.range(0.9, 1.45) * TREE_SCALE, sy: rng.range(0.9, 1.15) };
     const r = rng.next();
     if (d < 9 && r < 0.14) forestBirch.push(s);
     else if (r < 0.55) forestA.push(s);
     else forestB.push(s);
   }
+  const forest: THREE.Object3D[] = [];
   for (const [proto, spots, canopy, height] of [
     ['pine_a', forestA, 1.9, 5.6],
     ['pine_b', forestB, 1.8, 6.6],
@@ -373,6 +378,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   ] as const) {
     const inst = instance(a.nature.get(proto)!, spots, { fade: true });
     root.add(inst.group);
+    forest.push(inst.group);
     fadeables.push({ meshes: inst.meshes, spots: spots as Placement[], canopy, height });
   }
 
@@ -543,7 +549,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
     }
   });
 
-  return { root, sky, water, gateN, gateS, glowMaterials, stoneMaterials, fadeables, lanternLights, heightAt: (x: number, z: number) => terrain.height(x, z) };
+  return { root, sky, water, gateN, gateS, glowMaterials, stoneMaterials, fadeables, lanternLights, forest, heightAt: (x: number, z: number) => terrain.height(x, z) };
 }
 
 /** Per-frame world updates: water flow, sky colours, night glow, and fading trees that block the view. */
@@ -571,7 +577,7 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   // Water brightness follows the light falling on flat ground, relative to golden hour; its tint
   // is the sky it reflects: the horizon's gold and rose, then the moonlit sky.
   wu.uLight.value = 0.9 * Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
-  wu.uGlint.value = 0.2 + 0.12 * mood.night;
+  wu.uGlint.value = 0.1 + 0.2 * mood.night;
   GROUND_TINT.value.copy(mood.ground);
   HILL_DIR.value.set(mood.keyDir.x, 0, mood.keyDir.z).normalize();
   wu.uTint.value.copy(mood.skyHorizon).lerp(LAVENDER, 0.65).lerp(INDIGO, mood.night);

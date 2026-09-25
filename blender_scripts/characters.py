@@ -137,24 +137,24 @@ def wolf():
     v = b.sphere(grey, loc=(0, 0.1, 0.0), scale=(0.28, 0.72, 0.25), seg=12, rings=8)  # lean body
     b.jitter(v, 0.015, seed=51)
     # Deep chest: a keel below and ahead, not a mane on top.
-    v = b.sphere(grey, loc=(0, -0.36, -0.06), scale=(0.27, 0.34, 0.3), seg=10, rings=7)
+    v = b.sphere(grey, loc=(0, -0.36, -0.06), scale=(0.31, 0.36, 0.32), seg=10, rings=7)
     b.jitter(v, 0.015, seed=52)
     b.sphere(light, loc=(0, 0.02, -0.17), scale=(0.2, 0.52, 0.09), seg=8, rings=5)  # pale belly
     v = b.sphere(light, loc=(0, -0.56, -0.08), scale=(0.17, 0.14, 0.2), seg=8, rings=5)  # pale throat
     b.jitter(v, 0.01, seed=53)
     v = b.sphere(saddle, loc=(0, 0.1, 0.16), scale=(0.18, 0.6, 0.1), seg=8, rings=5)  # darker back
     b.jitter(v, 0.01, seed=55)
-    body = b.finish(parent=root, pivot=(0, 0, 0.62))
+    body = b.finish(parent=root, pivot=(0, 0, 0.57))
 
     h = W.Part("head")
-    v = h.sphere(grey, loc=(0, -0.08, 0.03), scale=(0.2, 0.24, 0.18), seg=10, rings=7)
+    v = h.sphere(grey, loc=(0, -0.08, 0.03), scale=(0.21, 0.25, 0.19), seg=10, rings=7)
     h.jitter(v, 0.01, seed=54)
     h.limb(light, (0, -0.18, -0.01), (0, -0.66, -0.07), 0.1, 0.05, seg=8)  # long narrow pale muzzle
     h.ico(nose, loc=(0, -0.67, -0.06), radius=0.048)
     for sx in (1, -1):
         v = h.ico(light, loc=(0.11 * sx, -0.16, -0.03), radius=0.075, scale=(0.9, 1.3, 0.8))  # pale cheeks
         h.jitter(v, 0.008, seed=56 + (sx > 0))
-    head = h.finish(parent=body, pivot=(0, -0.8, 0.12))
+    head = h.finish(parent=body, pivot=(0, -0.82, 0.05))
 
     eyes = W.Part("eyes")
     for sx in (1, -1):
@@ -164,7 +164,7 @@ def wolf():
     # Two tall pointed ears, upright.
     for sx, name in ((1, "ear_l"), (-1, "ear_r")):
         e = W.Part(name)
-        e.cyl(dark, loc=(0, 0, 0.18), r1=0.12, r2=0.008, depth=0.4, seg=4, rot=(0, 0.22 * sx, 0))
+        e.cyl(dark, loc=(0, 0, 0.16), r1=0.12, r2=0.008, depth=0.34, seg=4, rot=(0, 0.26 * sx, 0))
         e.finish(parent=head, pivot=(0.1 * sx, -0.02, 0.15))
 
     # A bushy tail carried low, in one colour with a darker tip.
@@ -178,9 +178,9 @@ def wolf():
     # Legs of a normal length, set a little wide so four show from above.
     for sx, sy, name in ((1, -1, "leg_fl"), (-1, -1, "leg_fr"), (1, 1, "leg_bl"), (-1, 1, "leg_br")):
         L = W.Part(name)
-        L.limb(grey, (0, 0, 0.04), (0.04 * sx, 0, -0.28), 0.08, 0.058, seg=6)
-        L.limb(grey, (0.04 * sx, 0, -0.28), (0.06 * sx, -0.02, -0.5), 0.058, 0.045, seg=6)
-        L.ico(dark, loc=(0.065 * sx, -0.05, -0.51), radius=0.06, scale=(1, 1.35, 0.55))
+        L.limb(grey, (0, 0, 0.04), (0.04 * sx, 0, -0.25), 0.085, 0.062, seg=6)
+        L.limb(grey, (0.04 * sx, 0, -0.25), (0.06 * sx, -0.02, -0.45), 0.062, 0.048, seg=6)
+        L.ico(dark, loc=(0.065 * sx, -0.05, -0.46), radius=0.062, scale=(1, 1.35, 0.55))
         L.finish(parent=body, pivot=(0.2 * sx, 0.46 * sy if sy > 0 else -0.4, -0.1))
     return root
 

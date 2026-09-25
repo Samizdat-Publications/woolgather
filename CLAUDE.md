@@ -605,3 +605,14 @@ Newest at the bottom. Record every non-obvious choice.
   keeps lamp light warm with a soft edge; the moonlight has a violet cast. Standard is now a
   six-minute evening as pitched (two minutes of calm, four of wolves); Pip and the wolves collide
   at their drawn size (Pip clipped the bridge rails); the loss card's title fits on one line.
+- 2026-09-25 (M2 critic r28, two majors: the golden-hour valley a flat olive lawn, and the snatch
+  close-up showing an empty field at night): the close-up followed the wolf in real time while
+  the idle test run plays at 40x, so it fell far behind; it now follows in game time, snaps when
+  the hunt gets more than 5 m ahead, and leaves the forest ring out of its picture (dragged into
+  the pines it sat inside a tree). Trees are drawn 1.35x (next to the enlarged animals they were
+  toy-sized); the terrain's relief colour and the far-slope darkening are much softer (the "dirt
+  smudges" three critics named); the golden hour's shade is a cool blue-teal against the warm
+  key; the track is sampled every half metre and lifted 14 cm (the rolling ground rose between
+  rows and swallowed stretches of it); lamp light keeps its warmth out to the pool's edge; sheep
+  keep 2.4 m apart and vary a little in size; Pip's white glows a little after dark; the wolf is a
+  touch heavier in the chest with a lower head and shorter legs and ears.

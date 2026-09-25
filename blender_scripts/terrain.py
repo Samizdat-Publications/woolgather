@@ -177,7 +177,7 @@ def water_level_at(s_x, s_z):
 GRASS_A = "#8eae5c"
 GRASS_B = "#a6bd6c"
 GRASS_DRY = "#c0b87a"
-GRASS_LUSH = "#6a9652"
+GRASS_LUSH = "#7aa25a"
 WORN = "#9c9a6a"
 MUD = "#7a6440"
 STRAW = "#c8b068"
@@ -216,8 +216,8 @@ def color(x, z, h):
     # darker and lusher, and the valley floor a touch darker than the hills around it.
     curv = h - (height(x + 3, z) + height(x - 3, z) + height(x, z + 3) + height(x, z - 3)) / 4
     c = mix(c, lin(GRASS_DRY), smoothstep(0.04, 0.35, curv) * 0.4)
-    c = mix(c, lin(GRASS_LUSH), smoothstep(0.04, 0.35, -curv) * 0.3)
-    shade = 0.95 + 0.1 * smoothstep(-1.0, 7.0, h) - 0.06 * smoothstep(0.05, 0.5, -curv)
+    c = mix(c, lin(GRASS_LUSH), smoothstep(0.04, 0.35, -curv) * 0.2)
+    shade = 0.97 + 0.06 * smoothstep(-1.0, 7.0, h) - 0.03 * smoothstep(0.05, 0.5, -curv)
     c = (c[0] * shade, c[1] * shade, c[2] * shade, c[3])
     # Around rocks: bare, stony ground.
     for rx, rz, rr in LEVEL["rocks"]:
@@ -375,7 +375,9 @@ def build_path():
     for i in range(len(PATH) - 1):
         a, b = PATH[i], PATH[i + 1]
         seg_len = math.hypot(b[0] - a[0], b[1] - a[1])
-        n = max(1, int(seg_len / 1.0))
+        # Rows every half metre, lifted clear of the rolling ground: at 1 m rows a few cm up, the
+        # ground rose between rows and swallowed stretches of the track.
+        n = max(1, int(seg_len / 0.5))
         for k in range(n):
             t = k / n
             pts.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
@@ -398,7 +400,7 @@ def build_path():
         row = []
         for off in (-wl, -wl * 0.55, 0.0, wr * 0.55, wr):
             vx, vz = x + px * off, z + pz * off
-            row.append(bm.verts.new((vx, -vz, height(vx, vz) + 0.05)))
+            row.append(bm.verts.new((vx, -vz, height(vx, vz) + 0.14)))
         rows.append(row)
     # No dirt in the stream channel: the track resumes on the far side of the bridge.
     wet = [stream_query(x, z)[0] < STREAM_HALF + 2.5 for x, z in pts]

@@ -293,7 +293,7 @@ export class Actors {
     const k = mood.keyColor;
     const orange = Math.min(1, Math.max(0, (k.g - k.b) / Math.max(0.01, k.r)) * 2.2);
     this.whiteKeep.value = Math.min(0.85, 0.12 + 0.6 * orange * Math.min(1, mood.keyIntensity / 2) + 0.3 * night);
-    for (const m of this.whiteMats) m.emissiveIntensity = 1 + 0.4 * night;
+    for (const m of this.whiteMats) m.emissiveIntensity = 1 + (m.name === 'coat_white' ? 1.2 : 0.4) * night;
     // Rim light: faint and warm by day, rose-pink through the sunset and dusk, silver by moonlight.
     // Pink from the sunset until the sun goes, then the moon's silver.
     const sunset = Math.min(1, Math.max(0, (mood.t - 0.4) / 0.1)) * Math.min(1, Math.max(0, (0.63 - mood.t) / 0.05));
@@ -328,7 +328,8 @@ export class Actors {
     this.zoneUnder.mesh.material.opacity = this.zoneA * 0.4;
 
     while (this.sheep.length < sim.sheep.length) {
-      const r = rig(this.a.sheep, SCALE.sheep);
+      const n = this.sheep.length;
+      const r = rig(this.a.sheep, SCALE.sheep * (0.93 + 0.14 * (((n * 0.618) % 1 + 1) % 1)));
       this.sheep.push(r);
       this.root.add(r.root);
     }

@@ -367,3 +367,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Nightfall in blue-violet moonlight](m2-assets-r28-late-night.png)
 *Nightfall in blue-violet moonlight*
 
+
+## m2-assets-r29 (2026-09-25)
+
+![Golden hour: warm light, cool shade, the track whole again](m2-assets-r29-start.png)
+*Golden hour: warm light, cool shade, the track whole again*
+
+![A hunt with trees in scale: the stalking wolf's dashed line to the flock](m2-assets-r29-wolf.png)
+*A hunt with trees in scale: the stalking wolf's dashed line to the flock*
+
+![The night close-up keeps the wolf and the sheep in its jaws in shot](m2-assets-r29-night.png)
+*The night close-up keeps the wolf and the sheep in its jaws in shot*
+
+![The last seconds at the fold, lamps warm to the edge](m2-assets-r29-late-night.png)
+*The last seconds at the fold, lamps warm to the edge*
+

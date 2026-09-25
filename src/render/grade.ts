@@ -72,8 +72,8 @@ interface GradeKey {
 
 const KEYS: GradeKey[] = [
   // Golden hour: the lights carry it; the grade only cools the shadows and creams the whites.
-  { t: 0.0, sat: 0.8, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.5, spare: 0.55, warm: 0, shadow: [262, 0.06, 0.45], mid: [100, 0.11, 0], high: [75, 0.05, 0.2], protect: 0.2, gain: 1.0, contrast: 1.38, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.24, vignette: 0.16 },
-  { t: 0.3, sat: 0.82, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.5, spare: 0.55, warm: 0, shadow: [268, 0.065, 0.48], mid: [85, 0.11, 0.1], high: [65, 0.06, 0.25], protect: 0.2, gain: 1.02, contrast: 1.38, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.26, vignette: 0.18 },
+  { t: 0.0, sat: 0.8, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.35, spare: 0.55, warm: 0, shadow: [250, 0.065, 0.6], mid: [100, 0.11, 0], high: [75, 0.05, 0.2], protect: 0.2, gain: 1.0, contrast: 1.38, pivot: 0.42, haze: '#ffd9a0', hazeAmt: 0.24, vignette: 0.16 },
+  { t: 0.3, sat: 0.82, zones: [0.34, 0.5, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.35, spare: 0.55, warm: 0, shadow: [258, 0.07, 0.62], mid: [85, 0.11, 0.1], high: [65, 0.06, 0.25], protect: 0.2, gain: 1.02, contrast: 1.38, pivot: 0.42, haze: '#ffc88c', hazeAmt: 0.26, vignette: 0.18 },
   // Sunset, as the wolves come out: told by the light, not by repainting the ground. The grass
   // stays green, cooler and duller as the sun sinks (apricot, then rose, over a cool sky fill);
   // the shade turns blue-violet, well apart in hue from the warm light; the pink is on the
@@ -241,7 +241,7 @@ export class GradePass {
             // Signal colours keep their own; the animals keep most of theirs, so they stand out
             // from the ground by colour as well as by outline.
             // Lamp light after sunset: orange-yellow hues (OKLCH about 40-100 degrees) with some colour.
-            float lamp = uWarm * smoothstep(0.015, 0.09, chroma) * (1.0 - smoothstep(0.45, 0.8, abs(atan(sin(hue - 1.22), cos(hue - 1.22)))));
+            float lamp = uWarm * smoothstep(0.01, 0.07, chroma) * (1.0 - smoothstep(0.7, 1.15, abs(atan(sin(hue - 1.35), cos(hue - 1.35)))));
             ab = mix(ab, lab.yz, max(max(smoothstep(uProtect, uProtect + 0.05, chroma), character * 0.7), lamp));
             c = clamp(fromOklab(vec3(lab.x, ab)), 0.0, 1.0);
           }
