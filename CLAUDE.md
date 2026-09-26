@@ -845,3 +845,16 @@ Newest at the bottom. Record every non-obvious choice.
   grass tufts, the hint wraps evenly, the minimap fades less over the fold, the how-to explains the
   counter's dots and stars, and the nearest-sheep marker is a side-on sheep (the last read as a
   mushroom).
+- 2026-09-26 (M5 critic r3, worst: major, a snatch out of reach announced only by a grey marker
+  and a short toast): every snatch now holds the message slot for its whole drag; one that Pip can
+  no longer reach says so in a steady ember-framed banner ("A wolf is carrying a sheep off on the
+  far bank! Too far to save it: keep the rest of the flock together") instead of the red pulsing
+  one with a countdown. The jaws marker is always red and a size up (steady instead of pulsing
+  when out of reach; the grey version, from M3's critic, read as a disabled badge), and edge
+  markers keep clear of the counter panel's real rectangle. Only the stream's blue is spared by the
+  grade (sparing every hue far from the grass left the heather neon magenta). The wolves' own rim
+  is a cold silver (a warm one made them rosy-brown, the colour of the path). Pip's facing chevron
+  is bigger and solid; the reach ring's band is a little wider after the opening seconds, over a
+  stronger dark stroke. The counter's dots have a gold tick at the target and the star goals are
+  spelled out underneath ("★ 9 ★★ 11 ★★★ 12", gold when reached, struck out when out of reach)
+  instead of stars mixed into the row. The minimap takes the evening's tint again, more gently.

@@ -49,6 +49,7 @@ export class Ui {
         <div class="hud-counts">
           <div class="count-home">${SHEEP_GLYPH}<span class="n-home">0</span><span class="of">home · need <span class="n-need">0</span></span></div>
           <div class="pips"></div>
+          <div class="goals"></div>
           <div class="count-spare"></div>
         </div>
         <div class="hud-time">
@@ -298,14 +299,16 @@ export class Ui {
   private toastText = '';
   private alertText: string | null = null;
   private alertSub = '';
+  private alertCalm = false;
 
   /**
    * A danger message that holds the slot until cleared (a sheep in a wolf's jaws). Toasts that
    * arrive meanwhile wait underneath and show once it clears.
    */
-  alert(text: string | null, sub = '') {
-    if (text === this.alertText && sub === this.alertSub) return;
+  alert(text: string | null, sub = '', calm = false) {
+    if (text === this.alertText && sub === this.alertSub && calm === this.alertCalm) return;
     this.alertSub = sub;
+    this.alertCalm = calm;
     if (text && !this.alertText) {
       // Whatever was showing is old news by the time the snatch is settled.
       this.toastT = 0;
@@ -325,6 +328,12 @@ export class Ui {
     const n = { r: el.getBoundingClientRect(), t: now, drop: this.toastDrop };
     this.rects.set(el, n);
     return n;
+  }
+
+  /** Screen rectangle of the flock counter (edge markers keep clear of it). */
+  countsRect() {
+    if ($('.hud', this.root).hidden) return null;
+    return this.rectOf($('.hud-counts', this.root)).r;
   }
 
   /** Screen rectangle of the minimap panel (null while the HUD is hidden). */
@@ -355,7 +364,7 @@ export class Ui {
   private renderToast() {
     const el = $('.toast', this.root);
     const text = this.alertText ?? (this.toastT > 0 ? this.toastText : '');
-    const cls = this.alertText ? 'toast danger sticky' : `toast ${this.toastKind}`;
+    const cls = this.alertText ? `toast danger sticky${this.alertCalm ? ' calm' : ''}` : `toast ${this.toastKind}`;
     el.hidden = !text;
     // A snatch alert carries what to do on a second line in the same banner.
     const sub = this.alertText ? this.alertSub : '';
@@ -451,16 +460,14 @@ export class Ui {
     if (pips.dataset.key !== pipKey) {
       pips.dataset.key = pipKey;
       const two = Math.ceil((sim.target + sim.total) / 2);
-      const marks = new Map<number, number>([[sim.target, 1]]);
-      marks.set(two, Math.max(marks.get(two) ?? 0, 2));
-      marks.set(sim.total, 3);
       let html = '';
       for (let i = 1; i <= sim.total; i++) {
         html += `<i class="pip ${i <= sim.folded ? 'home' : i > sim.total - sim.lost ? 'lost' : ''}"></i>`;
-        const m = marks.get(i);
-        if (m) html += `<b class="mark ${sim.folded >= i ? 'got' : sim.total - sim.lost < i ? 'gone' : ''}">${'★'.repeat(m)}</b>`;
+        if (i === sim.target && i < sim.total) html += '<i class="tick"></i>';
       }
       pips.innerHTML = html;
+      const goal = (n: number, stars: string) => `<span class="${sim.folded >= n ? 'got' : sim.total - sim.lost < n ? 'gone' : ''}">${stars} ${n}</span>`;
+      $('.goals', this.root).innerHTML = `${goal(sim.target, '★')}${goal(two, '★★')}${goal(sim.total, '★★★')}`;
     }
     // How many more can be lost before the target is out of reach, or a hurry-up when daylight is
     // the tighter limit.

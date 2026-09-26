@@ -138,7 +138,7 @@ export class Minimap {
    */
   setMood(t: number) {
     const dusk = Math.min(1, Math.max(0, (t - 0.5) / 0.4));
-    const f = `sepia(${(0.2 + 0.05 * dusk).toFixed(2)}) brightness(${(0.97 - 0.17 * dusk).toFixed(2)}) saturate(${(0.92 - 0.2 * dusk).toFixed(2)})`;
+    const f = `sepia(${(0.2 + 0.1 * dusk).toFixed(2)}) brightness(${(0.97 - 0.3 * dusk).toFixed(2)}) saturate(${(0.92 - 0.35 * dusk).toFixed(2)}) hue-rotate(${Math.round(-12 * dusk)}deg)`;
     if (this.canvas.style.filter !== f) this.canvas.style.filter = f;
   }
 

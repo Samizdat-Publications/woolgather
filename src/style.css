@@ -92,9 +92,10 @@ kbd {
 .pip.home { background: var(--wool); border-color: var(--wool); }
 .pip.lost { border-color: rgba(255, 138, 106, 0.8); }
 .pip.lost::after { content: ''; position: absolute; left: -2px; right: -2px; top: 3px; height: 1.5px; background: #ff8a6a; transform: rotate(-45deg); }
-.mark { margin: 0 5px 0 2px; font-size: 14px; line-height: 1; color: rgba(242, 180, 90, 0.55); }
-.mark.got { color: var(--gold); }
-.mark.gone { opacity: 0.4; text-decoration: line-through; }
+.tick { width: 2px; height: 14px; margin: 0 6px 0 3px; border-radius: 1px; background: var(--gold); flex: none; }
+.goals { display: flex; gap: 12px; margin-top: 5px; font-size: 13.5px; font-weight: 800; color: var(--wool-3); }
+.goals .got { color: var(--gold); }
+.goals .gone { opacity: 0.45; text-decoration: line-through; }
 .count-spare { margin-top: 6px; font-size: 14px; font-weight: 700; color: var(--wool-2); }
 .count-spare.met { color: var(--leaf); }
 .count-spare.danger { color: #ff9a78; font-weight: 800; }
@@ -153,6 +154,8 @@ kbd {
 .toast.danger { color: #ff9a78; }
 .toast.good { color: var(--leaf); }
 .toast.sticky { color: #fff; background: rgba(150, 34, 24, 0.94); border-color: var(--alarm); animation: pulse-red 0.8s ease-in-out infinite alternate; }
+/* A snatch too far away to save: announced all the same, in a steady ember frame. */
+.toast.sticky.calm { color: #ffd6c4; background: rgba(46, 26, 30, 0.94); border-color: var(--ember); animation: none; }
 .toast-sub { display: block; margin-top: 2px; font-size: 14.5px; font-weight: 700; color: #ffe6d0; }
 @keyframes pulse-red { from { border-color: rgba(255, 90, 60, 0.6); } to { border-color: rgba(255, 90, 60, 1); } }
 
@@ -292,7 +295,8 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .ind.beside .ind-arrow { display: none; }
 .ind-fold { color: var(--gold); }
 .ind-grab { color: #ff3b2a; animation: pulse 0.6s ease-in-out infinite alternate; }
-.ind.muted { color: #a39aa8; animation: none; opacity: 0.75; }
+.ind-grab .ind-icon { width: 36px; height: 36px; left: -18px; top: -18px; }
+.ind.muted { animation: none; }
 .ind-wolf { color: var(--alarm); }
 .ind-sheep { color: var(--wool); }
 .ind-note .ind-label { top: -18px; font-size: 14.5px; color: #fff4d6; background: rgba(20, 16, 26, 0.62); padding: 3px 12px; border-radius: 999px; text-shadow: none; }

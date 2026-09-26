@@ -364,6 +364,7 @@ export class Game {
     this.stage.grade.setInset(this.wolfCam.visible ? this.wolfCam.rect : null);
     hudState.insetRect = this.wolfCam.rect;
     hudState.mapRect = this.ui.mapRect();
+    hudState.countsRect = this.ui.countsRect();
     const forest = this.world.forest;
     this.stage.render((r, target) => {
       // Tree cut-outs are placed for the main view only; the close-up follows a wolf into the
@@ -807,8 +808,6 @@ export class Game {
   private dragHint = false;
   /** Whether Pip can reach the current snatch in time (null when there is none). */
   private dragFeasible: boolean | null = null;
-  /** An out-of-reach snatch has been announced. */
-  private lossNoted = false;
   /** Wolves already announced as stalking. */
   private stalkWarned = new Set<number>();
   /** The stalking warning on show, and whose it is. */
@@ -938,19 +937,15 @@ export class Game {
         this.ui.alert(`A wolf has a sheep ${place}! ${this.arrowTo(dragger.x, dragger.z)} ${dist} m · ${secs} s to save it`, 'Sprint at it (Shift), then bark (Space)');
         this.ui.hint('');
       } else {
-        // Out of reach: one calm line, no countdown and no inset (see trackSnatch).
-        this.ui.alert(null);
-        if (!this.lossNoted) {
-          this.lossNoted = true;
-          this.ui.toast(`A wolf is taking a sheep ${place}: too far to save it`, 'warn');
-        }
-        this.ui.hint('Keep the rest of the flock together');
+        // Out of reach: still announced for the whole drag (a quiet toast and a grey marker read as
+        // nothing happening), but calmly, with no countdown and no inset (see trackSnatch).
+        this.ui.alert(`A wolf is carrying a sheep off ${place}! ${this.arrowTo(dragger.x, dragger.z)}`, 'Too far to save it: keep the rest of the flock together', true);
+        this.ui.hint('');
       }
       this.dragHint = true;
       this.tipUntil = 0;
     } else {
       this.dragFeasible = null;
-      this.lossNoted = false;
       this.ui.alert(null);
       if (this.dragHint) {
         this.dragHint = false;

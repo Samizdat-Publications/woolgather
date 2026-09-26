@@ -306,7 +306,7 @@ export class Actors {
     // A chevron in front of Pip, pointing where he faces: it finds him in a crowd and cannot be
     // mistaken for his reach ring.
     this.marker = new GroundRing(a.fx.get('chevron')!, 0xffd27a, terrain, 0.1);
-    this.marker.mesh.material.opacity = 0.9;
+    this.marker.mesh.material.opacity = 1;
     this.root.add(this.marker.mesh);
     // Pip's reach: a dashed ring over a faint dark stroke, so it reads on pale and dark ground
     // alike without framing everything like a debug overlay.
@@ -399,9 +399,9 @@ export class Actors {
   /** Rim light colour (times strength) on every character. */
   private rim = { value: new THREE.Color(0, 0, 0) };
   /**
-   * The wolves' own rim light: an ember glow on their edges from the sunset on, so a wolf stands
-   * off the dusk and night ground by itself (the slate coat alone sank into the violet shade) and
-   * reads as a threat, never as a second Pip.
+   * The wolves' own rim light: a cold silver edge from the sunset on, so a wolf stands off the warm
+   * dusk ground and the night by itself (the slate coat alone sank into the violet shade; a warm
+   * rim made it read rosy-brown, like the path), and reads as a threat, never as a second Pip.
    */
   private wolfRim = { value: new THREE.Color(0, 0, 0) };
 
@@ -432,7 +432,7 @@ export class Actors {
     const gold = 1 - Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15));
     this.rim.value.setRGB(1, 0.7 - 0.12 * sunset, 0.5 + 0.16 * sunset).lerp(RIM_MOON, night).multiplyScalar(0.06 + 0.1 * gold + 0.16 * sunset + 0.7 * night);
     const dusk = Math.min(1, Math.max(0, (mood.t - 0.35) / 0.1));
-    this.wolfRim.value.setRGB(1, 0.46, 0.24).multiplyScalar(0.1 + 0.42 * dusk + 0.35 * night);
+    this.wolfRim.value.setRGB(0.6, 0.72, 1).multiplyScalar(0.12 + 0.42 * dusk + 0.3 * night);
     // Gameplay rings belong to play, not to the pause menu or the results card.
     this.zone.mesh.visible = showRings;
     this.zoneUnder.mesh.visible = showRings;
@@ -465,12 +465,12 @@ export class Actors {
       this.dogSteps = this.dogAnim.steps;
       if (d.speed > 8 && !d.inWater) step(d.x, d.z, d.vx, d.vz, 1);
     }
-    this.marker.place(d.x + Math.sin(d.facing) * 1.9, d.z + Math.cos(d.facing) * 1.9, 0.62, -d.facing);
+    this.marker.place(d.x + Math.sin(d.facing) * 2.1, d.z + Math.cos(d.facing) * 2.1, 0.85, -d.facing);
 
     this.zoneR += (sim.dogThreatRadius - this.zoneR) * (1 - Math.exp(-8 * dt));
     // The dashes creep round slowly, so the ring reads as Pip's and alive, not as a ground mark.
     // Bold while the first day's label explains it, a finer line after that.
-    this.zone.place(d.x, d.z, this.zoneR, this.time * 0.12, sim.elapsed < 20 && sim.elapsed >= 0 ? 1 : 0.6);
+    this.zone.place(d.x, d.z, this.zoneR, this.time * 0.12, sim.elapsed < 20 && sim.elapsed >= 0 ? 1 : 0.8);
     this.zoneUnder.place(d.x, d.z, this.zoneR + 0.3);
     this.zone.mesh.material.color.set(d.creeping ? 0x8fd0ff : 0xfff4d6).lerp(RING_NIGHT, d.creeping ? 0 : night * 0.6);
     const reach = this.zoneR * 1.6;
@@ -503,7 +503,7 @@ export class Actors {
     const want = Math.max(intro * 0.42, near ? (d.creeping ? 0.3 : d.sprinting ? 0.12 : 0.2) : 0);
     this.zoneA += (want - this.zoneA) * (1 - Math.exp(-5 * dt));
     this.zone.mesh.material.opacity = Math.min(1, this.zoneA * (1 + 0.7 * night));
-    this.zoneUnder.mesh.material.opacity = this.zoneA * 0.25;
+    this.zoneUnder.mesh.material.opacity = this.zoneA * 0.4;
     this.zone.mesh.visible = this.zoneUnder.mesh.visible = showRings && this.zoneA > 0.005;
 
     while (this.sheep.length < sim.sheep.length) {

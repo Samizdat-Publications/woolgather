@@ -296,8 +296,10 @@ export class GradePass {
             float wM = max(0.0, 1.0 - wS - wH);
             // The grass family (yellow through green, OKLCH hue about 60-170) turns fully; other
             // hues (the stream, stone) partly, so the valley keeps some of its own colours.
-            float fromGrass = abs(atan(sin(hue - 1.99), cos(hue - 1.99)));
-            float k = 1.0 - uSpare * smoothstep(1.0, 1.6, fromGrass) * smoothstep(0.012, 0.045, cs);
+            // Blue (the stream) keeps its own colour by the phase's spare; everything else takes the
+            // evening's colour (sparing every hue far from the grass left the heather neon magenta).
+            float fromBlue = abs(atan(sin(hue - 4.4), cos(hue - 4.4)));
+            float k = 1.0 - uSpare * (1.0 - smoothstep(0.55, 1.05, fromBlue)) * smoothstep(0.012, 0.045, cs);
             // Shade sheds its own colour before the shadow hue (so olive shade turns violet, not
             // brown); hues spared from the zones (the stream's blue) keep theirs, or dark water went
             // a colourless black.

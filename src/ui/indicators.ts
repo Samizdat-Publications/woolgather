@@ -18,7 +18,7 @@ export interface Marker {
   onScreenOnly?: boolean;
   /** Also float the icon over the thing while it is in view (the loudest alerts). */
   iconOnScreen?: boolean;
-  /** Greyed and still: nothing can be done about it (a snatch too far away to save). */
+  /** Steady rather than pulsing: nothing can be done about it (a snatch too far away to save). */
   muted?: boolean;
 }
 
@@ -36,7 +36,7 @@ export const MARKER_ICONS: Record<MarkerKind, string> = {
 };
 
 /** Set while the wolf-cam inset is up, and where it is; and where the minimap panel is. */
-export const hudState: { insetVisible: boolean; insetRect: ScreenRect | null; mapRect: DOMRect | null } = { insetVisible: false, insetRect: null, mapRect: null };
+export const hudState: { insetVisible: boolean; insetRect: ScreenRect | null; mapRect: DOMRect | null; countsRect: DOMRect | null } = { insetVisible: false, insetRect: null, mapRect: null, countsRect: null };
 
 // Screen regions taken by HUD panels (top-left counts, top-right minimap, the timer and message
 // banner across the top middle, the wolf-cam inset), in CSS pixels.
@@ -45,7 +45,10 @@ function avoidHud(px: number, py: number, w: number): [number, number] {
   // Under the minimap panel: drop below it, clear of its edge.
   if (m && px > m.left - 30 && py < m.bottom + 22) py = m.bottom + 36;
   else if (!m && px > w - 250 && py < 215) py = 230;
-  if (px < 190 && py < 135) py = 150;
+  // Under the flock counter: drop below it.
+  const c = hudState.countsRect;
+  if (c && px < c.right + 30 && py < c.bottom + 26) py = c.bottom + 40;
+  else if (!c && px < 190 && py < 135) py = 150;
   // The timer and banner across the top middle: slide along the edge past them rather than
   // dropping into the field, where a marker reads as an object in the world.
   if (Math.abs(px - w / 2) < 340 && py < 150) px = px < w / 2 ? w / 2 - 350 : w / 2 + 350;
