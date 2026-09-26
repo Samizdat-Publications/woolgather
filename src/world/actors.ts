@@ -342,6 +342,7 @@ export class Actors {
     const neutral = new Set(['wool', 'coat_white', 'coat_black', 'wolf_light']);
     const noKeep = { value: 0 };
     for (const proto of [a.sheep, a.collie, a.wolf]) {
+      const rimU = proto === a.wolf ? this.wolfRim : this.rim;
       proto.traverse((o) => {
         const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | undefined;
         if (!m || !m.isMeshLambertMaterial || m.name === 'wolf_eyes' || this.charMats.includes(m)) return;
@@ -349,7 +350,7 @@ export class Actors {
         if (m.name === 'wool' || m.name === 'coat_white') m.emissive.set(m.name === 'wool' ? 0x4c4842 : 0x3a3834);
         m.onBeforeCompile = (shader) => {
           shader.uniforms.uWhiteKeep = keep ? this.whiteKeep : noKeep;
-          shader.uniforms.uRim = this.rim;
+          shader.uniforms.uRim = rimU;
           shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uWhiteKeep;\nuniform vec3 uRim;').replace(
             '#include <opaque_fragment>',
             `#include <opaque_fragment>
@@ -371,7 +372,7 @@ export class Actors {
     // ink line round the fleece and face, wolves a hot ember line that says danger. Added to the
     // prototypes, so every clone shares them.
     addOutline(a.sheep, 0x2a2230, 0.04, ['body', 'head']);
-    addOutline(a.wolf, 0x1c1418, 0.045);
+    addOutline(a.wolf, 0x3a120e, 0.045);
     // Sheep and wolves are drawn instanced (see RigInstancer); Pip is one of a kind.
     this.sheepInst = new RigInstancer(a.sheep, 24);
     this.wolfInst = new RigInstancer(a.wolf, 6);
@@ -388,12 +389,19 @@ export class Actors {
   private focusX = 0;
   private focusZ = 0;
   private dogSteps = 0;
+  private idleTurn = 0;
   /** Footfalls of running animals since the last sync, for dust (read by the game each frame). */
   readonly footfalls: { x: number; z: number; dx: number; dz: number; size: number }[] = [];
   /** How much of the light's colour is removed from white wool and coat (0 = none). */
   private whiteKeep = { value: 0.3 };
   /** Rim light colour (times strength) on every character. */
   private rim = { value: new THREE.Color(0, 0, 0) };
+  /**
+   * The wolves' own rim light: an ember glow on their edges from the sunset on, so a wolf stands
+   * off the dusk and night ground by itself (the slate coat alone sank into the violet shade) and
+   * reads as a threat, never as a second Pip.
+   */
+  private wolfRim = { value: new THREE.Color(0, 0, 0) };
 
   sync(sim: Sim, dt: number, mood: MoodValues, showRings = true) {
     const h = (x: number, z: number) => this.terrain.height(x, z);
@@ -421,6 +429,8 @@ export class Actors {
     const sunset = Math.min(1, Math.max(0, (mood.t - 0.4) / 0.1)) * Math.min(1, Math.max(0, (0.63 - mood.t) / 0.05));
     const gold = 1 - Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15));
     this.rim.value.setRGB(1, 0.7 - 0.12 * sunset, 0.5 + 0.16 * sunset).lerp(RIM_MOON, night).multiplyScalar(0.06 + 0.1 * gold + 0.16 * sunset + 0.7 * night);
+    const dusk = Math.min(1, Math.max(0, (mood.t - 0.35) / 0.1));
+    this.wolfRim.value.setRGB(1, 0.46, 0.24).multiplyScalar(0.1 + 0.42 * dusk + 0.35 * night);
     // Gameplay rings belong to play, not to the pause menu or the results card.
     this.zone.mesh.visible = showRings;
     this.zoneUnder.mesh.visible = showRings;
@@ -442,7 +452,13 @@ export class Actors {
         lookAt = Math.abs(a) < 1.6 ? a : null;
       }
     }
-    animateDog(this.dog, this.dogAnim, d, dt, this.time, lookAt);
+    // Standing still end-on to the camera, Pip turns a little towards his flock (or to one side),
+    // so he shows a three-quarter profile instead of a sliver of black and white.
+    const endOn = Math.abs(Math.sin(d.facing)) < 0.5;
+    const wantTurn = d.speed < 0.3 && endOn ? (lookAt !== null && lookAt < 0 ? -0.55 : 0.55) : 0;
+    this.idleTurn += (wantTurn - this.idleTurn) * (1 - Math.exp(-(wantTurn ? 2.5 : 10) * dt));
+    dr.rotation.y = d.facing + this.idleTurn;
+    animateDog(this.dog, this.dogAnim, d, dt, this.time, lookAt === null ? null : lookAt - this.idleTurn);
     if (this.dogAnim.steps !== this.dogSteps) {
       this.dogSteps = this.dogAnim.steps;
       if (d.speed > 8 && !d.inWater) step(d.x, d.z, d.vx, d.vz, 1);

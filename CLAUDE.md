@@ -818,3 +818,19 @@ Newest at the bottom. Record every non-obvious choice.
   with Auto, which starts high and steps down while the median frame of play misses about 52 fps;
   the choice is in the pause menu and remembered. The production preview plays the self-test with
   no console output at all.
+- 2026-09-26 (M5 polish): the stream at sunset read as a misty ravine; with the grade off it was
+  a clear blue river, so the fault was the grade's: the sun-side glow (a screen blend up to 32% over
+  the west third of the frame) washed it pale, and the zone grade turned its blue to mauve. The
+  glow is narrower and at most 19%, water keeps more of its own blue after sunset (`spare`), the
+  body takes less of the sky's tint, and the sky's rose and gold lie on it in moving streaks with
+  glints. Pip, standing still end-on to the camera, turns a little towards his flock (a
+  three-quarter profile instead of a sliver).
+- 2026-09-26 (M5 critic r1, worst: minor): wolves were dark smudges at dusk that only their rings
+  found. They have an ember rim light of their own (from the sunset on, stronger at night), a
+  dark red-brown outline and a mid-slate coat, so they stand off the ground and read as threats,
+  never as a second Pip. Dusk and night vignette and haze are about half. During a snatch the
+  dragged sheep's marker is the only marker (the other wolves' and the nearest-sheep markers
+  wait), and a snatch on screen no longer adds a floating "!". Over an animal the counter and the
+  timer fade only their panels (the text stays solid with a shadow). The hint wraps inside the
+  space between the meters and the right edge. The minimap also fades while the fold is under it
+  and the flock is at the gate.

@@ -508,3 +508,12 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![A loss: how many were taken and where](m4-close-lose-end.png)
 *A loss: how many were taken and where*
 
+
+## m5-r2 (2026-09-26)
+
+![M5: a wolf with its ember rim stalks the flock at sunset; the stream reads as water](m5-r2-wolf.png)
+*M5: a wolf with its ember rim stalks the flock at sunset; the stream reads as water*
+
+![A snatch in the final build](m5-r2-snatch.png)
+*A snatch in the final build*
+

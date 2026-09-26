@@ -91,16 +91,16 @@ const KEYS: GradeKey[] = [
   // stays green, cooler and duller as the sun sinks (apricot, then rose, over a cool sky fill);
   // the shade turns blue-violet, well apart in hue from the warm light; the pink is on the
   // fleece, stone and path; the haze and the stream carry the sky's rose.
-  { t: 0.45, sat: 0.9, zones: [0.34, 0.6, 0.72, 0.88], greyKeep: 1, shadeKeep: 0.25, spare: 0.6, warm: 0, shadow: [290, 0.11, 0.78], mid: [95, 0.1, 0], high: [10, 0.045, 0.35], protect: 0.17, gain: 1.1, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.24, sky: 0.55, shafts: 0.14, bloom: 0.36, bloomAt: 0.88, vignette: 0.2 },
-  { t: 0.6, sat: 0.85, zones: [0.32, 0.58, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.25, spare: 0.6, warm: 0, shadow: [294, 0.11, 0.8], mid: [100, 0.1, 0], high: [4, 0.045, 0.4], protect: 0.16, gain: 1.08, contrast: 1.3, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.24, sky: 0.55, shafts: 0.11, bloom: 0.36, bloomAt: 0.85, vignette: 0.24 },
+  { t: 0.45, sat: 0.9, zones: [0.34, 0.6, 0.72, 0.88], greyKeep: 1, shadeKeep: 0.25, spare: 0.8, warm: 0, shadow: [290, 0.11, 0.78], mid: [95, 0.1, 0], high: [10, 0.045, 0.35], protect: 0.17, gain: 1.1, contrast: 1.3, pivot: 0.38, haze: '#ffa98c', hazeAmt: 0.16, sky: 0.55, shafts: 0.14, bloom: 0.36, bloomAt: 0.88, vignette: 0.2 },
+  { t: 0.6, sat: 0.85, zones: [0.32, 0.58, 0.7, 0.86], greyKeep: 1, shadeKeep: 0.25, spare: 0.8, warm: 0, shadow: [294, 0.11, 0.8], mid: [100, 0.1, 0], high: [4, 0.045, 0.4], protect: 0.16, gain: 1.08, contrast: 1.3, pivot: 0.34, haze: '#e896a8', hazeAmt: 0.16, sky: 0.55, shafts: 0.11, bloom: 0.36, bloomAt: 0.85, vignette: 0.24 },
   // Twilight under the rising moon, closing in: the colour drains from the ground (as it does to
   // the eye in low light) towards a cool blue-grey, the shade violet, the moonlit tops silver, and
   // the frame darker every second.
-  { t: 0.74, sat: 0.35, zones: [0.2, 0.5, 0.62, 0.8], greyKeep: 0.35, shadeKeep: 0.3, spare: 0.4, warm: 0.8, shadow: [302, 0.11, 0.8], mid: [296, 0.085, 0.7], high: [280, 0.035, 0.45], protect: 0.13, gain: 1.04, contrast: 1.36, pivot: 0.26, haze: '#b87ab0', hazeAmt: 0.2, sky: 0.44, shafts: 0.02, bloom: 0.36, bloomAt: 0.72, vignette: 0.32 },
-  { t: 0.88, sat: 0.32, zones: [0.18, 0.46, 0.58, 0.78], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.3, warm: 1, shadow: [300, 0.115, 0.82], mid: [284, 0.095, 0.75], high: [270, 0.04, 0.5], protect: 0.12, gain: 0.98, contrast: 1.48, pivot: 0.24, haze: '#7a5aa4', hazeAmt: 0.18, sky: 0.38, shafts: 0, bloom: 0.4, bloomAt: 0.62, vignette: 0.38 },
+  { t: 0.74, sat: 0.35, zones: [0.2, 0.5, 0.62, 0.8], greyKeep: 0.35, shadeKeep: 0.3, spare: 0.6, warm: 0.8, shadow: [302, 0.11, 0.8], mid: [296, 0.085, 0.7], high: [280, 0.035, 0.45], protect: 0.13, gain: 1.04, contrast: 1.36, pivot: 0.26, haze: '#b87ab0', hazeAmt: 0.14, sky: 0.44, shafts: 0.02, bloom: 0.36, bloomAt: 0.72, vignette: 0.32 },
+  { t: 0.88, sat: 0.32, zones: [0.18, 0.46, 0.58, 0.78], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.5, warm: 1, shadow: [300, 0.115, 0.82], mid: [284, 0.095, 0.75], high: [270, 0.04, 0.5], protect: 0.12, gain: 0.98, contrast: 1.48, pivot: 0.24, haze: '#7a5aa4', hazeAmt: 0.12, sky: 0.38, shafts: 0, bloom: 0.4, bloomAt: 0.62, vignette: 0.38 },
   // Night: the moonlit ground deep indigo-blue, the shade a darker violet-indigo (a hue apart, so
   // the moonlight reads as light and not a filter), silver-blue tops, the lamps and windows warm.
-  { t: 1.0, sat: 0.3, zones: [0.16, 0.44, 0.56, 0.76], greyKeep: 0.25, shadeKeep: 0.3, spare: 0.2, warm: 1, shadow: [298, 0.12, 0.88], mid: [276, 0.1, 0.78], high: [255, 0.045, 0.55], protect: 0.11, gain: 0.95, contrast: 1.55, pivot: 0.26, haze: '#383c80', hazeAmt: 0.14, sky: 0.32, shafts: 0, bloom: 0.45, bloomAt: 0.55, vignette: 0.44 },
+  { t: 1.0, sat: 0.3, zones: [0.16, 0.44, 0.56, 0.76], greyKeep: 0.25, shadeKeep: 0.3, spare: 0.4, warm: 1, shadow: [298, 0.12, 0.88], mid: [276, 0.1, 0.78], high: [255, 0.045, 0.55], protect: 0.11, gain: 0.95, contrast: 1.55, pivot: 0.26, haze: '#383c80', hazeAmt: 0.1, sky: 0.32, shafts: 0, bloom: 0.45, bloomAt: 0.55, vignette: 0.44 },
 ];
 
 /** Display-space (sRGB) components of a hex colour. */
@@ -317,7 +317,7 @@ export class GradePass {
             // rather than mixed: rose mixed into olive grass is brown, rose light over it is rose air.
             c = 1.0 - (1.0 - c) * (1.0 - uHaze * uHazeAmt * free * smoothstep(0.55, 1.0, vUv.y));
             vec2 v = (vUv - 0.5) * vec2(uAspect, 1.0);
-            float sunSide = smoothstep(-0.15, 0.95, dot(v, uSunDir2));
+            float sunSide = smoothstep(0.15, 1.0, dot(v, uSunDir2));
             // The sky itself, just beyond the top of the frame: its colour glowing along the top
             // edge, warmest on the sun's side, as if the horizon were just out of shot.
             float band = smoothstep(0.7, 1.0, vUv.y);

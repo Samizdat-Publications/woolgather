@@ -222,7 +222,7 @@ export class Game {
     this.dragFeasible = null;
     this.ui.prompt(null);
     // The counter states the target; the first tip is about moving.
-    this.tip('move', 'WASD moves Pip · get behind the sheep to drive them · hold C to creep', 10, 0);
+    this.tip('move', 'WASD moves Pip · get behind the sheep · hold C to creep', 10, 0);
     this.setMode('playing');
   }
 
@@ -649,10 +649,14 @@ export class Game {
     // The wolf-cam inset stands in for the edge marker of the hunt it is showing.
     const shown = this.wolfCam.visible ? sim.wolves.find((w) => w.id === this.insetWolf && w.state !== 'gone') : undefined;
     for (const s of sim.sheep) {
-      if (s.state === 'grabbed' && shown?.target !== s) out.push({ id: `g${s.id}`, kind: 'grab', x: s.x, y: h(s.x, s.z) + 1, z: s.z, iconOnScreen: true, muted: this.dragFeasible === false });
+      // Only off screen: in view the carrying wolf's rings and the banner already say it all.
+      if (s.state === 'grabbed' && shown?.target !== s) out.push({ id: `g${s.id}`, kind: 'grab', x: s.x, y: h(s.x, s.z) + 1, z: s.z, muted: this.dragFeasible === false });
     }
+    // While a sheep is being dragged away, that is the only thing to point at: the other wolves'
+    // markers and the nearest-sheep marker wait.
+    const snatch = sim.wolves.some((w) => w.state === 'drag');
     for (const w of sim.wolves) {
-      if ((w.state === 'stalk' || w.state === 'charge') && w !== shown) out.push({ id: `w${w.id}`, kind: 'wolf', x: w.x, y: h(w.x, w.z) + 1, z: w.z });
+      if ((w.state === 'stalk' || w.state === 'charge') && w !== shown && !snatch) out.push({ id: `w${w.id}`, kind: 'wolf', x: w.x, y: h(w.x, w.z) + 1, z: w.z });
     }
     // If no loose sheep is in view, point at the nearest one.
     const cam = this.stage.camera;
@@ -671,7 +675,7 @@ export class Game {
         nearest = s;
       }
     }
-    if (!anyVisible && nearest) out.push({ id: 'stray', kind: 'sheep', x: nearest.x, y: h(nearest.x, nearest.z) + 1, z: nearest.z });
+    if (!anyVisible && nearest && !snatch) out.push({ id: 'stray', kind: 'sheep', x: nearest.x, y: h(nearest.x, nearest.z) + 1, z: nearest.z });
     // The first seconds of the first day: name the dashed ring on the ring itself.
     if (this.runs === 1 && sim.elapsed < 20) {
       const r = sim.dogThreatRadius;
@@ -830,7 +834,8 @@ export class Game {
     // The gate while sheep are going through it: the moment the map must not hide.
     const m = this.level.fold.mouth;
     const nearGate = sim.sheep.some((s) => s.state !== 'lost' && s.state !== 'folded' && (s.x - m.x) ** 2 + (s.z - m.z) ** 2 < 30 * 30);
-    return nearGate && under(this.level.fold.minX, this.level.fold.cz);
+    const f = this.level.fold;
+    return nearGate && (under(f.minX, f.cz) || under(f.cx, f.cz) || under(f.maxX, f.minZ) || under(f.maxX, f.maxZ));
   }
 
   /** Screen positions (CSS pixels) of Pip, the loose sheep and the hunting wolves in view. */

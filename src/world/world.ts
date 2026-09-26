@@ -179,7 +179,8 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
       }
       void main() {
         float across = abs(vUv.y - 0.5) * 2.0;
-        vec3 col = mix(uDeep, uShallow, smoothstep(0.15, 1.0, across));
+        // Deep water across most of the stream, shallows only near the bank.
+        vec3 col = mix(uDeep, uShallow, smoothstep(0.5, 1.0, across));
         // The stream mirrors the sky: gold, then rose, then violet (at its own brightness).
         const vec3 LW = vec3(0.2126, 0.7152, 0.0722);
         // The ford: pale turquoise shallows over a gravel bed, with ripples running across, so it
@@ -195,7 +196,7 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         // near the banks, the deep middle keeping some of its own dark colour, so it still reads as
         // water (a flat mirror read as a painted road).
         float sheen = vnoise(vec2(vUv.x * 1.6 - uTime * 0.18, vUv.y * 4.0)) * 0.6 + vnoise(vec2(vUv.x * 4.5 - uTime * 0.3, vUv.y * 9.0) + 3.0) * 0.4;
-        float refl = uReflect * (0.2 + 0.8 * smoothstep(0.2, 0.9, across)) * (0.5 + 0.5 * smoothstep(0.3, 0.75, sheen));
+        float refl = uReflect * (0.5 + 0.5 * smoothstep(0.3, 0.9, across)) * smoothstep(0.45, 0.8, sheen);
         col = mix(col, uTint * 0.95, refl);
         // Slow lighter streaks drifting downstream: the current, readable in any light.
         float streak = smoothstep(0.6, 0.82, vnoise(vec2(vUv.x * 2.4 - uTime * 0.32, vUv.y * 6.5)));
@@ -211,7 +212,9 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         col *= uLight;
         // The bright evening sky caught in the current's slow streaks, at the sky's own brightness:
         // from sunset on the stream holds more light than the ground around it, as water does.
-        float skyRefl = smoothstep(0.6, 0.9, sheen) * (0.3 + 0.7 * smoothstep(0.1, 0.8, across));
+        // In streaks over the whole surface, not a pale band along the banks (that read as a misty
+        // ravine).
+        float skyRefl = smoothstep(0.62, 0.9, sheen) * (0.7 + 0.3 * smoothstep(0.1, 0.8, across));
         col = mix(col, uSky * uSkyLight, skyRefl * uSkyRefl);
         col += uSky * glint * uGlint;
         gl_FragColor = vec4(col, 1.0);
@@ -591,21 +594,25 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   const wu = w.water.material.uniforms;
   wu.uTime.value = time;
   // Glints are sky colour washed towards white, so sunset hues read as sparkle, not blotches.
-  wu.uSky.value.copy(mood.skyHorizon).lerp(WHITE, 0.55);
+  // The sky colour the stream catches: the horizon's own rose and gold (washed less towards white
+  // than before, so the reflection reads as warm sky on dark water, not as grey fog).
+  wu.uSky.value.copy(mood.skyHorizon).lerp(WHITE, 0.35);
   // Water brightness follows the light falling on flat ground, relative to golden hour; its tint
   // is the sky it reflects: the horizon's gold and rose, then the moonlit sky.
   wu.uLight.value = 0.9 * Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
   // Glints from the sunset on (by day they read as a white stripe), strongest under the moon.
   const evening = Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15));
-  wu.uGlint.value = 0.1 * evening + 0.2 * mood.night;
-  wu.uSkyRefl.value = 0.1 + 0.16 * evening - 0.06 * mood.night;
+  wu.uGlint.value = 0.28 * evening + 0.12 * mood.night;
+  wu.uSkyRefl.value = 0.1 + 0.3 * evening - 0.14 * mood.night;
   wu.uSkyLight.value = 0.75 - 0.4 * mood.night;
   GROUND_TINT.value.copy(mood.ground);
   HILL_DIR.value.set(mood.keyDir.x, 0, mood.keyDir.z).normalize();
   wu.uTint.value.copy(mood.skyHorizon).lerp(LAVENDER, 0.65).lerp(INDIGO, mood.night);
   wu.uReflect.value = 0.16 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) * (1 - 0.6 * mood.night);
   // From sunset the stream mirrors the sky: rose, then lilac, then the moonlit indigo.
-  wu.uTintAmt.value = 0.06 + 0.42 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
+  // The body takes only a little of the sky's colour: the lavender wash over the whole stream read
+  // as mist in a ravine.
+  wu.uTintAmt.value = 0.06 + 0.22 * Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15)) + 0.1 * mood.night;
   const su = w.sky.material.uniforms;
   su.uTop.value.copy(mood.skyTop);
   su.uHorizon.value.copy(mood.skyHorizon);

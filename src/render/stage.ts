@@ -149,7 +149,8 @@ export class Stage {
     // Gold while the sun is high, the rose of the horizon once it sets.
     const glow = moon ? MOON_GLOW : tmpC.copy(m.sunGlow).lerp(m.skyHorizon, t < 0.3 ? 0.4 : 0.4 + Math.min(1, (t - 0.3) / 0.15) * 0.35);
     // Strongest through sunset and dusk, when the western sky is the brightest thing in the world.
-    const amount = this.titleShot ? 0 : moon ? 0.07 : t < 0.3 ? 0.16 : t < 0.5 ? 0.16 + (t - 0.3) * 0.8 : Math.max(0.1, 0.32 - (t - 0.5) * 0.5);
+    // Kept modest: a strong glow washed the sun's side of the frame (and the stream in it) to a pale haze.
+    const amount = this.titleShot ? 0 : moon ? 0.06 : t < 0.3 ? 0.12 : t < 0.5 ? 0.12 + (t - 0.3) * 0.35 : Math.max(0.08, 0.19 - (t - 0.5) * 0.3);
     this.grade.setSun(behind ? -tmpV.x : tmpV.x, behind ? -tmpV.y : tmpV.y, glow, Math.max(0, amount));
     return m;
   }
