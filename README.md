@@ -17,9 +17,10 @@ drag a sheep into the trees. Night falls in violet and moonlight.
 
 | | |
 | --- | --- |
-| ![Title screen](screenshots/01-title.png) | ![A sheep makes it home](screenshots/03-home.png) |
-| ![A wolf stalks under the rose sunset](screenshots/04-wolf.png) | ![A snatch: sprint and bark](screenshots/05-snatch.png) |
-| ![Nightfall at the fold](screenshots/06-night.png) | ![Every sheep is home](screenshots/07-win.png) |
+| ![The title screen](screenshots/01-title.png) | ![A wolf stalks the flock under the rose sunset](screenshots/03-wolf.png) |
+| ![A snatch: sprint at it and bark](screenshots/04-snatch.png) | ![Nightfall at the fold](screenshots/05-night.png) |
+
+![Every sheep is home: the day's results beside the fold](screenshots/06-win.png)
 
 ## Play it
 

@@ -137,7 +137,7 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
       {
         uTime: { value: 0 },
         // Deep teal, darker than the grass on its banks in every light.
-        uDeep: { value: new THREE.Color('#123c56') },
+        uDeep: { value: new THREE.Color('#1c5474') },
         uShallow: { value: new THREE.Color('#3c7c88') },
         uSky: { value: new THREE.Color('#e8d6b0') },
         uFoam: { value: new THREE.Color('#eef6f8') },
@@ -195,7 +195,7 @@ function waterMaterial(ford: { x: number; z: number; r: number }) {
         // The evening sky mirrored on the surface, broken by the current: brightest in slow streaks
         // near the banks, the deep middle keeping some of its own dark colour, so it still reads as
         // water (a flat mirror read as a painted road).
-        float sheen = vnoise(vec2(vUv.x * 1.6 - uTime * 0.18, vUv.y * 4.0)) * 0.6 + vnoise(vec2(vUv.x * 4.5 - uTime * 0.3, vUv.y * 9.0) + 3.0) * 0.4;
+        float sheen = vnoise(vec2(vUv.x * 1.1 - uTime * 0.18, vUv.y * 9.0)) * 0.6 + vnoise(vec2(vUv.x * 3.2 - uTime * 0.3, vUv.y * 17.0) + 3.0) * 0.4;
         float refl = uReflect * (0.5 + 0.5 * smoothstep(0.3, 0.9, across)) * smoothstep(0.45, 0.8, sheen);
         col = mix(col, uTint * 0.95, refl);
         // Slow lighter streaks drifting downstream: the current, readable in any light.
@@ -446,8 +446,8 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   // Tussocks gather in clumps with grazed lawn between, not an even speckle.
   const clump = (x: number, z: number) => Math.sin(x * 0.21 + 1.3) * Math.cos(z * 0.17 - 0.4) + Math.sin((x - z) * 0.09) * 0.6;
   const tussock = (x: number, z: number) => grassTest(x, z) && clump(x, z) > -0.15 + rng.next() * 0.5;
-  root.add(instance(a.nature.get('grass_a')!, scatter(1100, tussock, [0.8, 1.6]), { shadow: false }).group);
-  root.add(instance(a.nature.get('grass_b')!, scatter(1100, tussock, [0.8, 1.6]), { shadow: false }).group);
+  root.add(instance(a.nature.get('grass_a')!, scatter(800, tussock, [0.8, 1.6]), { shadow: false }).group);
+  root.add(instance(a.nature.get('grass_b')!, scatter(800, tussock, [0.8, 1.6]), { shadow: false }).group);
   const meadow = (x: number, z: number) => x > -40 && grassTest(x, z) && Math.sin(x * 0.11) * Math.cos(z * 0.13) > 0.42;
   root.add(instance(a.nature.get('flower_white')!, scatter(190, meadow, [0.9, 1.3]), { shadow: false }).group);
   root.add(instance(a.nature.get('flower_yellow')!, scatter(190, meadow, [0.9, 1.3]), { shadow: false }).group);
@@ -468,10 +468,6 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   const fern = (x: number, z: number) => upland(x, z) && grassTest(x, z) && patch(x, z, 2.2) > 0.35;
   root.add(instance(a.nature.get('bracken_a')!, scatter(170, fern, [0.9, 1.4]), { shadow: false }).group);
   root.add(instance(a.nature.get('bracken_b')!, scatter(150, fern, [0.9, 1.4]), { shadow: false }).group);
-  // A few clumps of bracken out in the meadows too, so the valley floor is not an empty lawn.
-  const lowFern = (x: number, z: number) => !upland(x, z) && grassTest(x, z) && patch(x, z, 5.3) > 0.62;
-  root.add(instance(a.nature.get('bracken_a')!, scatter(70, lowFern, [0.8, 1.2]), { shadow: false }).group);
-  root.add(instance(a.nature.get('bracken_b')!, scatter(60, lowFern, [0.8, 1.2]), { shadow: false }).group);
   // No gorse where the wolves come out of the trees: its orange flowers beside a wolf's ember
   // outline turned the pair into noise.
   const nearDen = (x: number, z: number) => level.dens.some(([dx, dz]) => (x - dx) ** 2 + (z - dz) ** 2 < 34 * 34);
@@ -551,6 +547,11 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
     root.add(light);
     return light;
   });
+  const foldLight = new THREE.PointLight(0xffb45e, 0, 18, 2);
+  foldLight.position.set(level.fold.cx + 1, g(level.fold.cx, level.fold.cz) + 5.2, level.fold.cz);
+  foldLight.userData.gain = 2.6;
+  root.add(foldLight);
+  lanternLights.push(foldLight);
 
   // Materials that glow at night (windows, lantern glass), and stone that must stay grey by moonlight.
   const glowMaterials: THREE.MeshLambertMaterial[] = [];
@@ -599,11 +600,11 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   wu.uSky.value.copy(mood.skyHorizon).lerp(WHITE, 0.35);
   // Water brightness follows the light falling on flat ground, relative to golden hour; its tint
   // is the sky it reflects: the horizon's gold and rose, then the moonlit sky.
-  wu.uLight.value = 0.9 * Math.min(1.05, Math.max(0.3, groundLight(mood) / GOLDEN_GROUND));
+  wu.uLight.value = 0.95 * Math.min(1.05, Math.max(0.62, groundLight(mood) / GOLDEN_GROUND));
   // Glints from the sunset on (by day they read as a white stripe), strongest under the moon.
   const evening = Math.min(1, Math.max(0, (mood.t - 0.3) / 0.15));
   wu.uGlint.value = 0.28 * evening + 0.12 * mood.night;
-  wu.uSkyRefl.value = 0.1 + 0.3 * evening - 0.14 * mood.night;
+  wu.uSkyRefl.value = 0.1 + 0.22 * evening - 0.1 * mood.night;
   wu.uSkyLight.value = 0.75 - 0.4 * mood.night;
   GROUND_TINT.value.copy(mood.ground);
   HILL_DIR.value.set(mood.keyDir.x, 0, mood.keyDir.z).normalize();
@@ -624,7 +625,7 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   for (const m of w.glowMaterials) m.emissiveIntensity = 0.2 + 3.2 * mood.night;
   for (const m of w.stoneMaterials) m.emissiveIntensity = 0.75 * mood.night;
   // The fold lanterns are the warm lights at night: lit from the twilight, pooling on the grass.
-  for (const l of w.lanternLights) l.intensity = 46 * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
+  for (const l of w.lanternLights) l.intensity = 46 * (l.userData.gain ?? 1) * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
 
   // Trees standing between the camera and anything that matters fade to a dither.
   const k = 1 - Math.exp(-6 * dt);

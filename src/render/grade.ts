@@ -298,7 +298,10 @@ export class GradePass {
             // hues (the stream, stone) partly, so the valley keeps some of its own colours.
             float fromGrass = abs(atan(sin(hue - 1.99), cos(hue - 1.99)));
             float k = 1.0 - uSpare * smoothstep(1.0, 1.6, fromGrass) * smoothstep(0.012, 0.045, cs);
-            vec2 ab = wS * toward(own * uShadeKeep, cs, lab.x, k, uShadowZ) + wM * toward(own, cs, lab.x, k, uMidZ) + wH * toward(own, cs, lab.x, k, uHighZ);
+            // Shade sheds its own colour before the shadow hue (so olive shade turns violet, not
+            // brown); hues spared from the zones (the stream's blue) keep theirs, or dark water went
+            // a colourless black.
+            vec2 ab = wS * toward(own * mix(1.0, uShadeKeep, k), cs, lab.x, k, uShadowZ) + wM * toward(own, cs, lab.x, k, uMidZ) + wH * toward(own, cs, lab.x, k, uHighZ);
             // Signal colours keep their own; the animals keep most of theirs, so they stand out
             // from the ground by colour as well as by outline.
             ab = mix(ab, lab.yz, max(max(smoothstep(uProtect, uProtect + 0.05, chroma), character * 0.7), lamp));

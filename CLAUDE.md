@@ -834,3 +834,14 @@ Newest at the bottom. Record every non-obvious choice.
   timer fade only their panels (the text stays solid with a shadow). The hint wraps inside the
   space between the meters and the right edge. The minimap also fades while the fold is under it
   and the flock is at the gate.
+- 2026-09-26 (M5 critic r2, worst: major, the stream at sunset a blurred black chasm): the grade's
+  shade step stripped three quarters of every dark pixel's own colour before tinting it, water
+  included, so the darkened stream went a colourless black. Shade now sheds its colour only for the
+  grass family (hues spared from the zones keep theirs), the water body is lighter with a floor of
+  brightness in the evening, and the sky lies on it in long thin streaks along the flow instead of
+  round smears. A warm light hangs over the fold after dark (the walls and the farmhouse threw the
+  goal into black under the moon), Pip's reach ring brightens and cools as the light falls, the
+  meadow bracken added in M4 is gone (from above it read as tiny palm trees) and there are fewer
+  grass tufts, the hint wraps evenly, the minimap fades less over the fold, the how-to explains the
+  counter's dots and stars, and the nearest-sheep marker is a side-on sheep (the last read as a
+  mushroom).

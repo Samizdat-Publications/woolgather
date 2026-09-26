@@ -517,3 +517,12 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![A snatch in the final build](m5-r2-snatch.png)
 *A snatch in the final build*
 
+
+## m5-r3 (2026-09-26)
+
+![M5 round 3: the stream reads as a blue river under the rose sunset](m5-r3-bridge.png)
+*M5 round 3: the stream reads as a blue river under the rose sunset*
+
+![Night with the fold lit warm](m5-r3-late-night.png)
+*Night with the fold lit warm*
+

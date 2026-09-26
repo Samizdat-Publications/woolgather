@@ -12,6 +12,8 @@ import type { Terrain } from './terrain';
 // Characters are drawn larger than life so they read from the herding camera's height.
 export const SCALE = { dog: 2.4, sheep: 1.9, wolf: 2.3 };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
+/** The reach ring by moonlight: a cooler, brighter white. */
+const RING_NIGHT = new THREE.Color('#e8f0ff');
 /** Pip's light rim: warm cream by day, moonlit blue after dark. */
 const HALO_DAY = new THREE.Color('#fff0d0');
 const HALO_NIGHT = new THREE.Color('#b4ccf0');
@@ -470,7 +472,7 @@ export class Actors {
     // Bold while the first day's label explains it, a finer line after that.
     this.zone.place(d.x, d.z, this.zoneR, this.time * 0.12, sim.elapsed < 20 && sim.elapsed >= 0 ? 1 : 0.6);
     this.zoneUnder.place(d.x, d.z, this.zoneR + 0.3);
-    this.zone.mesh.material.color.set(d.creeping ? 0x8fd0ff : 0xfff4d6);
+    this.zone.mesh.material.color.set(d.creeping ? 0x8fd0ff : 0xfff4d6).lerp(RING_NIGHT, d.creeping ? 0 : night * 0.6);
     const reach = this.zoneR * 1.6;
     let near = false;
     let fx = 0;
@@ -500,7 +502,7 @@ export class Actors {
     const intro = sim.elapsed < 20 ? 1 : 0;
     const want = Math.max(intro * 0.42, near ? (d.creeping ? 0.3 : d.sprinting ? 0.12 : 0.2) : 0);
     this.zoneA += (want - this.zoneA) * (1 - Math.exp(-5 * dt));
-    this.zone.mesh.material.opacity = this.zoneA;
+    this.zone.mesh.material.opacity = Math.min(1, this.zoneA * (1 + 0.7 * night));
     this.zoneUnder.mesh.material.opacity = this.zoneA * 0.25;
     this.zone.mesh.visible = this.zoneUnder.mesh.visible = showRings && this.zoneA > 0.005;
 

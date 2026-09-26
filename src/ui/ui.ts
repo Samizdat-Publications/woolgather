@@ -143,7 +143,7 @@ export class Ui {
               <li>Sheep will not wade the stream: cross at the <b>bridge</b> or the shallow <b>ford</b>.</li>
               <li>Drive them through the gate of the <b>stone fold</b> by the farmhouse.</li>
               <li>When the sun sets (the red notch on the sun bar), <b>wolves</b> come for stragglers. Run at one or bark and it drops its prey.</li>
-              <li>Each evening has a <b>target</b> (9 of 12 on Standard). The counter shows how many more you can afford to lose.</li>
+              <li>Each evening has a <b>target</b> (9 of 12 on Standard). The counter has a dot per sheep, with stars at the target, at 11 and at all 12 home, and says how many more you can afford to lose.</li>
               <li>Target met? Latch the gate to end the day, or keep herding: more sheep, more stars.</li>
             </ul>
           </div>
