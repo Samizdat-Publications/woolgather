@@ -547,9 +547,9 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
     root.add(light);
     return light;
   });
-  const foldLight = new THREE.PointLight(0xffb45e, 0, 18, 2);
-  foldLight.position.set(level.fold.cx + 1, g(level.fold.cx, level.fold.cz) + 5.2, level.fold.cz);
-  foldLight.userData.gain = 2.6;
+  const foldLight = new THREE.PointLight(0xffc98a, 0, 20, 2);
+  foldLight.position.set(level.fold.cx + 1, g(level.fold.cx, level.fold.cz) + 7.5, level.fold.cz);
+  foldLight.userData.gain = 1.5;
   root.add(foldLight);
   lanternLights.push(foldLight);
 

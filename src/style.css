@@ -275,10 +275,11 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .howto b { color: var(--wool); font-weight: 800; }
 .legend { width: 100%; padding-top: 12px; border-top: 1.5px dashed var(--stitch); font-size: 14px; }
 .legend-title { margin-bottom: 8px; font-weight: 700; color: var(--wool-3); text-align: center; }
-.legend-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 22px; }
+.legend-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px 28px; }
 .lg { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
 .lg-icon { position: relative; display: inline-block; width: 30px; height: 30px; }
-.lg-icon .ind-icon { left: 0; top: 0; }
+.lg .lg-icon .ind-icon { left: 0; top: 0; width: 30px; height: 30px; }
+.lg .lg-icon { animation: none; }
 
 /* ---------------------------------------------------------------- world markers */
 

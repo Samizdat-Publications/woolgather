@@ -858,3 +858,13 @@ Newest at the bottom. Record every non-obvious choice.
   stronger dark stroke. The counter's dots have a gold tick at the target and the star goals are
   spelled out underneath ("★ 9 ★★ 11 ★★★ 12", gold when reached, struck out when out of reach)
   instead of stars mixed into the row. The minimap takes the evening's tint again, more gently.
+- 2026-09-26 (M5 critic r4, worst: major, the snatch alert piling up in the HUD band): the sticky
+  alert never goes see-through (it faded to half whenever an animal was behind it, the one line
+  saying what to do); the close-up goes the moment its wolf is in the main view (lingering, it
+  showed the same wolf twice); while a wolf hunts, the camera keeps 4 m more ground clear at the
+  top of the view. One wording for the wolf rule everywhere ("run at it or bark near it: it drops
+  the sheep"; the far alert says to sprint to it first). The wolf's coat is a lighter cool grey
+  with a pale muzzle and chest and brighter eye-shine; the fold's light only lifts the dark (a
+  strong one read as an orange smudge with no lamp); night is a darker indigo with thinner fog and
+  fewer fireflies; the how-to's marker icons sit on one baseline without the jaws marker's pulse
+  or its larger in-game size (a selector clash).

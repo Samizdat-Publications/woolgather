@@ -127,10 +127,10 @@ def wolf():
     # cream muzzle, cheeks, throat and belly, no ruff. (Earlier versions read as a foal, a dark
     # smudge, a pale tube, a hooded figure, a collie, a fox, a boar and, in warm grey-brown, as
     # part of the ground.)
-    grey = W.mat("wolf_grey", "#6a7382", 0.9)
-    light = W.mat("wolf_light", "#e6dfcf", 0.9)
-    dark = W.mat("wolf_dark", "#33373f", 0.85)
-    saddle = W.mat("wolf_saddle", "#4a515e", 0.9)
+    grey = W.mat("wolf_grey", "#8b94a2", 0.9)
+    light = W.mat("wolf_light", "#ece6d8", 0.9)
+    dark = W.mat("wolf_dark", "#383c45", 0.85)
+    saddle = W.mat("wolf_saddle", "#5a6170", 0.9)
     nose = W.mat("wolf_nose", "#111114", 0.5)
     glow = W.mat("wolf_eyes", "#ffc045", 0.4, emit="#ffb030", emit_strength=4.0)
 

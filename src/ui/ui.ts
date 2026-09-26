@@ -143,7 +143,7 @@ export class Ui {
               <li>The dashed ring is Pip's reach: sheep inside it move away. Creeping shrinks it, sprinting grows it.</li>
               <li>Sheep will not wade the stream: cross at the <b>bridge</b> or the shallow <b>ford</b>.</li>
               <li>Drive them through the gate of the <b>stone fold</b> by the farmhouse.</li>
-              <li>When the sun sets (the red notch on the sun bar), <b>wolves</b> come for stragglers. Run at one or bark and it drops its prey.</li>
+              <li>When the sun bar reaches the red notch, <b>wolves</b> come out for stragglers. Run at one or bark near it: it drops the sheep.</li>
               <li>Each evening has a <b>target</b> (9 of 12 on Standard). The counter has a dot per sheep, with stars at the target, at 11 and at all 12 home, and says how many more you can afford to lose.</li>
               <li>Target met? Latch the gate to end the day, or keep herding: more sheep, more stars.</li>
             </ul>
@@ -443,6 +443,10 @@ export class Ui {
     for (const sel of ['.hud-counts', '.hud-time', '.toast', '.hud-prompt']) {
       const el = $(sel, this.root);
       if (el.hidden) continue;
+      if (el.classList.contains('sticky')) {
+        el.classList.remove('see-through');
+        continue;
+      }
       const r = this.rectOf(el).r;
       const under = points.some((p) => p.x > r.left - 14 && p.x < r.right + 14 && p.y > r.top - 14 && p.y < r.bottom + 14);
       el.classList.toggle('see-through', under);
@@ -563,7 +567,7 @@ export class Ui {
       const left = sim.total - sim.lost;
       if (o.reason === 'wolves') {
         sub.textContent = `Only ${left} sheep are left and you needed ${sim.target} home.`;
-        tip = 'Run straight at a wolf or bark (Space): it drops its prey and runs.';
+        tip = 'Run at a wolf or bark (Space) near it: it drops the sheep and runs.';
       } else if (sim.folded === 0) {
         sub.textContent = `None of the ${sim.target} sheep you needed made it home.`;
         tip = 'Get behind a flock and let it trot on ahead of you towards the gate.';

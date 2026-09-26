@@ -550,7 +550,7 @@ export class Actors {
         // every hour (pushing it above white made the tone mapping wash it to salmon).
         // Warm eye-shine that reads from the herding camera once the light goes.
         const glow = new THREE.Sprite(this.glowMat);
-        glow.scale.setScalar(0.4);
+        glow.scale.setScalar(0.55);
         glow.position.set(0, 0.07, 0.3); // heads face +Z: the eyes are in front, low on the face
         (r.head ?? r.root).add(glow);
         // While it stalks: a dashed line to the sheep it is after, and a pulsing ring on that sheep.

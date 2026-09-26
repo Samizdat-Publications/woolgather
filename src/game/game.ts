@@ -105,7 +105,7 @@ export class Game {
       const r = 10 + Math.random() * 22;
       spots.push({ x: fold.cx + Math.cos(a) * r, z: fold.cz + Math.sin(a) * r });
     }
-    for (let k = 0; k < 400 && spots.length < 400; k++) {
+    for (let k = 0; k < 400 && spots.length < 220; k++) {
       const x = (Math.random() - 0.5) * 220;
       const z = (Math.random() - 0.5) * 220;
       if (this.level.insideValley(x, z) && !this.level.inFold(x, z, -2)) spots.push({ x, z });
@@ -411,9 +411,11 @@ export class Game {
       // The banner carries the distance; the inset's label only says what it shows.
       this.wolfCam.track(best.x, this.terrain.height(best.x, best.z), best.z, best.heading, best.text, dock.x, dock.y, dock.point, dt);
     } else if (this.wolfCam.visible) {
-      // While the inset lingers, stay on the same wolf rather than on the spot it left.
+      // While the inset lingers, stay on the same wolf rather than on the spot it left; once that
+      // wolf is in the main view the close-up goes at once (it showed the same wolf twice).
       const w = sim.wolves.find((o) => o.id === this.insetWolf && o.state !== 'gone');
-      if (w) this.wolfCam.follow(w.x, this.terrain.height(w.x, w.z), w.z, w.facing, dt);
+      if (w && !offScreen(w.x, w.z)) this.wolfCam.hide();
+      else if (w) this.wolfCam.follow(w.x, this.terrain.height(w.x, w.z), w.z, w.facing, dt);
     }
   }
   private insetWolf = -1;
@@ -473,7 +475,8 @@ export class Game {
     // under the timer and banners at the top or on the bottom edge (north is up the screen).
     const banner = this.ui.bannerUp;
     const SAFE = { side: 6, north: banner ? 9 : 6, south: 4 };
-    const top = banner ? 13 : 9;
+    const hunting = sim.wolves.some((w) => w.state === 'stalk' || w.state === 'charge' || w.state === 'drag');
+    const top = (banner ? 13 : 9) + (hunting ? 4 : 0);
     let minX = d.x - SAFE.side;
     let maxX = d.x + SAFE.side;
     let minZ = d.z - SAFE.north;
@@ -930,11 +933,11 @@ export class Game {
       const place = this.level.placeName(s.x, s.z);
       const inRange = Math.hypot(dragger.x - d.x, dragger.z - d.z) < DOG.barkWolfRadius - 1;
       if (inRange || far < 16) {
-        this.ui.alert(`A wolf has one of your sheep! ${secs} s to save it`, inRange ? 'Bark (Space) now to make it let go!' : 'Bark (Space) or run into the wolf');
+        this.ui.alert(`A wolf has one of your sheep! ${secs} s to save it`, inRange ? 'Bark (Space) now: it drops the sheep!' : 'Run at it or bark (Space) near it: it drops the sheep');
         this.ui.hint('');
       } else if (this.dragFeasible) {
         const dist = Math.round(Math.hypot(dragger.x - d.x, dragger.z - d.z));
-        this.ui.alert(`A wolf has a sheep ${place}! ${this.arrowTo(dragger.x, dragger.z)} ${dist} m · ${secs} s to save it`, 'Sprint at it (Shift), then bark (Space)');
+        this.ui.alert(`A wolf has a sheep ${place}! ${this.arrowTo(dragger.x, dragger.z)} ${dist} m · ${secs} s to save it`, 'Sprint (Shift) to it, then run at it or bark (Space) near it');
         this.ui.hint('');
       } else {
         // Out of reach: still announced for the whole drag (a quiet toast and a grey marker read as
