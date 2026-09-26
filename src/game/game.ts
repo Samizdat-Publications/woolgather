@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GameAudio } from '../audio/audio';
 import { moodTime } from '../render/daycycle';
-import { Stage } from '../render/stage';
+import { QUALITY_TIERS, Stage, type Quality } from '../render/stage';
 import { INSET, WolfCam } from '../render/wolfcam';
 import { hudState, Indicators, type Marker } from '../ui/indicators';
 import { PerfOverlay } from '../ui/perf';
@@ -24,6 +24,8 @@ export interface GameOptions {
   seed: number;
   test: boolean;
   difficulty?: Difficulty;
+  /** Graphics: a fixed tier, or 'auto' (the default, remembered from the pause menu). */
+  quality?: 'auto' | Quality;
 }
 
 export class Game {
@@ -68,6 +70,19 @@ export class Game {
     if (opts.difficulty) this.ui.setDifficulty(opts.difficulty);
     this.ui.onAction = (a) => this.onUi(a);
     this.ui.bindSound(this.audio.engine.settings, () => this.audio.engine.apply());
+    // Graphics: the player's choice (remembered), or Auto, which starts high and steps down a
+    // tier whenever play runs slower than about 52 frames a second.
+    this.qualityMode = opts.quality ?? loadQuality();
+    this.stage.setQuality(this.qualityMode === 'auto' ? 'high' : this.qualityMode);
+    this.ui.bindQuality(
+      () => ({ mode: this.qualityMode, tier: this.stage.quality }),
+      (m) => {
+        this.qualityMode = m;
+        saveQuality(m);
+        this.frameWindow.length = 0;
+        this.stage.setQuality(m === 'auto' ? 'high' : m);
+      },
+    );
     this.toTitle();
   }
 
@@ -97,6 +112,7 @@ export class Game {
     }
     this.particles = new Particles(assets, this.terrain, spots);
     this.stage.scene.add(this.particles.root);
+    this.warmUp();
     this.ready = true;
   }
 
@@ -105,6 +121,23 @@ export class Game {
       this.last = t;
       this.frame(t);
     });
+  }
+
+  /**
+   * Compile every shader the day will need now, behind the loading screen: a wolf's first
+   * appearance and the fireflies at dusk each froze the game for a moment while theirs compiled.
+   * The scene renders into the grade pass's target, so that is where they are compiled for.
+   */
+  private warmUp() {
+    if (!this.actors) return;
+    const extra = this.actors.warmUpObjects();
+    const scene = this.stage.scene;
+    const r = this.stage.renderer;
+    scene.add(...extra);
+    r.setRenderTarget(this.stage.grade.target);
+    r.compile(scene, this.stage.camera);
+    r.setRenderTarget(null);
+    scene.remove(...extra);
   }
 
   private onUi(a: UiAction) {
@@ -194,6 +227,23 @@ export class Game {
   }
 
   private frameMs: number[] = [];
+  private qualityMode: 'auto' | Quality = 'auto';
+  private frameWindow: number[] = [];
+
+  /** Auto graphics: step down a tier while most frames of play miss about 52 fps. */
+  private autoQuality(ms: number) {
+    if (this.qualityMode !== 'auto' || this.mode !== 'playing' || this.stage.quality === 'low') {
+      this.frameWindow.length = 0;
+      return;
+    }
+    this.frameWindow.push(ms);
+    if (this.frameWindow.length < 150) return;
+    const sorted = this.frameWindow.splice(0).sort((a, b) => a - b);
+    if (sorted[Math.floor(sorted.length / 2)] > 19) {
+      this.stage.setQuality(this.stage.quality === 'high' ? 'medium' : 'low');
+      this.ui.syncQuality();
+    }
+  }
   /** Seconds of hit-stop left (the action nearly freezes on a rescue). */
   private hitStop = 0;
   private dustT = 0;
@@ -210,6 +260,7 @@ export class Game {
     this.perf?.frame(now - this.last);
     this.frameMs.push(now - this.last);
     if (this.frameMs.length > 120) this.frameMs.shift();
+    this.autoQuality(now - this.last);
     const rawDt = Math.min(0.05, Math.max(0, (now - this.last) / 1000));
     this.last = now;
     let dt = rawDt * this.timeScale;
@@ -291,14 +342,14 @@ export class Game {
       mood = this.stage.applyMood(0.28);
     }
     this.audio.update(rawDt, sim, mood.t, mood.night, this.mode, sim && this.mode === 'playing' ? this.tension(sim) : 0);
-    this.particles?.update(this.mode === 'paused' ? 0 : dt, this.stage.camera, this.clock, mood.night, this.stage.renderer.getDrawingBufferSize(tmpV2).y);
+    const tgt = this.stage.grade.target;
+    this.particles?.update(this.mode === 'paused' ? 0 : dt, this.stage.camera, this.clock, mood.night, tgt.height);
     this.gateOpen += (this.gateTarget - this.gateOpen) * (1 - Math.exp(-3.5 * rawDt));
     const open = this.gateOpen * 1.65;
     if (this.world.gateN) this.world.gateN.rotation.y = open;
     if (this.world.gateS) this.world.gateS.rotation.y = -open;
     this.stage.updateCamera(this.mode === 'paused' ? 0 : rawDt);
-    const buf = this.stage.renderer.getDrawingBufferSize(tmpV2);
-    updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt, buf.x, buf.y);
+    updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt, tgt.width, tgt.height);
     if (sim && (this.mode === 'playing' || this.mode === 'paused')) {
       this.indicators.update(this.stage.camera, this.markers(sim));
       this.ui.fadeMap(this.behindMap(sim));
@@ -990,6 +1041,25 @@ const tmpV = new THREE.Vector3();
 /** The herding camera's usual distance (1 = the configured offset): far enough that Pip's reach
  * ring takes about half the screen's height. */
 const BASE_ZOOM = 0.98;
+const QUALITY_KEY = 'woolgather.quality';
+
+function loadQuality(): 'auto' | Quality {
+  try {
+    const q = localStorage.getItem(QUALITY_KEY);
+    if (q === 'auto' || (q && q in QUALITY_TIERS)) return q as 'auto' | Quality;
+  } catch {
+    // Storage blocked: Auto.
+  }
+  return 'auto';
+}
+
+function saveQuality(q: 'auto' | Quality) {
+  try {
+    localStorage.setItem(QUALITY_KEY, q);
+  } catch {
+    // Not remembered: fine.
+  }
+}
+
 /** Ground in view at zoom 1 around the focus (metres): across, towards the camera, away from it. */
 const VIEW = { half: 27.3, south: 17.8, north: 24.3 };
-const tmpV2 = new THREE.Vector2();

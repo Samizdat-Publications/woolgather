@@ -35,8 +35,8 @@ export function addOutline(root: THREE.Object3D, color: THREE.ColorRepresentatio
     // Part of the animal for the colour grade (see actors' character shader): keeps its colour.
     shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.a = 0.0;');
   };
-  // Each outline colour/width needs its own compiled program.
-  mat.customProgramCacheKey = () => `outline-${width}`;
+  // The width is a uniform, so every outline shares one compiled program.
+  mat.customProgramCacheKey = () => 'outline';
   const roots = parts ? parts.map((n) => root.getObjectByName(n)).filter((o): o is THREE.Object3D => !!o) : [root];
   const meshes: THREE.Mesh[] = [];
   for (const r of roots) {
@@ -56,6 +56,65 @@ export function addOutline(root: THREE.Object3D, color: THREE.ColorRepresentatio
     m.add(shell);
   }
   return mat;
+}
+
+/**
+ * Draws many clones of one rig with one instanced draw call per mesh (per part and material, and
+ * per outline shell) instead of one call per mesh per animal: the flock alone was about 240 draw
+ * calls a frame. The clones keep their scene graph for the animation code; their own meshes are
+ * hidden, and each frame their world matrices are copied into the instances.
+ */
+class RigInstancer {
+  readonly group = new THREE.Group();
+  private meshes: THREE.InstancedMesh[] = [];
+  private rigs: THREE.Object3D[] = [];
+
+  constructor(proto: THREE.Object3D, max: number) {
+    proto.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      const im = new THREE.InstancedMesh(m.geometry, m.material, max);
+      im.count = 0;
+      im.frustumCulled = false;
+      im.castShadow = m.castShadow;
+      im.receiveShadow = m.receiveShadow;
+      im.renderOrder = m.renderOrder;
+      im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      this.meshes.push(im);
+      this.group.add(im);
+    });
+  }
+
+  /** Draw a clone of the prototype through the instances from now on. */
+  add(root: THREE.Object3D) {
+    root.traverse((o) => {
+      if ((o as THREE.Mesh).isMesh) o.visible = false;
+    });
+    this.rigs.push(root);
+  }
+
+  remove(root: THREE.Object3D) {
+    const i = this.rigs.indexOf(root);
+    if (i >= 0) this.rigs.splice(i, 1);
+  }
+
+  /** Copy the clones' world matrices into the instances (after their poses are set). */
+  update() {
+    let n = 0;
+    for (const root of this.rigs) {
+      if (!root.visible) continue;
+      root.updateMatrixWorld(true);
+      let k = 0;
+      root.traverse((o) => {
+        if ((o as THREE.Mesh).isMesh) this.meshes[k++]?.setMatrixAt(n, o.matrixWorld);
+      });
+      n++;
+    }
+    for (const im of this.meshes) {
+      im.count = n;
+      im.instanceMatrix.needsUpdate = true;
+    }
+  }
 }
 
 export interface Rig {
@@ -313,10 +372,16 @@ export class Actors {
     // prototypes, so every clone shares them.
     addOutline(a.sheep, 0x2a2230, 0.04, ['body', 'head']);
     addOutline(a.wolf, 0x1c1418, 0.045);
+    // Sheep and wolves are drawn instanced (see RigInstancer); Pip is one of a kind.
+    this.sheepInst = new RigInstancer(a.sheep, 24);
+    this.wolfInst = new RigInstancer(a.wolf, 6);
+    this.root.add(this.sheepInst.group, this.wolfInst.group);
   }
 
   private whiteMats: THREE.MeshLambertMaterial[] = [];
   private charMats: THREE.MeshLambertMaterial[] = [];
+  private sheepInst: RigInstancer;
+  private wolfInst: RigInstancer;
   private dogHalo: THREE.MeshBasicMaterial;
   /** Ring focus: Pip's position (xy) and the pull towards the sheep in reach (zw, length = strength). */
   private zoneFocus = { value: new THREE.Vector4() };
@@ -429,6 +494,7 @@ export class Actors {
       const r = rig(this.a.sheep, SCALE.sheep * (0.93 + 0.14 * (((n * 0.618) % 1 + 1) % 1)));
       this.sheep.push(r);
       this.root.add(r.root);
+      this.sheepInst.add(r.root);
     }
     sim.sheep.forEach((s, i) => {
       const r = this.sheep[i];
@@ -473,6 +539,7 @@ export class Actors {
         const dash = new GroundDash(0xff4a30, this.terrain);
         const mark = new GroundRing(this.a.fx.get('bark_ring')!, 0xff4a30, this.terrain, 0.1);
         this.root.add(r.root, under.mesh, danger.mesh, dash.mesh, mark.mesh);
+        this.wolfInst.add(r.root);
         v = { rig: r, danger, under, glow, dash, mark, anim: new AnimState() };
         this.wolves.set(w.id, v);
       }
@@ -517,9 +584,26 @@ export class Actors {
     for (const [id, v] of this.wolves) {
       if (!seen.has(id)) {
         this.root.remove(v.rig.root, v.danger.mesh, v.under.mesh, v.dash.mesh, v.mark.mesh);
+        this.wolfInst.remove(v.rig.root);
         this.wolves.delete(id);
       }
     }
+    this.sheepInst.update();
+    this.wolfInst.update();
+  }
+
+  /**
+   * A wolf with its rings, tether and eye-shine, never shown: put in the scene for a moment at load
+   * so every shader the day will need is compiled then, not when the first wolf appears.
+   */
+  warmUpObjects() {
+    const r = rig(this.a.wolf, SCALE.wolf);
+    (r.head ?? r.root).add(new THREE.Sprite(this.glowMat));
+    const under = new GroundRing(this.a.fx.get('thick_ring')!, 0x1a1420, this.terrain, 0.09);
+    const danger = new GroundRing(this.a.fx.get('danger_ring')!, 0xff4a30, this.terrain, 0.1);
+    const dash = new GroundDash(0xff4a30, this.terrain);
+    const mark = new GroundRing(this.a.fx.get('bark_ring')!, 0xff4a30, this.terrain, 0.1);
+    return [r.root, under.mesh, danger.mesh, dash.mesh, mark.mesh];
   }
 
   /** A sheep gives a little hop (it made it home). */

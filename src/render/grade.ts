@@ -149,6 +149,8 @@ export class GradePass {
   private bloomAt = 1;
   /** Look-dev switch: false shows the tone-mapped render without the grade. */
   enabled = true;
+  /** Bloom switched off (perf analysis and the low quality tier). */
+  bloomOff = false;
   /** The haze band suits the top-down play camera; the title's low shot shows the real sky. */
   hazeScale = 1;
   /** Display-space sky colour the haze leans towards (set from the mood's horizon each frame). */
@@ -389,6 +391,13 @@ export class GradePass {
     this.material.uniforms.tBloomC.value = this.bloomC.texture;
   }
 
+  /** Multisampling of the scene target (0 turns it off). */
+  setSamples(n: number) {
+    if (this.target.samples === n) return;
+    this.target.samples = n;
+    this.target.dispose();
+  }
+
   setSize(w: number, h: number) {
     this.target.setSize(w, h);
     this.material.uniforms.uAspect.value = w / Math.max(1, h);
@@ -451,7 +460,7 @@ export class GradePass {
     u.uSkyAmt.value = m(a.sky, b.sky) * this.hazeScale;
     u.uShaftAmt.value = m(a.shafts, b.shafts) * this.hazeScale;
     u.uVignette.value = m(a.vignette, b.vignette);
-    this.bloomAmt = this.enabled ? m(a.bloom, b.bloom) : 0;
+    this.bloomAmt = this.enabled && !this.bloomOff ? m(a.bloom, b.bloom) : 0;
     this.bloomAt = m(a.bloomAt, b.bloomAt);
     this.brightMat.uniforms.uScale.value = exposure * u.uGain.value;
   }

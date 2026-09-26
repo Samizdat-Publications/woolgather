@@ -7,6 +7,8 @@ export class Minimap {
   readonly canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private base: HTMLCanvasElement;
+  /** The place names, drawn once (text is costly to draw every frame) and laid over the dots. */
+  private labels: HTMLCanvasElement;
   private scale = 1;
   private ox = 0;
   private oz = 0;
@@ -18,14 +20,17 @@ export class Minimap {
     this.canvas.className = 'minimap';
     this.ctx = this.canvas.getContext('2d')!;
     this.base = document.createElement('canvas');
+    this.labels = document.createElement('canvas');
     this.resize(240, 192);
+    // Redraw the names once the bundled font has loaded.
+    document.fonts?.ready.then(() => this.drawLabelLayer(Math.min(2, window.devicePixelRatio || 1)));
   }
 
   resize(w: number, h: number) {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     this.w = w;
     this.h = h;
-    for (const c of [this.canvas, this.base]) {
+    for (const c of [this.canvas, this.base, this.labels]) {
       c.width = Math.round(w * dpr);
       c.height = Math.round(h * dpr);
     }
@@ -43,6 +48,14 @@ export class Minimap {
     this.ox = (w - (maxX - minX) * this.scale) / 2 - minX * this.scale;
     this.oz = (h - (maxZ - minZ) * this.scale) / 2 - minZ * this.scale;
     this.drawBase(dpr);
+    this.drawLabelLayer(dpr);
+  }
+
+  private drawLabelLayer(dpr: number) {
+    const c = this.labels.getContext('2d')!;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, this.w, this.h);
+    this.drawLabels(c);
   }
 
   private px(x: number) {
@@ -210,7 +223,7 @@ export class Minimap {
     c.lineWidth = 1.3;
     c.stroke();
     c.restore();
-    this.drawLabels(c);
+    c.drawImage(this.labels, 0, 0, this.w, this.h);
   }
 
   /** Place names over everything else, so no dot ever hides a name a banner uses. */

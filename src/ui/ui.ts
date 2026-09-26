@@ -99,6 +99,11 @@ export class Ui {
             <label class="slider"><span>Music</span><input type="range" min="0" max="1" step="0.05" data-vol="music" /><output></output></label>
             <label class="slider"><span>Effects</span><input type="range" min="0" max="1" step="0.05" data-vol="sfx" /><output></output></label>
             <label class="toggle"><input type="checkbox" data-vol="muted" /><span>Mute everything <kbd>M</kbd></span></label>
+            <div class="sound-title gfx-title">Graphics</div>
+            <div class="seg" role="radiogroup">
+              <button class="seg-btn" data-q="auto">Auto</button><button class="seg-btn" data-q="high">High</button><button class="seg-btn" data-q="medium">Medium</button><button class="seg-btn" data-q="low">Low</button>
+            </div>
+            <div class="gfx-note"></div>
           </div>
         </div>
       </div></div>
@@ -192,6 +197,28 @@ export class Ui {
     this.syncSound();
   }
 
+  private gfx: { get: () => { mode: string; tier: string }; set: (m: 'auto' | 'high' | 'medium' | 'low') => void } | null = null;
+
+  /** Wire the pause card's graphics choice. */
+  bindQuality(get: () => { mode: string; tier: string }, set: (m: 'auto' | 'high' | 'medium' | 'low') => void) {
+    this.gfx = { get, set };
+    this.root.querySelectorAll<HTMLButtonElement>('.seg-btn').forEach((b) =>
+      b.addEventListener('click', () => {
+        set(b.dataset.q as 'auto' | 'high' | 'medium' | 'low');
+        this.syncQuality();
+      }),
+    );
+    this.syncQuality();
+  }
+
+  /** Show the graphics choice, and the tier Auto has settled on. */
+  syncQuality() {
+    if (!this.gfx) return;
+    const { mode, tier } = this.gfx.get();
+    this.root.querySelectorAll<HTMLButtonElement>('.seg-btn').forEach((b) => b.classList.toggle('on', b.dataset.q === mode));
+    $('.gfx-note', this.root).textContent = mode === 'auto' ? `Running at ${tier}: it steps down by itself if the game runs slowly.` : '';
+  }
+
   /** Show the current sound settings (after M toggles mute, or a slider moves). */
   syncSound() {
     if (!this.sound) return;
@@ -235,7 +262,10 @@ export class Ui {
     for (const s of ['title', 'pause', 'end', 'howto']) {
       ($(`.${s}-screen`, this.root) as HTMLElement).hidden = s !== screen;
     }
-    if (screen === 'pause') this.syncSound();
+    if (screen === 'pause') {
+      this.syncSound();
+      this.syncQuality();
+    }
     // Keyboard players start on the screen's main button.
     if (screen) ($(`.${screen}-screen .btn.primary`, this.root) as HTMLElement | null)?.focus({ preventScroll: true });
     else (document.activeElement as HTMLElement | null)?.blur?.();
@@ -262,6 +292,7 @@ export class Ui {
     this.renderToast();
   }
   private toastKind = 'info';
+  private frameNo = 0;
   /** How far the message banner has stepped down out of a wolf's way (px). */
   private toastDrop = 0;
   private toastText = '';
@@ -284,10 +315,22 @@ export class Ui {
     this.renderToast();
   }
 
+  // Reading a rectangle right after the HUD has been written to forces the page to lay out again
+  // (the profile's biggest single cost): rectangles are measured at most five times a second.
+  private rects = new Map<HTMLElement, { r: DOMRect; t: number; drop: number }>();
+  private rectOf(el: HTMLElement) {
+    const now = performance.now();
+    const c = this.rects.get(el);
+    if (c && now - c.t < 200) return c;
+    const n = { r: el.getBoundingClientRect(), t: now, drop: this.toastDrop };
+    this.rects.set(el, n);
+    return n;
+  }
+
   /** Screen rectangle of the minimap panel (null while the HUD is hidden). */
   mapRect() {
-    const el = $('.hud-map', this.root);
-    return el.offsetParent ? el.getBoundingClientRect() : null;
+    if ($('.hud', this.root).hidden) return null;
+    return this.rectOf($('.hud-map', this.root)).r;
   }
 
   /** Let things under the minimap show through it. */
@@ -372,9 +415,10 @@ export class Ui {
     const el = $('.toast', this.root);
     let want = 0;
     if (!el.hidden) {
-      const r = el.getBoundingClientRect();
-      const top = r.top - this.toastDrop;
-      const bottom = r.bottom - this.toastDrop;
+      const c = this.rectOf(el);
+      const r = c.r;
+      const top = r.top - c.drop;
+      const bottom = r.bottom - c.drop;
       for (const p of points) {
         if (p.x > r.left - 60 && p.x < r.right + 60 && p.y > top - 70 && p.y < bottom + 60) want = Math.max(want, p.y + 70 - top);
       }
@@ -390,7 +434,7 @@ export class Ui {
     for (const sel of ['.hud-counts', '.hud-time', '.toast', '.hud-prompt']) {
       const el = $(sel, this.root);
       if (el.hidden) continue;
-      const r = el.getBoundingClientRect();
+      const r = this.rectOf(el).r;
       const under = points.some((p) => p.x > r.left - 14 && p.x < r.right + 14 && p.y > r.top - 14 && p.y < r.bottom + 14);
       el.classList.toggle('see-through', under);
     }
@@ -458,7 +502,8 @@ export class Ui {
     const reach = DOG.barkRadius + 4;
     bark.classList.toggle('urgent', sim.wolves.some((w) => w.state !== 'gone' && w.state !== 'flee' && (w.x - d.x) ** 2 + (w.z - d.z) ** 2 < reach * reach));
     $('.bark-fill', this.root).style.width = `${(1 - d.barkCd / DOG.barkCooldown) * 100}%`;
-    this.minimap.draw(sim, time);
+    // The map is redrawn at half the frame rate: nothing on it moves fast.
+    if ((this.frameNo++ & 1) === 0) this.minimap.draw(sim, time);
 
     // Toasts under an alert do not run down, so nothing is missed while a snatch is on.
     if (!this.alertText && this.toastT > 0) {

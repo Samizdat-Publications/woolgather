@@ -799,3 +799,22 @@ Newest at the bottom. Record every non-obvious choice.
   sky or ridges (the pitch's valley and setting sun live in the HUD bar and the light only).
   Closing playtest: 0 console errors, 20/20 assertions, the bot wins Standard with all 12 home,
   the idle day loses to the wolves.
+- 2026-09-26 (M5 perf): measured, not guessed. `tests/perf.mjs` plays the production build in
+  headless Chrome on the real GPU and reports frame times per phase, standing and running, with
+  draw calls, triangles, shader programs and GPU time (EXT_disjoint_timer_query_webgl2; its numbers
+  include the GPU waiting on the CPU, so it is only a rough guide); `--analyze` lists the heaviest
+  meshes and times the frame with shadows, bloom or MSAA off. On this machine (RTX 5070 Ti laptop)
+  the frame is CPU-bound: 4.2-5.9 ms at 720p, 1080p and 4K alike, about 330-370 draw calls and
+  640k triangles (ground cover is most of them). A JavaScript profile found the biggest costs in
+  the HUD, not the 3D: re-measuring panel rectangles every frame after writing to the HUD forced a
+  page layout each time (8% of script time) and the minimap redrew its place names with a web
+  font every frame (5%). Rectangles are now measured at most five times a second, the names are
+  drawn once to a layer, and the map redraws at half rate. Sheep and wolves are drawn instanced
+  (each clone keeps its scene graph for the animation; one instanced draw per part, material and
+  outline shell instead of about 20 draws per animal), every outline shares one shader, and every
+  shader is compiled at load behind the loading screen (a wolf's first appearance and the
+  fireflies at dusk stalled the game for 150-700 ms while theirs compiled). Graphics tiers (High,
+  Medium, Low: render scale with a pixel-ratio cap, MSAA 4 or 2, a 2048 or 1024 shadow map, bloom)
+  with Auto, which starts high and steps down while the median frame of play misses about 52 fps;
+  the choice is in the pause menu and remembered. The production preview plays the self-test with
+  no console output at all.

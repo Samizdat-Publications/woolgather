@@ -128,11 +128,12 @@ export class WolfCam {
   /** Draw the inset into its part of `target` (the grade pass's scene target). */
   render(renderer: THREE.WebGLRenderer, scene: THREE.Scene, target: THREE.WebGLRenderTarget) {
     if (!this.visible) return;
-    const vh = renderer.domElement.clientHeight;
+    const vh = window.innerHeight;
     const x = Math.round(this.rect.x);
     const y = Math.round(this.rect.y);
-    // Render-target viewports are in its own pixels, measured from the bottom.
-    const pr = renderer.getPixelRatio();
+    // Render-target viewports are in its own pixels (it may be scaled below the canvas's),
+    // measured from the bottom.
+    const pr = target.width / Math.max(1, window.innerWidth);
     target.viewport.set(x * pr, (vh - y - H) * pr, W * pr, H * pr);
     target.scissor.copy(target.viewport);
     target.scissorTest = true;

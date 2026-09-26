@@ -11,6 +11,19 @@ const tmpC = new THREE.Color();
 const MOON_GLOW = new THREE.Color(0.62, 0.68, 0.95);
 const HAZE = new THREE.Vector3();
 
+export type Quality = 'high' | 'medium' | 'low';
+
+/**
+ * Graphics tiers. The scene renders into the grade pass's target at `scale` of the canvas's
+ * resolution (the canvas itself follows the screen's pixel ratio up to `cap`) and the grade pass
+ * scales it up; lower tiers also take fewer MSAA samples, a smaller shadow map and no bloom.
+ */
+export const QUALITY_TIERS: Record<Quality, { cap: number; scale: number; msaa: number; shadow: number; bloom: boolean }> = {
+  high: { cap: 2, scale: 1, msaa: 4, shadow: 2048, bloom: true },
+  medium: { cap: 1.5, scale: 0.85, msaa: 4, shadow: 2048, bloom: true },
+  low: { cap: 1, scale: 0.72, msaa: 2, shadow: 1024, bloom: false },
+};
+
 export class Stage {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
@@ -28,6 +41,8 @@ export class Stage {
   private shake = 0;
   private shakeT = 0;
   private pixelRatioCap = 2;
+  private renderScale = 1;
+  quality: Quality = 'high';
   /** Title shot: a low camera across the valley towards the setting sun, instead of the herding view. */
   private titleShot = false;
   private titleAngle = 0;
@@ -46,6 +61,9 @@ export class Stage {
     this.renderer.toneMapping = THREE.NoToneMapping;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.domElement.id = 'game-canvas';
+    // Draw calls and triangles are counted over the whole frame (scene, shadows, inset, bloom and
+    // grade), not only the last pass.
+    this.renderer.info.autoReset = false;
     host.appendChild(this.renderer.domElement);
 
     this.camera = new THREE.PerspectiveCamera(CAMERA.fov, 1, 1, 700);
@@ -75,13 +93,30 @@ export class Stage {
     this.resize();
   }
 
+  /** Switch the graphics tier (resolution, multisampling, shadow map and bloom). */
+  setQuality(q: Quality) {
+    this.quality = q;
+    const t = QUALITY_TIERS[q];
+    this.pixelRatioCap = t.cap;
+    this.renderScale = t.scale;
+    this.grade.setSamples(t.msaa);
+    this.grade.bloomOff = !t.bloom;
+    if (this.key.shadow.mapSize.x !== t.shadow) {
+      this.key.shadow.mapSize.set(t.shadow, t.shadow);
+      this.key.shadow.map?.dispose();
+      this.key.shadow.map = null;
+    }
+    this.resize();
+  }
+
   resize() {
     const w = window.innerWidth;
     const h = window.innerHeight;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.pixelRatioCap));
     this.renderer.setSize(w, h, false);
     this.renderer.domElement.style.width = `${w}px`;
     this.renderer.domElement.style.height = `${h}px`;
-    const pr = this.renderer.getPixelRatio();
+    const pr = this.renderer.getPixelRatio() * this.renderScale;
     this.grade.setSize(Math.round(w * pr), Math.round(h * pr));
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
@@ -197,15 +232,63 @@ export class Stage {
     this.key.target.position.set(f.x, f.y, f.z);
   }
 
+  // GPU time per frame, for the perf test only (EXT_disjoint_timer_query_webgl2).
+  private gpu: { gl: WebGL2RenderingContext; ext: { TIME_ELAPSED_EXT: number; GPU_DISJOINT_EXT: number }; pending: WebGLQuery[]; ms: number[] } | null = null;
+
+  /** The key light's shadows on or off (perf analysis and the low quality tier). */
+  setShadows(on: boolean) {
+    this.key.castShadow = on;
+  }
+
+  /** Start timing every frame on the GPU; false if the browser does not allow it. */
+  startGpuTimer() {
+    const gl = this.renderer.getContext() as WebGL2RenderingContext;
+    const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+    if (!ext) return false;
+    this.gpu = { gl, ext, pending: [], ms: [] };
+    return true;
+  }
+
+  /** Mean GPU milliseconds per frame since the last call (and the samples behind it). */
+  takeGpuTime() {
+    if (!this.gpu) return null;
+    const ms = this.gpu.ms.splice(0);
+    const avg = ms.length ? ms.reduce((a, b) => a + b, 0) / ms.length : 0;
+    const sorted = ms.sort((a, b) => a - b);
+    return { frames: ms.length, avg, p95: sorted[Math.floor(sorted.length * 0.95)] ?? 0 };
+  }
+
+  private pollGpu() {
+    const T = this.gpu;
+    if (!T) return;
+    const disjoint = T.gl.getParameter(T.ext.GPU_DISJOINT_EXT);
+    while (T.pending.length) {
+      const q = T.pending[0];
+      if (!T.gl.getQueryParameter(q, T.gl.QUERY_RESULT_AVAILABLE)) break;
+      if (!disjoint) T.ms.push(T.gl.getQueryParameter(q, T.gl.QUERY_RESULT) / 1e6);
+      T.gl.deleteQuery(q);
+      T.pending.shift();
+    }
+  }
+
   /**
    * Render the scene into the grade target, let `extra` draw into it too (the wolf cam inset),
    * then grade it onto the screen.
    */
   render(extra?: (renderer: THREE.WebGLRenderer, target: THREE.WebGLRenderTarget) => void) {
     const r = this.renderer;
+    r.info.reset();
+    const T = this.gpu;
+    const query = T && T.pending.length < 8 ? T.gl.createQuery() : null;
+    if (T && query) T.gl.beginQuery(T.ext.TIME_ELAPSED_EXT, query);
     r.setRenderTarget(this.grade.target);
     r.render(this.scene, this.camera);
     extra?.(r, this.grade.target);
     this.grade.render(r);
+    if (T && query) {
+      T.gl.endQuery(T.ext.TIME_ELAPSED_EXT);
+      T.pending.push(query);
+    }
+    this.pollGpu();
   }
 }

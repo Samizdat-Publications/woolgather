@@ -219,6 +219,14 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .toggle input:checked { background: var(--gold); border-color: var(--gold-deep); }
 .toggle input:checked::after { transform: translateX(18px); }
 .toggle input:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+.gfx-title { margin-top: 6px; }
+.seg { display: flex; border-radius: 10px; overflow: hidden; border: 1.5px solid rgba(251, 243, 228, 0.3); }
+.seg-btn { flex: 1; padding: 6px 4px; border: 0; border-right: 1.5px solid rgba(251, 243, 228, 0.18); background: transparent; color: var(--wool-2); font: 800 13.5px var(--ui); cursor: pointer; }
+.seg-btn:last-child { border-right: 0; }
+.seg-btn:hover { background: rgba(251, 243, 228, 0.08); color: var(--wool); }
+.seg-btn.on { background: var(--gold); color: var(--ink); }
+.seg-btn:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: -2px; }
+.gfx-note { min-height: 1.2em; font-size: 13px; font-weight: 600; color: var(--wool-3); }
 
 /* Results: a solid card on the left, so the fold and Pip stay in view beside it. */
 .end-screen { align-items: flex-start; padding-left: max(24px, 5vw); background: linear-gradient(90deg, rgba(20, 16, 26, 0.5), rgba(20, 16, 26, 0) 58%); }

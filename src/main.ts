@@ -12,6 +12,7 @@ const params = new URLSearchParams(location.search);
 const test = params.has('test');
 const seedParam = Number(params.get('seed'));
 const diff = params.get('diff') as Difficulty | null;
+const quality = params.get('quality');
 
 const loading = document.createElement('div');
 loading.className = 'loading';
@@ -23,6 +24,7 @@ const game = new Game(document.getElementById('app')!, {
   seed: Number.isFinite(seedParam) && seedParam > 0 ? seedParam : (Date.now() % 100000) + 1,
   test,
   difficulty: diff === 'gentle' || diff === 'standard' || diff === 'hard' ? diff : undefined,
+  quality: quality === 'auto' || quality === 'high' || quality === 'medium' || quality === 'low' ? quality : undefined,
 });
 if (params.has('fps')) game.perf = new PerfOverlay(game.stage.renderer);
 game.start();
@@ -51,6 +53,42 @@ function exposeTestHooks() {
       game.timeScale = k;
     },
     level: game.level.data,
+    /** The graphics tier in use (and whether Auto chose it). */
+    quality: () => ({ tier: game.stage.quality }),
+    /** GPU timing for the perf test: start, then read the mean per frame since the last read. */
+    gpuStart: () => game.stage.startGpuTimer(),
+    gpuTime: () => game.stage.takeGpuTime(),
+    /** Perf analysis: the heaviest meshes by triangles drawn (instances included). */
+    heavy: () => {
+      const out: { name: string; tris: number; count: number; shadow: boolean; transparent: boolean }[] = [];
+      game.stage.scene.traverse((o) => {
+        const m = o as unknown as { isMesh?: boolean; geometry?: { index: { count: number } | null; attributes: { position: { count: number } } }; count?: number; castShadow: boolean; material: { transparent?: boolean } | { transparent?: boolean }[]; name: string; visible: boolean };
+        if (!m.isMesh || !m.geometry || !o.visible) return;
+        const g = m.geometry;
+        const tris = (g.index ? g.index.count : g.attributes.position.count) / 3;
+        const count = (m as { count?: number }).count ?? 1;
+        const mat = Array.isArray(m.material) ? m.material[0] : m.material;
+        out.push({ name: `${o.parent?.name ?? ''}/${o.name}`, tris: tris * count, count, shadow: m.castShadow, transparent: !!mat?.transparent });
+      });
+      out.sort((a, b) => b.tris - a.tris);
+      // Meshes grouped by parent name (each one is at least one draw call, two if it casts shadows).
+      const groups: Record<string, number> = {};
+      for (const o of out) groups[o.name.split('/')[0] || '(root)'] = (groups[o.name.split('/')[0] || '(root)'] ?? 0) + 1;
+      const topGroups = Object.entries(groups).sort((a, b) => b[1] - a[1]).slice(0, 20);
+      return { total: out.reduce((a, b) => a + b.tris, 0), shadowTris: out.filter((o) => o.shadow).reduce((a, b) => a + b.tris, 0), top: out.slice(0, 25), meshCount: out.length, shadowMeshes: out.filter((o) => o.shadow).length, groups: topGroups };
+    },
+    /** Perf analysis: switch a costly feature off or on. */
+    toggle: (what: string, on: boolean) => {
+      const st = game.stage;
+      if (what === 'shadows') st.setShadows(on);
+      if (what === 'bloom') st.grade.bloomOff = !on;
+      if (what === 'msaa') st.grade.setSamples(on ? 4 : 0);
+    },
+    /** Renderer counts for the last frame, for the perf test. */
+    perf: () => {
+      const i = game.stage.renderer.info;
+      return { calls: i.render.calls, triangles: i.render.triangles, geometries: i.memory.geometries, textures: i.memory.textures, programs: i.programs?.length ?? 0 };
+    },
     /** Look-dev: show the render with or without the colour grade. */
     setGrade: (on: boolean) => {
       game.stage.grade.enabled = on;

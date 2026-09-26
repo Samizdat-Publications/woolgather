@@ -20,7 +20,9 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const errors = [];
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 page.on('pageerror', (e) => errors.push(String(e)));
-await page.goto(`${BASE}?test=1&seed=7`, { waitUntil: 'load' });
+// --quality high|medium|low picks a graphics tier.
+const Q = opt('quality', null);
+await page.goto(`${BASE}?test=1&seed=7${Q ? `&quality=${Q}` : ''}`, { waitUntil: 'load' });
 await page.waitForFunction(() => !!window.__WG);
 await page.waitForTimeout(1500);
 await page.screenshot({ path: join(OUT, 'title.png') });
