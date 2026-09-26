@@ -54,6 +54,11 @@ Ctrl is deliberately unused: Ctrl+W closes the browser tab and cannot be interce
   `BLENDER_PATH`). During development the scripts are run through the Blender MCP.
 - `npm run playtest` runs the Playwright self-test (scripted input, screenshots, console log)
   against a running dev server. Screenshots land in `test-results/`.
+- `npm run film -- --shoot hero|day|night [--nobuild]` films the production build at 60 fps on a
+  virtual clock; `npm run media` cuts `site/media/` and the README GIFs (`docs/media/`) from it.
+- `npm run site` builds the public site into `site-dist/` (landing page at `/`, the game at `/play/`);
+  `npm run site -- --deploy` also deploys it to Cloudflare Pages. `node tests/site-check.mjs` checks
+  the built site in headless Chrome (`--url` checks the live one).
 
 ### Running the Blender scripts via MCP
 
@@ -98,7 +103,8 @@ Progress screenshots (user request): after every self-test round, save the telli
 `node tools/save-progress.mjs <runDir> <label> "<file>=<caption>" ...` into `docs/progress/`
 (committed, captioned in `docs/progress/PROGRESS.md`). They feed the README later.
 
-Status: complete (all five milestones closed, tag `m5-polish`); the DECISIONS log below has the history.
+Status: released as 1.0.0 (tag `v1.0.0`; all five milestones closed at `m5-polish`) and live at
+https://woolgather.pages.dev (the game at /play/). The DECISIONS log below has the history.
 
 ## Asset list
 
@@ -886,3 +892,29 @@ Newest at the bottom. Record every non-obvious choice.
   fps at 1080p on this machine (RTX 5070 Ti laptop, CPU-bound), with Auto graphics stepping down
   on slower ones. `screenshots/` holds the six final player-view shots; README.md describes the
   game, its controls, settings, how it was made and how it is tested.
+- 2026-09-26 (release): `tests/film.mjs` records the production build at 60 fps on a virtual clock:
+  an init script replaces the page's requestAnimationFrame and performance.now, the script steps one
+  1/60 s frame at a time, captures it over CDP and pipes it into ffmpeg-static (x264), so capture
+  speed never shows. The game's events are logged with the day clock (`__WG.drain()`, test mode
+  only) and saved as marks with their frame; `tests/make-media.mjs` cuts the clips, the scrub
+  frames, chapters.json and the README GIFs at those marks, so a new recording re-cuts itself. The
+  opening's frames come from the title shot with its mood driven from golden hour to night
+  (`__WG.titleMood`).
+- 2026-09-26 (release): the filmed Standard evening (seed 11) had every beat in one run: the bot
+  brought 12 of 12 home in 3:33 through the sunset, a wolf stalking the flock, a snatch it broke up
+  and a bridge crossing. So every clip but the nightfall comes from that one evening and the page
+  can give each one its time on the evening's own clock; `--shoot wolves` (a staged snatch) is kept
+  as a fallback for recordings without one. The whole evening is encoded at 960 px and 30 fps with a
+  bitrate cap to stay under Cloudflare Pages' 25 MiB file limit; the clips stay at 60 fps.
+- 2026-09-26 (release): the landing page (`site/`) wears the game's own look: stitched felt panels,
+  Fraunces and Nunito, gold only for the one thing to do. The opening scrubs the valley from golden
+  hour to night with the scroll while the game's sun bar counts down to nightfall (with the red notch
+  where the wolves come out) and the name turns from ink on the golden sky to wool on the night sky.
+  The one rule is taught by doing: a small canvas herding toy (ten sheep that flee the pointer as a
+  flock, a fold with a gate); `tests/site-check.mjs` drives it with a scripted dog that gathers and
+  drives like the game's bot, and it gets all ten home. Enter plays, as on the title screen.
+- 2026-09-26 (release): version 1.0.0. Public site on Cloudflare Pages, project `woolgather`
+  (https://woolgather.pages.dev): the landing page at `/`, the game built with base `/play/` at
+  `/play/` (models load through `import.meta.env.BASE_URL`). Created once as a classic Pages project
+  (`wrangler pages project create --force`, as for VoidWing: wrangler 4 now sends new Pages projects
+  to Workers). `site/media/` is committed so the site can be rebuilt without filming again.

@@ -3,6 +3,10 @@
 **Herd the flock home before nightfall.** A cosy-tense sheepdog game in the browser, built with
 Vite, TypeScript and Three.js.
 
+**[Play it in your browser](https://woolgather.pages.dev/play/)** (free, no install, desktop browser
+with a keyboard or a gamepad) and see the **[landing page](https://woolgather.pages.dev/)** for
+gameplay video of a whole evening, uncut, and a small herding toy to try the one rule.
+
 ![Herding in the golden hour](screenshots/02-golden-hour.png)
 
 You are Pip, a border collie in a highland valley at golden hour. The flock has scattered across
@@ -17,12 +21,20 @@ drag a sheep into the trees. Night falls in violet and moonlight.
 
 | | |
 | --- | --- |
-| ![The title screen](screenshots/01-title.png) | ![A wolf stalks the flock under the rose sunset](screenshots/03-wolf.png) |
-| ![A snatch: sprint at it and bark](screenshots/04-snatch.png) | ![Nightfall at the fold](screenshots/05-night.png) |
+| ![Pip circles behind a small flock and drives it along the track](docs/media/drive.gif) | ![Sheep run through the fold gate and gold hearts rise over them](docs/media/home.gif) |
+| **Get behind them.** Swing wide round the far side of a flock and walk in: it moves off away from Pip. | **Through the gate.** Every sheep that makes it into the stone fold gets a gold heart. |
+| ![The sun drops behind the ridge and the valley turns from gold to rose](docs/media/sunset.gif) | ![A grey wolf with a red ring stalks towards the flock](docs/media/stalk.gif) |
+| **The sun goes down.** The light is the clock: at the red notch on the sun bar the gold turns to rose. | **The wolves come out.** A red ring marks each wolf, and a dashed line runs to the sheep it wants. |
+| ![A wolf drags a sheep off, Pip sprints over and the wolf drops it](docs/media/snatch.gif) | ![The gate swings shut on all twelve sheep and the results card comes in](docs/media/win.gif) |
+| **Snatch!** A banner counts down the seconds. Sprint over and run at the wolf or bark: it drops the sheep. | **Home before dark.** Every sheep in the fold, three stars. |
 
-![Every sheep is home: the day's results beside the fold](screenshots/06-win.png)
+The clips are the finished game, recorded one frame at a time at 60 fps while the test bot played
+one Standard evening (see [Footage](#footage)); in that evening it brought all twelve home in 3:33.
 
 ## Play it
+
+Online: **https://woolgather.pages.dev/play/**. To run it locally (Node 20 or newer, a browser with
+WebGL 2):
 
 ```bash
 npm install
@@ -37,7 +49,7 @@ npm run build
 npm run preview
 ```
 
-and open http://localhost:4317/. Needs Node 20 or newer and a browser with WebGL 2.
+and open http://localhost:4317/.
 
 ## Controls
 
@@ -76,6 +88,15 @@ and right pick the evening on the title) or a gamepad (d-pad or stick, A chooses
 | Standard | 12 (9) | 6 minutes | after 2 minutes, up to two |
 | Hard | 16 (13) | 5 minutes | after 1 minute, up to three, faster |
 
+## Screenshots
+
+| | |
+| --- | --- |
+| ![The title screen](screenshots/01-title.png) | ![A wolf stalks the flock under the rose sunset](screenshots/03-wolf.png) |
+| ![A snatch: sprint at it and bark](screenshots/04-snatch.png) | ![Nightfall at the fold](screenshots/05-night.png) |
+
+![Every sheep is home: the day's results beside the fold](screenshots/06-win.png)
+
 ## Settings
 
 The pause menu has volume, music and effects sliders, a mute switch and the graphics choice:
@@ -101,6 +122,10 @@ map size and bloom. Both choices are remembered. `?quality=low` in the URL picks
   API. There are no audio files.
 - **Fonts:** Fraunces and Nunito (SIL Open Font License), bundled from npm, so nothing is fetched at
   runtime.
+- **Process:** five milestones (greybox, models, feel, interface, polish), each closed by a
+  self-test and a critic that saw only screenshots and the pitch: 52 critic rounds in all, most of
+  them spent making a sunset read as a sunset. `CLAUDE.md` logs every round and decision, and
+  `docs/progress/` keeps screenshots of the game at each stage.
 
 ## Testing
 
@@ -109,14 +134,40 @@ map size and bloom. Both choices are remembered. `?quality=low` in the URL picks
   are driven, and screenshots from the player's camera land in `test-results/`, with the console
   log and 20 assertions.
 - `node tests/perf.mjs` measures frame times, draw calls, triangles and GPU time for each phase of
-  the evening against the production preview (`--analyze` breaks the cost down). On the laptop it was built on
-  (an RTX 5070 Ti) the game runs at 140-230 fps at 1080p, limited by the CPU; Auto graphics steps
-  down on slower machines.
+  the evening against the production preview (`--analyze` breaks the cost down). On the laptop it
+  was built on (an RTX 5070 Ti) the game runs at 140-230 fps at 1080p, limited by the CPU; Auto
+  graphics steps down on slower machines.
 - `node tests/lookdev.mjs` captures the view at chosen times of day (`--nograde` shows the render
   without the colour grade).
-- Every milestone ended with these self-tests and a critic that saw only the screenshots and the
-  pitch; `CLAUDE.md` logs every round and decision, and `docs/progress/` keeps screenshots of the
-  game at each stage.
+- `node tests/site-check.mjs` checks the built public site in headless Chrome: screenshots at
+  desktop and phone sizes, the herding toy played by a scripted dog, the game reaching its title
+  at `/play/`, and no console errors, failed requests or horizontal scrolling.
+
+## Footage
+
+The landing page's clips and the GIFs above are filmed from the production build with a virtual
+clock: `tests/film.mjs` replaces the page's `requestAnimationFrame` and `performance.now`, steps the
+game one 1/60 s frame at a time and pipes every frame into ffmpeg, so the footage is a smooth 60 fps
+however slowly it is captured. The game's events (a sheep home, the sunset, a snatch, a rescue) are
+saved with their frame, and `tests/make-media.mjs` cuts the clips, posters, chapters and GIFs at
+those events, so a new recording re-cuts itself.
+
+```bash
+npm run film -- --shoot hero            # the title shot from golden hour to night (the page's scroll-scrubbed opening)
+npm run film -- --shoot day --nobuild   # the bot plays a whole Standard evening
+npm run film -- --shoot night --nobuild # the last seconds before nightfall, and the loss
+npm run media                           # clips, posters, scrub frames, chapters.json, README GIFs
+```
+
+The encoder is `ffmpeg-static` from npm; if your npm blocks install scripts, run
+`npm approve-scripts ffmpeg-static` once.
+
+## The public site
+
+`site/` is the landing page (static HTML, CSS and JS; its media in `site/media/`). `npm run site`
+builds `site-dist/` with the landing page at `/` and the game, built with base `/play/`, at
+`/play/`. `npm run site -- --deploy` also deploys it to Cloudflare Pages (project `woolgather`,
+https://woolgather.pages.dev).
 
 ## Project layout
 
@@ -128,4 +179,6 @@ map size and bloom. Both choices are remembered. `?quality=low` in the URL picks
 | `src/audio/` | Web Audio engine, effects, ambience and music |
 | `src/ui/` | HUD, menus, minimap and edge markers |
 | `blender_scripts/` | the Blender asset scripts |
-| `tests/`, `tools/` | self-test, perf and look-dev scripts, asset and progress tools |
+| `site/` | the landing page and its media |
+| `tests/` | self-test, perf, look-dev, film, media and site-check scripts |
+| `tools/` | asset, progress-screenshot and site build tools |

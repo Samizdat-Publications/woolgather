@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Woolgather: herd the flock home before nightfall</title>
+<meta name="description" content="A cosy, tense sheepdog game in your browser. You are Pip, a border collie in a highland valley at golden hour: bring the scattered flock home to the fold before the sun sets and the wolves come out. Free, no install.">
+<meta name="theme-color" content="#231c2b">
+<meta property="og:title" content="Woolgather">
+<meta property="og:description" content="A sheepdog's evening. Herd the flock home before nightfall, then keep the wolves off it. Free in your browser.">
+<meta property="og:image" content="https://woolgather.pages.dev/media/og.jpg">
+<meta property="og:url" content="https://woolgather.pages.dev/">
+<link rel="canonical" href="https://woolgather.pages.dev/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-12 -12 24 24'%3E%3Ccircle r='12' fill='%23f2b45a'/%3E%3Cpath d='M-5.5 3v4.5M0.5 3v4.5' stroke='%23231c2b' stroke-width='2.2' stroke-linecap='round'/%3E%3Cellipse cx='-2.5' cy='0' rx='7' ry='4.6' fill='%23fff' stroke='%23231c2b' stroke-width='1.4'/%3E%3Cellipse cx='6' cy='-2.2' rx='3.4' ry='2.7' fill='%23231c2b'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/fraunces-soft.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/nunito.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="media/evening/e00.jpg" as="image">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<a class="skip" href="#evening">Skip to how an evening goes</a>
+
+<header class="bar">
+  <a class="bar-mark" href="#top" aria-label="Woolgather, back to the top">Woolgather</a>
+  <nav class="bar-links" aria-label="Sections">
+    <a href="#herd">Herding</a>
+    <a href="#evening">An evening</a>
+    <a href="#watch">Whole evening</a>
+    <a href="#stages">Greybox to finished</a>
+    <a href="#controls">Controls</a>
+    <a href="#making">How it was made</a>
+  </nav>
+  <a class="btn btn-gold btn-small" href="play/">Play</a>
+</header>
+
+<main>
+
+<!-- The evening: the valley from golden hour to night, scrubbed by the scroll position -->
+<section class="dusk" id="top" aria-labelledby="dusk-title">
+  <div class="dusk-stick">
+    <img class="dusk-still" id="dusk-still" src="media/evening/e00.jpg" alt="A highland valley with a stream, a dirt path and pine woods, seen from a hillside at golden hour. As you scroll, the light turns to a rose sunset and then a moonlit night with fireflies." width="1280" height="720">
+    <canvas class="dusk-canvas" id="dusk-canvas" aria-hidden="true"></canvas>
+    <div class="dusk-shade" aria-hidden="true"></div>
+
+    <div class="dusk-head">
+      <p class="kicker">A sheepdog's evening</p>
+      <h1 class="wordmark" id="dusk-title">Woolgather</h1>
+      <p class="tagline">Herd the flock home before nightfall.</p>
+    </div>
+
+    <div class="dusk-foot">
+      <div class="dusk-card felt">
+        <div class="clock" aria-hidden="true">
+          <p class="clock-main" id="clock-main">Nightfall in <b id="clock-time">6:00</b></p>
+          <div class="sunbar">
+            <i class="sunbar-day" id="sunbar-day"></i><i class="sunbar-dusk" id="sunbar-dusk"></i><i class="sunbar-notch"></i><i class="sunbar-sun" id="sunbar-sun"></i>
+          </div>
+          <p class="clock-sub" id="clock-sub">wolves come out in 2:00</p>
+        </div>
+        <div class="ledes">
+          <p class="lede" data-from="0" data-to="0.3">A highland valley at golden hour. Twelve sheep are scattered over the hills.</p>
+          <p class="lede" data-from="0.3" data-to="0.62">You are Pip, a border collie, and the sun is going down.</p>
+          <p class="lede" data-from="0.62" data-to="2">When it sets, the wolves come out of the pines. Bring the flock home before dark.</p>
+        </div>
+        <div class="cta" id="dusk-cta">
+          <a class="btn btn-gold" href="play/">Play in your browser <kbd>Enter</kbd></a>
+          <a class="btn btn-quiet" href="#watch">Watch a whole evening</a>
+        </div>
+      </div>
+      <div class="foot-line">
+        <p class="fine" id="dusk-fine">Free, no install. A desktop browser with a keyboard, or a gamepad.</p>
+        <p class="scroll-cue" id="scroll-cue" aria-hidden="true">Scroll to let the sun go down</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- The one rule, and a toy to try it -->
+<section class="herd" id="herd" aria-labelledby="herd-h">
+  <div class="wrap herd-grid">
+    <div class="herd-copy">
+      <h2 class="rule" id="herd-h">You steer them by <em>where you stand</em>.</h2>
+      <p>Sheep flee from Pip as a flock. Walk up behind them and they move away from you, together. Stand off to one side and they drift the other way; go wide round the far side and they come back towards you.</p>
+      <p>So you never push one sheep at a time. You put yourself in the right place, creep in quietly, and the whole flock goes where you want it: over the bridge, through the gate, home.</p>
+      <p class="herd-try">Try it on the right: you are the dog.</p>
+    </div>
+    <figure class="toy felt" id="toy">
+      <div class="toy-field">
+        <canvas id="toy-canvas" tabindex="0" aria-label="A small herding toy: ten sheep in a meadow and a stone fold on the right. Move the pointer over the meadow, or use the arrow keys, to move the dog. The sheep move away from it; drive them through the gate."></canvas>
+        <p class="toy-done" id="toy-done" hidden>All ten home before dark.</p>
+      </div>
+      <figcaption class="toy-bar">
+        <span class="toy-count" id="toy-count" aria-live="polite"><b>0</b> home of 10</span>
+        <span class="toy-hint" id="toy-hint">Move your pointer over the meadow, or click it and use the arrow keys</span>
+        <button type="button" class="toy-reset" id="toy-reset">Scatter them</button>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- How an evening goes: steps on the left, a stage of real footage on the right -->
+<section class="evening" id="evening" aria-labelledby="evening-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="evening-h">How an evening goes</h2>
+      <p>One valley and one long sunset. Every clip is the finished game, filmed one frame at a time while a test bot played it with real key presses. The time beside each one is how far into the evening it happens.</p>
+    </div>
+
+    <div class="story" id="story">
+      <ol class="steps" id="steps">
+        <li class="step" data-clip="drive" data-light="gold">
+          <p class="step-meta"><span class="light">Golden hour</span><span class="step-time"></span></p>
+          <h3>Get behind them</h3>
+          <p>The flock grazes in small groups all over the valley. Swing wide round the far side of one, then walk in: the sheep bunch up and move off, away from Pip. Hold C to creep and they stay calm until you are close; sprint and they bolt.</p>
+        </li>
+        <li class="step" data-clip="home" data-light="gold">
+          <p class="step-meta"><span class="light">Golden hour</span><span class="step-time"></span></p>
+          <h3>Through the gate</h3>
+          <p>The stone fold by the farmhouse is home. Guide fences funnel the flock to the gate, and every sheep that goes through it gets a gold heart.</p>
+        </li>
+        <li class="step" data-clip="sunset" data-light="rose">
+          <p class="step-meta"><span class="light">Sunset</span><span class="step-time"></span></p>
+          <h3>The sun goes down</h3>
+          <p>The light is the clock. When the sun bar at the top of the screen reaches its red notch, the sun drops behind the ridge and the gold turns to rose.</p>
+        </li>
+        <li class="step" data-clip="stalk" data-light="rose">
+          <p class="step-meta"><span class="light">Sunset</span><span class="step-time"></span></p>
+          <h3>The wolves come out</h3>
+          <p>Wolves slip out of the pines and stalk the stragglers. A red ring marks each one, and a dashed red line runs to the sheep it wants. Keep the flock together and keep it moving.</p>
+        </li>
+        <li class="step" data-clip="snatch" data-light="rose">
+          <p class="step-meta"><span class="light">Sunset</span><span class="step-time"></span></p>
+          <h3>Snatch!</h3>
+          <p>A wolf that reaches a sheep grabs it and drags it off towards the trees, and a banner counts down the seconds. Sprint over, then run at the wolf or bark: it drops the sheep and runs.</p>
+        </li>
+        <li class="step" data-clip="bridge" data-light="rose">
+          <p class="step-meta"><span class="light">Sunset</span><span class="step-time"></span></p>
+          <h3>Over the bridge</h3>
+          <p>The last flock grazes on the far bank. A stream cuts the valley in two and sheep will not swim, so drive them at the bridge or the shallow ford and they file across.</p>
+        </li>
+        <li class="step" data-clip="win" data-light="rose">
+          <p class="step-meta"><span class="light">Sunset</span><span class="step-time"></span></p>
+          <h3>Home before dark</h3>
+          <p>Once the day's target is in the fold you can latch the gate and call it a day, or keep herding for more stars. The gate swings shut and Pip trots over to the flock.</p>
+        </li>
+      </ol>
+
+      <div class="stage" id="stage" aria-hidden="true">
+        <div class="stage-frame felt">
+          <div class="stage-shots" id="stage-shots"></div>
+        </div>
+        <div class="stage-foot">
+          <span class="stage-cap" id="stage-cap"></span>
+          <span class="stage-ticks" id="stage-ticks"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- The whole evening, uncut -->
+<section class="watch" id="watch" aria-labelledby="watch-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="watch-h">Watch a whole evening</h2>
+      <p>The same test bot on Standard, from the first second to the last sheep, uncut. It herds like an old hand, so it beats the dark with time to spare. Standard gives you six minutes of light.</p>
+    </div>
+    <figure class="player felt">
+      <video id="run" controls playsinline preload="none" poster="media/evening-run.jpg">
+        <source src="media/evening.mp4" type="video/mp4">
+      </video>
+    </figure>
+    <div class="timeline" id="timeline" role="group" aria-label="Moments in the evening: pick one to jump to it">
+      <div class="tl-bands" id="tl-bands"></div>
+      <div class="tl-fill" id="tl-fill"></div>
+      <div class="tl-ticks" id="tl-ticks"></div>
+    </div>
+    <p class="now" id="now" aria-live="polite"></p>
+    <p class="tally" id="tally"></p>
+  </div>
+</section>
+
+<!-- Losing -->
+<section class="nightfall" aria-labelledby="night-h">
+  <div class="wrap night-grid">
+    <figure class="clip-inline felt">
+      <video data-inview muted loop playsinline preload="none" poster="media/nightfall.jpg" aria-label="The last seconds of an evening by the fold: the sun bar runs out, night falls and the results card says the day is lost.">
+        <source src="media/nightfall.mp4" type="video/mp4">
+      </video>
+    </figure>
+    <div>
+      <h2 id="night-h">And when the dark wins</h2>
+      <p>Night falls when the sun bar runs out. If the day's target is not in the fold by then, the day is lost, and the card says where the wolves took your sheep and what to try next time.</p>
+      <p>There are three evenings to choose from. Gentle is a long, slow sunset with few wolves. Standard is the way the old shepherds tell it. Hard is a short evening and a hungry pack.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Greybox to finished, on the same beats -->
+<section class="stages" id="stages" aria-labelledby="stages-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="stages-h">From grey boxes to the finished valley</h2>
+      <p>The game was built in five milestones. After each one a script played it with real key presses and took screenshots at the same moments, so the stages line up. Drag the line to compare the first greybox with the finished game.</p>
+    </div>
+    <div class="compare-tabs" role="tablist" aria-label="Moment">
+      <button type="button" role="tab" aria-selected="true" data-beat="herding">Herding at golden hour</button>
+      <button type="button" role="tab" aria-selected="false" data-beat="latch">Target met at the fold</button>
+      <button type="button" role="tab" aria-selected="false" data-beat="night">The last seconds of light</button>
+    </div>
+    <div class="compare felt" id="compare" style="--x: 50%">
+      <div class="cmp-view">
+        <img class="cmp-after" id="cmp-after" src="media/evo-herding-final.jpg" alt="The finished game at this moment." width="1280" height="720" loading="lazy">
+        <img class="cmp-before" id="cmp-before" src="media/evo-herding-grey.jpg" alt="The same moment in the first greybox." width="1280" height="720" loading="lazy">
+        <div class="cmp-line" aria-hidden="true"><i></i></div>
+        <span class="cmp-label cmp-label-l">Greybox, milestone 1</span>
+        <span class="cmp-label cmp-label-r">Finished</span>
+        <input class="cmp-range" id="cmp-range" type="range" min="0" max="100" value="50" aria-label="Compare the greybox with the finished game">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Controls -->
+<section class="controls" id="controls" aria-labelledby="controls-h">
+  <div class="wrap controls-grid">
+    <div>
+      <h2 id="controls-h">Controls</h2>
+      <p class="controls-note">Movement follows the screen, and the camera always looks up the valley, so "get behind the flock" means the same thing all evening.</p>
+      <table class="keys">
+        <thead><tr><th scope="col">Keyboard</th><th scope="col">Action</th><th scope="col">Gamepad</th></tr></thead>
+        <tbody>
+          <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span class="or">or</span><kbd>Arrows</kbd></td><td>Move</td><td>Left stick</td></tr>
+          <tr><td><kbd>Shift</kbd></td><td>Sprint, while the stamina lasts</td><td>RT or RB</td></tr>
+          <tr><td><kbd>C</kbd><span class="or">hold</span></td><td>Creep: sheep stay calm until you are close</td><td>LT or LB</td></tr>
+          <tr><td><kbd>Space</kbd><span class="or">or</span><kbd>B</kbd></td><td>Bark: startles sheep, scares wolves off</td><td>A or X</td></tr>
+          <tr><td><kbd>Enter</kbd></td><td>Latch the gate, once the target is met</td><td>Y</td></tr>
+          <tr><td><kbd>Esc</kbd><span class="or">or</span><kbd>P</kbd></td><td>Pause, sound and graphics</td><td>Start</td></tr>
+          <tr><td><kbd>M</kbd></td><td>Sound on or off</td><td>Pause menu</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="read">
+      <h3>Read the valley</h3>
+      <ul class="legend">
+        <li><i class="mk mk-fold"><svg viewBox="-12 -12 24 24"><path d="M-7 1 L0 -6 L7 1 M-5 0 V7 H5 V0" fill="none" stroke="#231c2b" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/></svg></i><span><b>Gold house.</b> The fold, home. A marker at the edge of the screen points the way.</span></li>
+        <li><i class="mk mk-sheep"><svg viewBox="-12 -12 24 24"><path d="M-5.5 3v4.5M0.5 3v4.5" stroke="#231c2b" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="-2.5" cy="0" rx="7" ry="4.6" fill="#fff" stroke="#231c2b" stroke-width="1.4"/><ellipse cx="6" cy="-2.2" rx="3.4" ry="2.7" fill="#231c2b"/><path d="M4.6 -4.4l-1.9-1.6" stroke="#231c2b" stroke-width="1.8" stroke-linecap="round"/></svg></i><span><b>Sheep.</b> The nearest stray, when none are in view.</span></li>
+        <li><i class="mk mk-wolf"><svg viewBox="-12 -12 24 24"><path d="M-7 -7 L-3 -1 L3 -1 L7 -7 L6 3 L0 8 L-6 3 Z" fill="#231c2b"/><circle cx="-2.5" cy="1.5" r="1.3" fill="#ffd040"/><circle cx="2.5" cy="1.5" r="1.3" fill="#ffd040"/></svg></i><span><b>Wolf head.</b> A wolf on the hunt.</span></li>
+        <li><i class="mk mk-grab"><svg viewBox="-12 -12 24 24"><path d="M0 -7 V2" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><circle cx="0" cy="6.5" r="1.9" fill="#fff"/></svg></i><span><b>Red alarm.</b> A sheep in a wolf's jaws. Go now.</span></li>
+        <li><i class="ring ring-reach"></i><span><b>Dashed ring round Pip.</b> Pip's reach: sheep inside it move away.</span></li>
+        <li><i class="ring ring-wolf"></i><span><b>Red ring.</b> A wolf. A dashed red line runs to the sheep it is after.</span></li>
+      </ul>
+      <p class="read-note">The counter at the top left has a dot for every sheep: filled when it is home, struck through in red when a wolf has taken it. The sun bar at the top counts down to nightfall, with a red notch where the wolves come out.</p>
+    </div>
+  </div>
+</section>
+
+<!-- How it was made -->
+<section class="making" id="making" aria-labelledby="making-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="making-h">How it was made</h2>
+      <p>Woolgather was built by Claude (Opus 5.5) from a single prompt, the third game in a series of one-shot builds. Nothing was downloaded: every model is a Python script run in Blender, every colour is a material or a shader, and every sound, the music included, is synthesized in the browser while you play.</p>
+    </div>
+    <ol class="milestones">
+      <li>
+        <img src="media/milestone-m1.jpg" width="640" height="360" loading="lazy" alt="Milestone 1: flat green ground, a black box for the dog inside a pale ring, and a few white blobs for sheep.">
+        <h3><span>1</span>Greybox</h3>
+        <p>The whole loop in primitive shapes: flocking, the fold, wolves at dusk, winning and losing.</p>
+        <p class="rounds">9 critic rounds</p>
+      </li>
+      <li>
+        <img src="media/milestone-m2.jpg" width="640" height="360" loading="lazy" alt="Milestone 2: the Blender-built valley at sunset, with the flock by the stream.">
+        <h3><span>2</span>Models</h3>
+        <p>Pip, the flock, the wolves, the valley, the fold and the farmhouse, each built by a Blender script.</p>
+        <p class="rounds">30 critic rounds</p>
+      </li>
+      <li>
+        <img src="media/milestone-m3.jpg" width="640" height="360" loading="lazy" alt="Milestone 3: a wolf dragging a sheep away, with a red ring and wool flying.">
+        <h3><span>3</span>Feel</h3>
+        <p>Gaits for every animal, the camera, dust, splashes, hearts, fireflies, sound and music.</p>
+        <p class="rounds">5 critic rounds</p>
+      </li>
+      <li>
+        <img src="media/milestone-m4.jpg" width="640" height="360" loading="lazy" alt="Milestone 4: the title screen, the name in ink on a golden evening sky over the valley.">
+        <h3><span>4</span>Interface</h3>
+        <p>Title, how to play, the HUD, pause and the end of the day, in one stitched-felt look.</p>
+        <p class="rounds">2 critic rounds</p>
+      </li>
+      <li>
+        <img src="media/milestone-m5.jpg" width="640" height="360" loading="lazy" alt="Milestone 5: a grey wolf with a red ring stalking the flock at sunset.">
+        <h3><span>5</span>Polish</h3>
+        <p>A steady frame rate, graphics settings that step down on slower machines, zero console errors.</p>
+        <p class="rounds">6 critic rounds</p>
+      </li>
+    </ol>
+    <div class="making-grid">
+      <div class="loop">
+        <h3>The critic loop</h3>
+        <p>After every milestone a script played the game with real key presses and saved screenshots from the player's camera. A separate reviewer, which saw only those screenshots and a one-paragraph pitch and never the code, listed the five worst problems a player would notice. They were fixed and the loop ran again, until the worst problem left was a minor one.</p>
+        <p>Most of the 52 rounds went into one thing: making a sunset read as a sunset. Gold, then rose, then violet, then moonlight, without the grass turning brown on the way.</p>
+      </div>
+      <dl class="facts">
+        <div><dt>Engine</dt><dd>Three.js on WebGL2 with TypeScript and Vite: soft shadows, an HDR image graded through the evening, bloom, and graphics settings that step down on their own on slower machines</dd></div>
+        <div><dt>Models</dt><dd>Five Blender scripts, one per asset family, about 2 MB of glTF in all</dd></div>
+        <div><dt>Sound</dt><dd>Web Audio synthesis: barks, bleats, howls, the wind and the stream, and a folk tune whose tension follows the wolves</dd></div>
+        <div><dt>Flock</dt><dd>Sheep that graze, bunch and flee as a group. The test bot herds them the way real sheepdogs do, gathering from behind and driving</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="last" aria-labelledby="last-h">
+  <div class="wrap">
+    <h2 id="last-h">The sun is going down.</h2>
+    <a class="btn btn-gold" href="play/">Play in your browser</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-row">
+    <p>Woolgather 1.0. Game code and assets made for this project. Fraunces and Nunito are licensed under the SIL Open Font License 1.1.</p>
+    <p><a href="play/">Play</a> <a href="#top">Back to the top</a></p>
+  </div>
+</footer>
+
+<script src="site.js" defer></script>
+</body>
+</html>

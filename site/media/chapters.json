@@ -1,0 +1,102 @@
+{
+ "duration": 220.2,
+ "start": 0,
+ "available": [
+  "drive",
+  "home",
+  "sunset",
+  "stalk",
+  "snatch",
+  "bridge",
+  "win",
+  "nightfall"
+ ],
+ "clips": {
+  "drive": 8,
+  "home": 17,
+  "sunset": 121,
+  "stalk": 146,
+  "snatch": 183,
+  "bridge": 197,
+  "win": 213,
+  "nightfall": 360
+ },
+ "lights": {
+  "drive": "gold",
+  "home": "gold",
+  "sunset": "rose",
+  "stalk": "rose",
+  "snatch": "rose",
+  "bridge": "rose",
+  "win": "rose",
+  "nightfall": "night"
+ },
+ "bands": [
+  {
+   "light": "gold",
+   "from": 0,
+   "to": 118.8
+  },
+  {
+   "light": "rose",
+   "from": 118.8,
+   "to": 213.6
+  },
+  {
+   "light": "end",
+   "from": 213.6,
+   "to": 220.2
+  }
+ ],
+ "events": [
+  {
+   "t": 1,
+   "kind": "start",
+   "label": "Golden hour: the flock is scattered"
+  },
+  {
+   "t": 16.4,
+   "kind": "home",
+   "label": "The first sheep is home"
+  },
+  {
+   "t": 118.8,
+   "kind": "danger",
+   "label": "The sun sets and the wolves come out"
+  },
+  {
+   "t": 142.2,
+   "kind": "danger",
+   "label": "A wolf stalks the flock"
+  },
+  {
+   "t": 181.3,
+   "kind": "danger",
+   "label": "Snatch!"
+  },
+  {
+   "t": 188,
+   "kind": "save",
+   "label": "Rescued from the jaws"
+  },
+  {
+   "t": 196.5,
+   "kind": "herd",
+   "label": "Over the bridge"
+  },
+  {
+   "t": 213.6,
+   "kind": "end",
+   "label": "Every sheep is home"
+  }
+ ],
+ "stats": {
+  "dayLength": 360,
+  "daySeconds": 213,
+  "total": 12,
+  "folded": 12,
+  "lost": 0,
+  "barks": 2,
+  "rescues": 1
+ }
+}

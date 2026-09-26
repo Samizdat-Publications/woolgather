@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5317,
     strictPort: true,
     watch: {
-      ignored: ['**/docs/**', '**/test-results/**', '**/screenshots/**', '**/blender_scripts/**', '**/tests/**', '**/tools/**', '**/dist/**'],
+      ignored: ['**/docs/**', '**/test-results/**', '**/screenshots/**', '**/blender_scripts/**', '**/tests/**', '**/tools/**', '**/dist/**', '**/site/**', '**/site-dist/**'],
     },
   },
   preview: { port: 4317, strictPort: true },

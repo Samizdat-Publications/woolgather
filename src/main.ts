@@ -53,6 +53,12 @@ function exposeTestHooks() {
       game.timeScale = k;
     },
     level: game.level.data,
+    /** Events since the last call, each with the day clock t (film cut marks). */
+    drain: () => game.eventLog.splice(0),
+    /** Film: show the title shot at mood time t (0 golden hour .. 1 night), or null for the default. */
+    titleMood: (t: number | null) => {
+      game.titleMood = t;
+    },
     /** The graphics tier in use (and whether Auto chose it). */
     quality: () => ({ tier: game.stage.quality }),
     /** GPU timing for the perf test: start, then read the mean per frame since the last read. */

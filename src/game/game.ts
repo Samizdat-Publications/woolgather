@@ -297,6 +297,8 @@ export class Game {
         this.audio.onEvents(sim.events, sim);
         this.effects(sim, dt);
         this.handleEvents(sim.events);
+        // Test and film hooks keep a log of what happened, with the day clock (drained by __WG.drain).
+        if (this.opts.test) for (const e of sim.events) if (e.type !== 'bleat' && e.type !== 'splash') this.eventLog.push({ ...e, t: +sim.elapsed.toFixed(2) });
         sim.events.length = 0;
         this.updateHints(sim, dt);
         if (sim.outcome) {
@@ -339,7 +341,7 @@ export class Game {
       // Title: a low shot across the valley into the golden-hour sun, drifting slowly to and fro.
       this.titleAngle += rawDt * 0.04;
       this.stage.setTitleShot(-10, this.terrain.ground(-10, 4) + 1, 4, 0.1 + Math.sin(this.titleAngle) * 0.2);
-      mood = this.stage.applyMood(0.28);
+      mood = this.stage.applyMood(this.titleMood ?? 0.28);
     }
     this.audio.update(rawDt, sim, mood.t, mood.night, this.mode, sim && this.mode === 'playing' ? this.tension(sim) : 0);
     const tgt = this.stage.grade.target;
@@ -1019,6 +1021,11 @@ export class Game {
   }
 
   /** Debug snapshot for the Playwright bot. */
+  /** Events since the last call (test mode only; for the film script's cut marks). */
+  eventLog: Record<string, unknown>[] = [];
+  /** Film: the title shot at another time of the evening (null: the usual golden hour). */
+  titleMood: number | null = null;
+
   snapshot() {
     const s = this.sim;
     return {
