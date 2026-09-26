@@ -125,7 +125,7 @@ export class Minimap {
    */
   setMood(t: number) {
     const dusk = Math.min(1, Math.max(0, (t - 0.5) / 0.4));
-    const f = `sepia(${(0.25 + 0.15 * dusk).toFixed(2)}) brightness(${(0.95 - 0.45 * dusk).toFixed(2)}) saturate(${(0.9 - 0.45 * dusk).toFixed(2)}) hue-rotate(${Math.round(-20 * dusk)}deg)`;
+    const f = `sepia(${(0.2 + 0.05 * dusk).toFixed(2)}) brightness(${(0.97 - 0.17 * dusk).toFixed(2)}) saturate(${(0.92 - 0.2 * dusk).toFixed(2)})`;
     if (this.canvas.style.filter !== f) this.canvas.style.filter = f;
   }
 
@@ -216,12 +216,12 @@ export class Minimap {
   /** Place names over everything else, so no dot ever hides a name a banner uses. */
   private drawLabels(c: CanvasRenderingContext2D) {
     c.save();
-    c.font = "700 10.5px 'Nunito Variable', system-ui, sans-serif";
+    c.font = "800 11.5px 'Nunito Variable', system-ui, sans-serif";
     c.textAlign = 'center';
-    c.lineWidth = 2.5;
+    c.lineWidth = 3;
     c.lineJoin = 'round';
-    c.strokeStyle = 'rgba(30, 36, 26, 0.55)';
-    c.fillStyle = 'rgba(255, 250, 235, 0.72)';
+    c.strokeStyle = 'rgba(30, 36, 26, 0.75)';
+    c.fillStyle = 'rgba(255, 248, 228, 0.9)';
     for (const p of PLACES) {
       const name = p.name.charAt(0) + p.name.slice(1).toLowerCase();
       c.strokeText(name, this.px(p.x), this.pz(p.z));

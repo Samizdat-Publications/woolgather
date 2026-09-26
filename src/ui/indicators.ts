@@ -31,7 +31,7 @@ export const MARKER_ICONS: Record<MarkerKind, string> = {
   wolf: '<svg viewBox="-12 -12 24 24"><path d="M-7 -7 L-3 -1 L3 -1 L7 -7 L6 3 L0 8 L-6 3 Z" fill="#231c2b"/><circle cx="-2.5" cy="1.5" r="1.3" fill="#ffd040"/><circle cx="2.5" cy="1.5" r="1.3" fill="#ffd040"/></svg>',
   grab: '<svg viewBox="-12 -12 24 24"><path d="M0 -7 V2" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><circle cx="0" cy="6.5" r="1.9" fill="#fff"/></svg>',
   sheep:
-    '<svg viewBox="-12 -12 24 24"><circle cx="-3" cy="0" r="4" fill="#231c2b" opacity="0.18"/><path d="M-6 2 a3.5 3.5 0 0 1 1-6 a4 4 0 0 1 7-1 a3.5 3.5 0 0 1 3 6 Z" fill="#fff" stroke="#231c2b" stroke-width="1.4"/><rect x="4" y="-2" width="4" height="4.5" rx="1.5" fill="#231c2b"/></svg>',
+    '<svg viewBox="-12 -12 24 24"><path d="M-5 3.5v3.5M1 3.5v3.5" stroke="#231c2b" stroke-width="2" stroke-linecap="round"/><path d="M-8 1.5a3 3 0 0 1 1.4-5 a3.5 3.5 0 0 1 5.3-2.2 a3.5 3.5 0 0 1 5.2 2 a3 3 0 0 1 0.3 5.6 H-5.4 a2.7 2.7 0 0 1-2.6-0.4Z" fill="#fff" stroke="#231c2b" stroke-width="1.3"/><path d="M3.4 -3.2c1.5-1.1 4.2-0.8 5.1 0.9 0.8 1.5-0.2 3.8-2 4.2-1.7 0.4-3.4-0.7-3.6-2.3" fill="#231c2b"/></svg>',
   note: '',
 };
 

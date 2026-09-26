@@ -189,7 +189,7 @@ export class Game {
     this.dragFeasible = null;
     this.ui.prompt(null);
     // The counter states the target; the first tip is about moving.
-    this.tip('move', 'WASD to move · get behind the sheep to drive them', 10, 0);
+    this.tip('move', 'WASD moves Pip · get behind the sheep to drive them · hold C to creep', 10, 0);
     this.setMode('playing');
   }
 
@@ -839,7 +839,9 @@ export class Game {
     this.tipsShown.add(id);
     this.ui.hint(text);
     this.tipUntil = now + seconds;
+    this.tipId = id;
   }
+  private tipId = '';
 
   /** Tips fire when the situation they explain comes up; the latch prompt shows once it matters. */
   private updateHints(sim: Sim, dt: number) {
@@ -909,7 +911,9 @@ export class Game {
       const nearPip = Math.hypot(s.x - d.x, s.z - d.z) < 26;
       if (nearPip ? !visible : Math.hypot(w.x - s.x, w.z - s.z) > 20) continue;
       this.stalkWarned.add(w.id);
-      const text = nearPip ? `A wolf is stalking your flock! ${this.arrowTo(w.x, w.z)}` : `A wolf is stalking the sheep ${this.level.placeName(s.x, s.z)}! ${this.arrowTo(w.x, w.z)}`;
+      // An arrow only when the wolf is out of view (on screen its ring and tether point at it).
+      const arrow = visible ? '' : ` ${this.arrowTo(w.x, w.z)}`;
+      const text = nearPip ? `A wolf is stalking your flock!${arrow}` : `A wolf is stalking the sheep ${this.level.placeName(s.x, s.z)}!${arrow}`;
       this.ui.toast(text, 'warn');
       this.stalkToast = { id: w.id, text };
     }
@@ -924,7 +928,7 @@ export class Game {
     const wasGlowing = this.gateGlow;
     this.gateGlow = sim.targetMet && sim.free > 0 && !grabbed;
     this.ui.prompt(
-      this.gateGlow ? 'Target met! Press <kbd>Enter</kbd> to latch the gate and end the day, or keep herding for more stars' : null,
+      this.gateGlow ? 'Target met! <kbd>Enter</kbd> latches the gate, or herd more for stars' : null,
       'Target met · <kbd>Enter</kbd> latches the gate',
     );
     // The call to action replaces the objective it completes, and wins over tutorial tips.
@@ -951,7 +955,9 @@ export class Game {
     if (sim.wolves.some((w) => (w.state === 'stalk' || w.state === 'charge') && Math.hypot(w.x - d.x, w.z - d.z) < 30 && this.onScreen(w.x, w.z))) {
       this.tip('wolf', 'Wolves run from Pip: run at one or bark (Space) to drive it off', 7, t);
     }
-    if (this.tipUntil > 0 && t > this.tipUntil) {
+    // The wolf tip goes as soon as no wolf is about any more.
+    const wolfAbout = sim.wolves.some((w) => (w.state === 'stalk' || w.state === 'charge' || w.state === 'drag') && Math.hypot(w.x - d.x, w.z - d.z) < 40);
+    if (this.tipUntil > 0 && (t > this.tipUntil || (this.tipId === 'wolf' && !wolfAbout))) {
       this.tipUntil = 0;
       this.ui.hint('');
     }

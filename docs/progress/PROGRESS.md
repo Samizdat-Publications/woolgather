@@ -493,3 +493,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![One results layout for every outcome](m4-ui-r2-lose-end.png)
 *One results layout for every outcome*
 
+
+## m4-close (2026-09-26)
+
+![M4 closed: the title screen](m4-close-title.png)
+*M4 closed: the title screen*
+
+![The HUD at the latch: pips with star marks, one-line banner, creep chip](m4-close-latch-prompt.png)
+*The HUD at the latch: pips with star marks, one-line banner, creep chip*
+
+![A win: Pip at the fold beside the results](m4-close-win-end.png)
+*A win: Pip at the fold beside the results*
+
+![A loss: how many were taken and where](m4-close-lose-end.png)
+*A loss: how many were taken and where*
+

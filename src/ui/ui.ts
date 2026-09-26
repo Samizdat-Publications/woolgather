@@ -25,7 +25,7 @@ export function keycaps(text: string) {
 
 /** A small sheep for the flock counter. */
 const SHEEP_GLYPH =
-  '<svg class="glyph" viewBox="0 0 26 22"><path d="M4 13a4 4 0 0 1 1.5-7.2A4.6 4.6 0 0 1 13 3.2a4.6 4.6 0 0 1 7.4 2.6A4 4 0 0 1 21 13a3.6 3.6 0 0 1-3.6 3.4H7.4A3.6 3.6 0 0 1 4 13Z" fill="#fbf3e4" stroke="#231c2b" stroke-width="1.4"/><rect x="18.4" y="7.2" width="6" height="6.6" rx="2.6" fill="#231c2b"/><path d="M8 16.2v4M16 16.2v4" stroke="#231c2b" stroke-width="2" stroke-linecap="round"/></svg>';
+  '<svg class="glyph" viewBox="0 0 28 22"><path d="M8 15.5v4.5M16 15.5v4.5" stroke="#231c2b" stroke-width="2.6" stroke-linecap="round"/><path d="M3.5 11.5a3.8 3.8 0 0 1 1.8-6.4A4.4 4.4 0 0 1 12 2.8a4.4 4.4 0 0 1 6.6 2.6A3.8 3.8 0 0 1 19 12.8a3.4 3.4 0 0 1-3.3 3H6.6a3.4 3.4 0 0 1-3.1-4.3Z" fill="#fbf3e4" stroke="#231c2b" stroke-width="1.4"/><path d="M18.5 7.2c1.8-1.4 5.4-1 6.6 1.2 1 1.9-0.2 4.9-2.6 5.4-2.2 0.5-4.4-0.9-4.6-3" fill="#231c2b"/><path d="M19.2 6.8l-2.4-1.6" stroke="#231c2b" stroke-width="2.2" stroke-linecap="round"/></svg>';
 
 /** Edge-marker glyph in its badge, for the legend on the how-to card. */
 function legendIcon(kind: keyof typeof MARKER_ICONS) {
@@ -47,8 +47,8 @@ export class Ui {
     this.root.innerHTML = `
       <div class="hud" hidden>
         <div class="hud-counts">
-          <div class="count-home">${SHEEP_GLYPH}<span class="n-home">0</span><span class="of">/ <span class="n-total">0</span> home</span></div>
-          <div class="count-need">need <span class="n-need">0</span> to win<span class="count-stars"></span></div>
+          <div class="count-home">${SHEEP_GLYPH}<span class="n-home">0</span><span class="of">home · need <span class="n-need">0</span></span></div>
+          <div class="pips"></div>
           <div class="count-spare"></div>
         </div>
         <div class="hud-time">
@@ -59,6 +59,7 @@ export class Ui {
         <div class="hud-map"></div>
         <div class="hud-dog">
           <div class="meter"><span class="meter-label">Stamina <kbd>Shift</kbd></span><div class="stamina"><div class="stamina-fill"></div></div></div>
+          <div class="creep-pip"><span>Creep <kbd>C</kbd></span></div>
           <div class="bark-pip"><div class="bark-fill"></div><span>Bark <kbd>Space</kbd></span></div>
         </div>
         <div class="hud-hint"></div>
@@ -137,7 +138,8 @@ export class Ui {
               <li>Sheep will not wade the stream: cross at the <b>bridge</b> or the shallow <b>ford</b>.</li>
               <li>Drive them through the gate of the <b>stone fold</b> by the farmhouse.</li>
               <li>When the sun sets (the red notch on the sun bar), <b>wolves</b> come for stragglers. Run at one or bark and it drops its prey.</li>
-              <li>Enough sheep home? Latch the gate to end the day. More sheep, more stars.</li>
+              <li>Each evening has a <b>target</b> (9 of 12 on Standard). The counter shows how many more you can afford to lose.</li>
+              <li>Target met? Latch the gate to end the day, or keep herding: more sheep, more stars.</li>
             </ul>
           </div>
         </div>
@@ -320,6 +322,8 @@ export class Ui {
       el.innerHTML = keycaps(text) + (sub ? `<span class="toast-sub">${keycaps(sub)}</span>` : '');
     }
     if (el.className !== cls) el.className = cls;
+    const alerting = !!text && (!!this.alertText || this.toastKind === 'warn' || this.toastKind === 'danger');
+    $('.hud', this.root).classList.toggle('alerting', alerting);
   }
 
   hint(text: string) {
@@ -375,7 +379,7 @@ export class Ui {
         if (p.x > r.left - 60 && p.x < r.right + 60 && p.y > top - 70 && p.y < bottom + 60) want = Math.max(want, p.y + 70 - top);
       }
     }
-    want = Math.min(want, window.innerHeight * 0.3);
+    want = Math.min(want, 64);
     this.toastDrop += (want - this.toastDrop) * (1 - Math.exp(-(want > this.toastDrop ? 14 : 4) * dt));
     if (this.toastDrop < 0.5) this.toastDrop = 0;
     el.style.setProperty('--toast-drop', `${Math.round(this.toastDrop)}px`);
@@ -394,22 +398,36 @@ export class Ui {
 
   update(sim: Sim, dt: number, time: number) {
     $('.n-home', this.root).textContent = String(sim.folded);
-    $('.n-total', this.root).textContent = String(sim.total);
     $('.n-need', this.root).textContent = String(sim.target);
-    // How many more sheep can be lost before the target becomes impossible, or a hurry-up when
-    // daylight is the tighter limit.
+    $('.count-home .of', this.root).classList.toggle('met', sim.targetMet);
+    // One pip per sheep (home, still out, lost) with the star marks after the target, the second
+    // star and the whole flock: the goal and the stars at a glance.
+    const pips = $('.pips', this.root);
+    const pipKey = `${sim.folded}|${sim.lost}|${sim.total}|${sim.target}`;
+    if (pips.dataset.key !== pipKey) {
+      pips.dataset.key = pipKey;
+      const two = Math.ceil((sim.target + sim.total) / 2);
+      const marks = new Map<number, number>([[sim.target, 1]]);
+      marks.set(two, Math.max(marks.get(two) ?? 0, 2));
+      marks.set(sim.total, 3);
+      let html = '';
+      for (let i = 1; i <= sim.total; i++) {
+        html += `<i class="pip ${i <= sim.folded ? 'home' : i > sim.total - sim.lost ? 'lost' : ''}"></i>`;
+        const m = marks.get(i);
+        if (m) html += `<b class="mark ${sim.folded >= i ? 'got' : sim.total - sim.lost < i ? 'gone' : ''}">${'★'.repeat(m)}</b>`;
+      }
+      pips.innerHTML = html;
+    }
+    // How many more can be lost before the target is out of reach, or a hurry-up when daylight is
+    // the tighter limit.
     const spare = sim.total - sim.target - sim.lost;
     const need = Math.max(0, sim.target - sim.folded);
     const spareEl = $('.count-spare', this.root);
-    const lostTxt = sim.lost > 0 ? ` · lost ${sim.lost}` : '';
     const hurry = !sim.targetMet && sim.timeLeft < 90;
-    const spareTxt = spare > 0 ? `${spare} sheep to spare` : 'no sheep to spare!';
-    spareEl.textContent = sim.targetMet
-      ? `target met${lostTxt}`
-      : hurry
-        ? `hurry: ${need} more · ${spareTxt}`
-        : `${spareTxt}${lostTxt}`;
+    const spareTxt = spare > 0 ? `can lose ${spare} more` : "can't lose any more!";
+    spareEl.textContent = sim.targetMet ? 'target met' : hurry ? `hurry: ${need} more to go · ${spareTxt}` : spareTxt;
     spareEl.classList.toggle('danger', (!sim.targetMet && spare <= 0) || hurry);
+    spareEl.classList.toggle('met', sim.targetMet);
     // Sun bar: a notch where the wolves come out, violet once the sun is down.
     const ws = sim.preset.wolfStart;
     const wolvesOut = sim.t >= ws;
@@ -420,14 +438,6 @@ export class Ui {
     const wl = $('.wolf-label', this.root);
     wl.textContent = wolvesOut ? 'the wolves are out' : `wolves come out in ${fmtTime((ws - sim.t) * sim.preset.dayLength)}`;
     wl.classList.toggle('out', wolvesOut);
-    $('.count-need', this.root).classList.toggle('met', sim.targetMet);
-    // The extra-star targets, lit once reached and struck out once the wolves make them impossible.
-    const two = Math.ceil((sim.target + sim.total) / 2);
-    const tier = (n: number, s: string) =>
-      `<span class="${sim.folded >= n ? 'got' : sim.total - sim.lost < n ? 'gone' : ''}">${s} ${n}</span>`;
-    const starsHtml = ` · ${tier(two, '★★')} · ${tier(sim.total, '★★★')}`;
-    const starsEl = $('.count-stars', this.root);
-    if (starsEl.innerHTML !== starsHtml) starsEl.innerHTML = starsHtml;
     $('.t-left', this.root).textContent = fmtTime(sim.timeLeft);
     // The last minute escalates: ember text, then a pulse in the final 20 seconds.
     const timeEl = $('.hud-time', this.root);
@@ -442,6 +452,7 @@ export class Ui {
     const st = $('.stamina-fill', this.root);
     st.style.width = `${(d.stamina / DOG.staminaMax) * 100}%`;
     st.classList.toggle('tired', d.sprintLock);
+    $('.creep-pip', this.root).classList.toggle('on', d.creeping);
     const bark = $('.bark-pip', this.root);
     bark.classList.toggle('ready', d.barkCd <= 0);
     const reach = DOG.barkRadius + 4;
@@ -509,14 +520,14 @@ export class Ui {
         tip = 'Sprint (Shift) between flocks to save daylight.';
       }
     }
-    // Times match the in-game "Nightfall in" countdown, so they are given as daylight left.
-    const dayLen = sim.preset.dayLength;
     // "on the far bank" -> "Far bank": a labelled list reads better than a run-on sentence.
     const place = (x: number, z: number) => {
       const p = this.level.placeName(x, z).replace(/^(in|on|at|by) the /, '');
       return p.charAt(0).toUpperCase() + p.slice(1);
     };
-    const losses = sim.lostLog.map((l) => `${place(l.x, l.z)} ${fmtTime(dayLen - l.t)}`).join(' · ');
+    const byPlace = new Map<string, number>();
+    for (const l of sim.lostLog) byPlace.set(place(l.x, l.z), (byPlace.get(place(l.x, l.z)) ?? 0) + 1);
+    const losses = [...byPlace].map(([p, n]) => (n > 1 ? `${p} ×${n}` : p)).join(', ');
     const two = Math.ceil((sim.target + sim.total) / 2);
     const stars = win ? [0, 1, 2].map((i) => `<span class="${i < o.stars ? 'on' : ''}">★</span>`).join('') : '';
     const legend = `★ ${sim.target}+ home · ★★ ${two}+ · ★★★ all ${sim.total}`;
@@ -529,7 +540,7 @@ export class Ui {
         ${row('Rescued from jaws', String(sim.rescues))}
         ${row('Daylight left', sim.timeLeft > 0.5 ? fmtTime(sim.timeLeft) : 'none')}
       </div>
-      ${losses ? `<div class="losses"><b>Taken by wolves:</b> ${escapeHtml(losses)} <span class="dim">(daylight left)</span></div>` : ''}
+      ${losses ? `<div class="losses"><b>Taken by wolves:</b> ${sim.lost} (${escapeHtml(losses)})</div>` : ''}
       ${tip ? `<div class="tip"><b>Tip</b> ${keycaps(tip)}</div>` : ''}`;
     this.show('end');
   }

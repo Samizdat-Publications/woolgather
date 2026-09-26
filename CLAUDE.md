@@ -781,3 +781,21 @@ Newest at the bottom. Record every non-obvious choice.
   hides play's messages behind it, the how-to gives every key its own row. Fireflies mark the
   target's alpha where they glow, so the grade keeps their yellow-green; a few bracken clumps and
   more flowers break up the meadows; birch leaves are greener.
+- 2026-09-25 (M4 critic r2, worst: minor): closing fixes. The counter led with "0 / 12 home", so
+  the goal looked like 12: it now reads "0 home · need 9" over a row of pips, one per sheep (home,
+  still out, lost), with the star marks after the target, the second star and the whole flock, and
+  "can lose 3 more" (explained on the how-to card) instead of "3 sheep to spare". A Creep chip sits
+  beside stamina and bark and lights while C is held; the opening tip mentions creeping. The sheep
+  glyph has a dark face and legs (the round one read as a cloud). The latch banner is one line. A
+  message steps at most 64 px out of a wolf's way (dropping into the field it covered the strip
+  the player had to watch), a stalking message only carries an arrow when the wolf is out of view,
+  the tip at the bottom steps back while an alert is up, and the wolf tip goes once no wolf is
+  about. Minimap names are readable again (11.5 px cream on a dark halo) and the map is only lightly
+  tinted at night. The loss report says how many and where ("4 (Grove x3, Rocks)").
+- 2026-09-25: **M4 closed.** Two critic rounds, both minor (the same stop rule as M2 and M3).
+  Carried to M5: after sunset the wool turns pink and the wolves are dark lumps that rely on their
+  rings; relief shading reads as cloud-shadow blotches; the stream at sunset still reads as a
+  road; the night lacks a moon direction and shadows in some frames; the play camera never shows
+  sky or ridges (the pitch's valley and setting sun live in the HUD bar and the light only).
+  Closing playtest: 0 console errors, 20/20 assertions, the bot wins Standard with all 12 home,
+  the idle day loses to the wolves.

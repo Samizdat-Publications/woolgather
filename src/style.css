@@ -82,12 +82,17 @@ kbd {
 .count-home .glyph { align-self: center; width: 26px; height: 22px; flex: none; }
 .count-home .n-home { font-family: var(--display); font-variation-settings: 'SOFT' 100; font-size: 36px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
 .count-home .of { font-size: 16px; font-weight: 700; color: var(--wool-2); }
-.count-need { margin-top: 4px; font-size: 14.5px; font-weight: 700; }
-.count-need.met { color: var(--leaf); }
-.count-stars { font-size: 14px; font-weight: 800; color: var(--wool-2); }
-.count-stars .got { color: var(--gold); }
-.count-stars .gone { text-decoration: line-through; opacity: 0.6; }
-.count-spare { margin-top: 1px; font-size: 14px; font-weight: 700; color: var(--wool-2); }
+.count-home .of.met { color: var(--leaf); }
+.pips { display: flex; align-items: center; margin-top: 7px; }
+.pip { width: 10px; height: 10px; margin-right: 3px; border-radius: 50%; border: 1.5px solid rgba(251, 243, 228, 0.55); flex: none; position: relative; }
+.pip.home { background: var(--wool); border-color: var(--wool); }
+.pip.lost { border-color: rgba(255, 138, 106, 0.8); }
+.pip.lost::after { content: ''; position: absolute; left: -2px; right: -2px; top: 3px; height: 1.5px; background: #ff8a6a; transform: rotate(-45deg); }
+.mark { margin: 0 5px 0 2px; font-size: 13px; line-height: 1; color: var(--wool-3); }
+.mark.got { color: var(--gold); }
+.mark.gone { opacity: 0.4; text-decoration: line-through; }
+.count-spare { margin-top: 6px; font-size: 14px; font-weight: 700; color: var(--wool-2); }
+.count-spare.met { color: var(--leaf); }
 .count-spare.danger { color: #ff9a78; font-weight: 800; }
 
 /* Top middle: the sun bar and the time to nightfall. */
@@ -121,6 +126,8 @@ kbd {
 .stamina-fill.tired { background: linear-gradient(90deg, #d0643a, var(--ember)); }
 .bark-pip { position: relative; overflow: hidden; padding: 5px 10px; border-radius: 10px; background: rgba(12, 8, 18, 0.45); font-size: 13px; font-weight: 800; white-space: nowrap; }
 .bark-pip span { position: relative; }
+.creep-pip { padding: 5px 10px; border-radius: 10px; border: 1.5px solid transparent; background: rgba(12, 8, 18, 0.45); font-size: 13px; font-weight: 800; white-space: nowrap; color: var(--wool-2); }
+.creep-pip.on { color: #cfe8ff; border-color: rgba(143, 208, 255, 0.8); background: rgba(143, 208, 255, 0.16); }
 .bark-fill { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(242, 180, 90, 0.32); }
 .bark-pip { border: 1.5px solid transparent; }
 .bark-pip.ready { color: var(--gold-hi); border-color: rgba(242, 180, 90, 0.75); }
@@ -132,6 +139,9 @@ kbd {
 /* Bottom middle: the current tip. */
 .hud-hint { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); padding: 7px 16px; border-radius: 999px; background: var(--panel); box-shadow: var(--shadow); font-size: 15.5px; font-weight: 700; white-space: nowrap; }
 .hud-hint:empty { display: none; }
+/* One message at a time: the tip steps back while an alert is up. */
+.hud-hint { transition: opacity 0.25s ease; }
+.hud.alerting .hud-hint { opacity: 0; }
 
 /* Messages under the timer. One slot; a snatch alert is a red banner that holds it. */
 .toast, .hud-prompt { position: absolute; top: calc(112px + var(--toast-drop, 0px)); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(640px, 90vw); padding: 9px 20px 10px; border-radius: 14px; background: rgba(33, 26, 42, 0.9); border: 2px solid rgba(251, 243, 228, 0.16); box-shadow: var(--shadow); font-size: 17px; font-weight: 800; line-height: 1.35; text-align: center; }
