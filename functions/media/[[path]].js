@@ -43,14 +43,15 @@ export async function onRequest({ request, next }) {
   const headers = new Headers(full.headers);
   headers.delete('Transfer-Encoding');
   headers.set('Content-Range', `bytes ${start}-${end}/${size}`);
-  headers.set('Content-Length', String(end - start + 1));
   headers.set('Accept-Ranges', 'bytes');
-  let body;
-  if (whole) body = whole.subarray(start, end + 1);
-  // from the start to the end is the whole file: pass it straight through
-  else if (start === 0 && end === size - 1) body = full.body;
-  else body = slice(full.body, start, end + 1);
-  return new Response(body, { status: 206, headers });
+  if (whole) return new Response(whole.subarray(start, end + 1), { status: 206, headers });
+  // The runtime ignores a Content-Length set by hand and would stream the part in chunks with no
+  // length; a FixedLengthStream makes it send the exact length. From the start to the end is the
+  // whole file, which passes straight through.
+  const part = start === 0 && end === size - 1 ? full.body : slice(full.body, start, end + 1);
+  const { readable, writable } = new FixedLengthStream(end - start + 1);
+  part.pipeTo(writable).catch(() => undefined);
+  return new Response(readable, { status: 206, headers });
 }
 
 /** The bytes [from, to) of a stream, reading no further than it needs. */
