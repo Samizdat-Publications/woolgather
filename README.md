@@ -109,7 +109,9 @@ map size and bloom. Both choices are remembered. `?quality=low` in the URL picks
   are driven, and screenshots from the player's camera land in `test-results/`, with the console
   log and 20 assertions.
 - `node tests/perf.mjs` measures frame times, draw calls, triangles and GPU time for each phase of
-  the evening against the production preview (`--analyze` breaks the cost down).
+  the evening against the production preview (`--analyze` breaks the cost down). On the laptop it was built on
+  (an RTX 5070 Ti) the game runs at 140-230 fps at 1080p, limited by the CPU; Auto graphics steps
+  down on slower machines.
 - `node tests/lookdev.mjs` captures the view at chosen times of day (`--nograde` shows the render
   without the colour grade).
 - Every milestone ended with these self-tests and a critic that saw only the screenshots and the

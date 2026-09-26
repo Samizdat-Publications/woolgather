@@ -336,6 +336,15 @@ export class Ui {
     return this.rectOf($('.hud-counts', this.root)).r;
   }
 
+  /** Screen rectangles of the meters and the tip along the bottom (empty ones left out). */
+  bottomRects() {
+    if ($('.hud', this.root).hidden) return [];
+    const out = [this.rectOf($('.hud-dog', this.root)).r];
+    const hint = $('.hud-hint', this.root);
+    if (hint.textContent) out.push(this.rectOf(hint).r);
+    return out;
+  }
+
   /** Screen rectangle of the minimap panel (null while the HUD is hidden). */
   mapRect() {
     if ($('.hud', this.root).hidden) return null;
@@ -480,7 +489,8 @@ export class Ui {
     const spareEl = $('.count-spare', this.root);
     const hurry = !sim.targetMet && sim.timeLeft < 90;
     const spareTxt = spare > 0 ? `can lose ${spare} more` : "can't lose any more!";
-    spareEl.textContent = sim.targetMet ? 'target met' : hurry ? `hurry: ${need} more to go · ${spareTxt}` : spareTxt;
+    // In the last minute and a half the light, not the wolves, is the limit: say that.
+    spareEl.textContent = sim.targetMet ? 'target met' : hurry ? `hurry: ${need} more to go before dark` : spareTxt;
     spareEl.classList.toggle('danger', (!sim.targetMet && spare <= 0) || hurry);
     spareEl.classList.toggle('met', sim.targetMet);
     // Sun bar: a notch where the wolves come out, violet once the sun is down.

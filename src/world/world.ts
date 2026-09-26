@@ -318,7 +318,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
           diffuseColor.rgb *= uGround;
           vec3 hl = normalize(uHillDir * 0.8 + vec3(0.0, 0.6, 0.0));
           float hs = dot(normalize(vWorldN), hl) - hl.y;
-          diffuseColor.rgb *= clamp(1.0 + (hs > 0.0 ? 1.0 : 0.12) * hs, 0.95, 1.28);`,
+          diffuseColor.rgb *= clamp(1.0 + (hs > 0.0 ? 1.0 : 0.06) * hs, 0.97, 1.28);`,
         );
     };
     m.customProgramCacheKey = () => (smooth ? 'wg-ground-smooth' : 'wg-ground');

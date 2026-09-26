@@ -81,7 +81,7 @@ kbd {
 .toast.see-through, .hud-prompt.see-through { opacity: 0.5; }
 
 /* Top left: the flock count. */
-.hud-counts { position: absolute; top: 16px; left: 16px; min-width: 220px; padding: 10px 16px 12px; }
+.hud-counts { position: absolute; top: 16px; left: 16px; width: 296px; padding: 10px 16px 12px; }
 .count-home { display: flex; align-items: baseline; gap: 8px; }
 .count-home .glyph { align-self: center; width: 26px; height: 22px; flex: none; }
 .count-home .n-home { font-family: var(--display); font-variation-settings: 'SOFT' 100; font-size: 36px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }

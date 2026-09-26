@@ -36,11 +36,15 @@ export const MARKER_ICONS: Record<MarkerKind, string> = {
 };
 
 /** Set while the wolf-cam inset is up, and where it is; and where the minimap panel is. */
-export const hudState: { insetVisible: boolean; insetRect: ScreenRect | null; mapRect: DOMRect | null; countsRect: DOMRect | null } = { insetVisible: false, insetRect: null, mapRect: null, countsRect: null };
+export const hudState: { insetVisible: boolean; insetRect: ScreenRect | null; mapRect: DOMRect | null; countsRect: DOMRect | null; bottomRects: DOMRect[] } = { insetVisible: false, insetRect: null, mapRect: null, countsRect: null, bottomRects: [] };
 
 // Screen regions taken by HUD panels (top-left counts, top-right minimap, the timer and message
 // banner across the top middle, the wolf-cam inset), in CSS pixels.
 function avoidHud(px: number, py: number, w: number): [number, number] {
+  // The timer and banner across the top middle: slide along the edge past them rather than
+  // dropping into the field, where a marker reads as an object in the world. (First, so a marker
+  // slid aside is then kept off the counter and the minimap too.)
+  if (Math.abs(px - w / 2) < 340 && py < 150) px = px < w / 2 ? w / 2 - 350 : w / 2 + 350;
   const m = hudState.mapRect;
   // Under the minimap panel: drop below it, clear of its edge.
   if (m && px > m.left - 30 && py < m.bottom + 22) py = m.bottom + 36;
@@ -49,9 +53,10 @@ function avoidHud(px: number, py: number, w: number): [number, number] {
   const c = hudState.countsRect;
   if (c && px < c.right + 30 && py < c.bottom + 26) py = c.bottom + 40;
   else if (!c && px < 190 && py < 135) py = 150;
-  // The timer and banner across the top middle: slide along the edge past them rather than
-  // dropping into the field, where a marker reads as an object in the world.
-  if (Math.abs(px - w / 2) < 340 && py < 150) px = px < w / 2 ? w / 2 - 350 : w / 2 + 350;
+  // The meters and the tip at the bottom: a marker there steps up above them.
+  for (const b of hudState.bottomRects) {
+    if (px > b.left - 26 && px < b.right + 26 && py > b.top - 26) py = b.top - 34;
+  }
   const r = hudState.insetRect;
   if (hudState.insetVisible && r) {
     // Markers on the inset's edge hop above it.

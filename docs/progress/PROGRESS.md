@@ -526,3 +526,18 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Night with the fold lit warm](m5-r3-late-night.png)
 *Night with the fold lit warm*
 
+
+## m5-close (2026-09-26)
+
+![Final: herding in the golden hour](m5-close-herding.png)
+*Final: herding in the golden hour*
+
+![Final: a wolf stalks the flock under the rose sunset](m5-close-wolf.png)
+*Final: a wolf stalks the flock under the rose sunset*
+
+![Final: nightfall at the fold](m5-close-night.png)
+*Final: nightfall at the fold*
+
+![Final: every sheep home, Pip at the fold](m5-close-win-end.png)
+*Final: every sheep home, Pip at the fold*
+

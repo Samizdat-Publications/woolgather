@@ -98,7 +98,7 @@ Progress screenshots (user request): after every self-test round, save the telli
 `node tools/save-progress.mjs <runDir> <label> "<file>=<caption>" ...` into `docs/progress/`
 (committed, captioned in `docs/progress/PROGRESS.md`). They feed the README later.
 
-Status: see the DECISIONS log below for where we are.
+Status: complete (all five milestones closed, tag `m5-polish`); the DECISIONS log below has the history.
 
 ## Asset list
 
@@ -868,3 +868,21 @@ Newest at the bottom. Record every non-obvious choice.
   strong one read as an orange smudge with no lamp); night is a darker indigo with thinner fog and
   fewer fireflies; the how-to's marker icons sit on one baseline without the jaws marker's pulse
   or its larger in-game size (a selector clash).
+- 2026-09-26 (M5 critic r5, worst: minor, "overall the game is in good shape"): the late twilight
+  has a firmer moon over less fill, deeper shadows and thinner air, the far-slope relief darkening
+  is fainter (it read as blotches), the counter panel has a fixed width, and a stalking wolf's
+  tether shows from 38 m.
+- 2026-09-26 (M5 critic r6, worst: minor): closing fixes. Edge markers slide past the timer first
+  and are then kept off the counter, the minimap and (new) the meters and tip along the bottom
+  (the fold marker covered the wolf tip, a wolf marker the counter). In the last minute and a half
+  the counter says how many are still needed before dark instead of how many more can be lost.
+- 2026-09-26: **M5 closed. The game is done.** Six critic rounds: r2, r3 and r4 found a major
+  each (the stream as a black chasm, a quiet out-of-reach snatch, the snatch alert fading and the
+  close-up doubling), all fixed; r5 and r6 came back minor, the same stop rule as every earlier
+  milestone. Remaining minors are taste calls the critics kept reversing (the dusk colour, the
+  wolf's coat, the camera distance, the counter layout). Final checks on the production build
+  (`npm run build`, `npm run preview`): the full self-test with no console output at all, 20/20
+  assertions, the bot wins Standard with all 12 home, the idle day loses at nightfall; 137-230
+  fps at 1080p on this machine (RTX 5070 Ti laptop, CPU-bound), with Auto graphics stepping down
+  on slower ones. `screenshots/` holds the six final player-view shots; README.md describes the
+  game, its controls, settings, how it was made and how it is tested.

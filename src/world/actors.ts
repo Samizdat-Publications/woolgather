@@ -582,7 +582,7 @@ export class Actors {
       }
       v.danger.mesh.material.opacity = carrying ? 0.85 + 0.15 * pulse : charging ? 0.75 + 0.2 * pulse : 0.5 + 0.12 * pulse;
       const prey = w.target;
-      const tether = !!prey && (w.state === 'stalk' || charging) && (prey.x - w.x) ** 2 + (prey.z - w.z) ** 2 < 26 * 26;
+      const tether = !!prey && (w.state === 'stalk' || charging) && (prey.x - w.x) ** 2 + (prey.z - w.z) ** 2 < 38 * 38;
       v.dash.mesh.visible = tether;
       v.mark.mesh.visible = (tether && charging) || carrying;
       if (tether && prey) {

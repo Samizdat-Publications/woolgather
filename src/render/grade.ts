@@ -96,8 +96,8 @@ const KEYS: GradeKey[] = [
   // Twilight under the rising moon, closing in: the colour drains from the ground (as it does to
   // the eye in low light) towards a cool blue-grey, the shade violet, the moonlit tops silver, and
   // the frame darker every second.
-  { t: 0.74, sat: 0.35, zones: [0.2, 0.5, 0.62, 0.8], greyKeep: 0.35, shadeKeep: 0.3, spare: 0.6, warm: 0.8, shadow: [302, 0.11, 0.8], mid: [296, 0.085, 0.7], high: [280, 0.035, 0.45], protect: 0.13, gain: 1.04, contrast: 1.36, pivot: 0.26, haze: '#b87ab0', hazeAmt: 0.14, sky: 0.44, shafts: 0.02, bloom: 0.36, bloomAt: 0.72, vignette: 0.32 },
-  { t: 0.88, sat: 0.32, zones: [0.18, 0.46, 0.58, 0.78], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.5, warm: 1, shadow: [300, 0.115, 0.82], mid: [284, 0.095, 0.75], high: [270, 0.04, 0.5], protect: 0.12, gain: 0.98, contrast: 1.48, pivot: 0.24, haze: '#7a5aa4', hazeAmt: 0.12, sky: 0.38, shafts: 0, bloom: 0.4, bloomAt: 0.62, vignette: 0.38 },
+  { t: 0.74, sat: 0.35, zones: [0.2, 0.5, 0.62, 0.8], greyKeep: 0.35, shadeKeep: 0.3, spare: 0.6, warm: 0.8, shadow: [302, 0.11, 0.8], mid: [296, 0.085, 0.7], high: [280, 0.035, 0.45], protect: 0.13, gain: 1.04, contrast: 1.44, pivot: 0.26, haze: '#b87ab0', hazeAmt: 0.14, sky: 0.44, shafts: 0.02, bloom: 0.36, bloomAt: 0.72, vignette: 0.32 },
+  { t: 0.88, sat: 0.32, zones: [0.18, 0.46, 0.58, 0.78], greyKeep: 0.3, shadeKeep: 0.3, spare: 0.5, warm: 1, shadow: [300, 0.115, 0.82], mid: [284, 0.095, 0.75], high: [270, 0.04, 0.5], protect: 0.12, gain: 0.98, contrast: 1.54, pivot: 0.24, haze: '#7a5aa4', hazeAmt: 0.12, sky: 0.38, shafts: 0, bloom: 0.4, bloomAt: 0.62, vignette: 0.38 },
   // Night: the moonlit ground deep indigo-blue, the shade a darker violet-indigo (a hue apart, so
   // the moonlight reads as light and not a filter), silver-blue tops, the lamps and windows warm.
   { t: 1.0, sat: 0.3, zones: [0.16, 0.44, 0.56, 0.76], greyKeep: 0.25, shadeKeep: 0.3, spare: 0.4, warm: 1, shadow: [298, 0.12, 0.88], mid: [272, 0.11, 0.8], high: [255, 0.045, 0.55], protect: 0.11, gain: 0.88, contrast: 1.55, pivot: 0.26, haze: '#383c80', hazeAmt: 0.1, sky: 0.32, shafts: 0, bloom: 0.45, bloomAt: 0.55, vignette: 0.44 },

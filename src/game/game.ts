@@ -365,6 +365,7 @@ export class Game {
     hudState.insetRect = this.wolfCam.rect;
     hudState.mapRect = this.ui.mapRect();
     hudState.countsRect = this.ui.countsRect();
+    hudState.bottomRects = this.ui.bottomRects();
     const forest = this.world.forest;
     this.stage.render((r, target) => {
       // Tree cut-outs are placed for the main view only; the close-up follows a wolf into the
