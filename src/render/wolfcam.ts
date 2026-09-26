@@ -7,8 +7,8 @@ import * as THREE from 'three';
 // points the way.
 
 export const INSET = {
-  w: 248,
-  h: 156,
+  w: 224,
+  h: 140,
   margin: 16,
 };
 const W = INSET.w;
@@ -93,7 +93,8 @@ export class WolfCam {
       pz = -pz;
     }
     // Close enough that the sheep in the wolf's jaws fills a real part of the picture.
-    const goalPos = new THREE.Vector3(x + px * 7.5 + Math.sin(heading) * 0.5, y + 4.6, z + pz * 7.5 + Math.cos(heading) * 0.5);
+    // Steep enough that no far hillside or sky (hazy with distance) fills the top of the picture.
+    const goalPos = new THREE.Vector3(x + px * 7 + Math.sin(heading) * 0.5, y + 5.8, z + pz * 7 + Math.cos(heading) * 0.5);
     const goalLook = new THREE.Vector3(x + Math.sin(heading) * 2.4, y + 1.1, z + Math.cos(heading) * 2.4);
     // Snap rather than glide when the hunt has got far ahead (a fast drag, or a sped-up clock):
     // the picture must never lose the wolf and its sheep.

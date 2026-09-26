@@ -386,7 +386,14 @@ export class Particles {
       new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
+        // Additive light, and where a firefly glows the target's alpha drops, which marks it for
+        // the grade as a character: it keeps its own yellow-green instead of turning lavender.
+        blending: THREE.CustomBlending,
+        blendEquation: THREE.AddEquation,
+        blendSrc: THREE.SrcAlphaFactor,
+        blendDst: THREE.OneFactor,
+        blendSrcAlpha: THREE.ZeroFactor,
+        blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
         uniforms: { uTime: { value: 0 }, uNight: { value: 0 }, uMap: { value: glowTexture() }, uScale: { value: 300 } },
         vertexShader: `
           attribute float phase;

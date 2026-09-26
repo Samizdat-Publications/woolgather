@@ -766,3 +766,18 @@ Newest at the bottom. Record every non-obvious choice.
   results card leaves free; once the target is met the fold gate stays in shot near it; the
   snatch's "!" floats beside the sheep, not over it; the minimap fades while the flock is at the
   gate under it; the reach ring is a finer line after the first day's opening seconds.
+- 2026-09-25 (M4 critic r1, worst: minor): one alert component (the same radius, padding and width
+  limit for messages, the snatch alert and the latch prompt; colour says which), 14 px below the
+  timer, and the camera keeps more ground clear at the top while one is up. The bark chip is quiet
+  when ready (a gold outline) and only turns solid gold, pulsing, while a wolf is within reach of a
+  bark (it was the loudest thing in the HUD all day). The wolves' countdown is as big as the
+  nightfall line; small text is at least 13.5 px and brighter; "change the evening" is spelled out.
+  The minimap's place names are small, quiet and in sentence case; sheep dots and Pip's arrow are
+  bigger; the fold has the gold home badge of its edge marker and wolves the red diamond of theirs.
+  The close-up inset is smaller (224x140), its camera steeper (no hazy far hillside across the top),
+  the main view's haze, sky band, shafts, sun glow and vignette stay off it, and its label no longer
+  repeats the distance the banner gives. Results have one layout for every outcome (a full-width
+  ledger, the same row labels, losses as a labelled list), the pause card has a themed switch and
+  hides play's messages behind it, the how-to gives every key its own row. Fireflies mark the
+  target's alpha where they glow, so the grade keeps their yellow-green; a few bracken clumps and
+  more flowers break up the meadows; birch leaves are greener.

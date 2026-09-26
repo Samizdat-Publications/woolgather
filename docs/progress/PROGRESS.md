@@ -481,3 +481,15 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![A loss with its tip](m4-ui-r1-lose-end.png)
 *A loss with its tip*
 
+
+## m4-ui-r2 (2026-09-26)
+
+![M4 round 2: the HUD with the quiet bark chip and the calmer minimap](m4-ui-r2-herding.png)
+*M4 round 2: the HUD with the quiet bark chip and the calmer minimap*
+
+![A snatch: one alert style under the timer](m4-ui-r2-snatch.png)
+*A snatch: one alert style under the timer*
+
+![One results layout for every outcome](m4-ui-r2-lose-end.png)
+*One results layout for every outcome*
+

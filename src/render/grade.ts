@@ -185,6 +185,8 @@ export class GradePass {
         uSunGlow: { value: new THREE.Vector3(1, 0.8, 0.5) },
         uSunAmt: { value: 0 },
         uSkyAmt: { value: 0 },
+        uInset: { value: new THREE.Vector4() },
+        uInsetOn: { value: 0 },
         uShaftAmt: { value: 0 },
         uTime: { value: 0 },
         tBloomA: { value: null },
@@ -203,7 +205,8 @@ export class GradePass {
         uniform vec3 uShadowZ, uMidZ, uHighZ, uHaze, uSunGlow;
         uniform vec4 uZones;
         uniform vec2 uSunDir2;
-        uniform float uSunAmt, uSkyAmt, uShaftAmt, uTime, uBloom;
+        uniform float uSunAmt, uSkyAmt, uShaftAmt, uTime, uBloom, uInsetOn;
+        uniform vec4 uInset;
         uniform sampler2D tBloomA, tBloomC;
         varying vec2 vUv;
 
@@ -304,10 +307,13 @@ export class GradePass {
             // Contrast around the phase's own pivot: highlights brighten while shadows deepen,
             // without crushing a dusk or night frame to black.
             c = (c - uPivot) * uContrast + uPivot;
+            // The close-up inset is its own picture: the haze, sky, shafts, glow and vignette of the
+            // main view stay off it.
+            float free = 1.0 - uInsetOn * step(uInset.x, vUv.x) * step(vUv.x, uInset.z) * step(uInset.y, vUv.y) * step(vUv.y, uInset.w);
             // Sky-coloured haze over the far third of the valley (peach, then rose, then violet): the
             // sky the herding camera cannot show, as the air it lights. Screened on (it adds light)
             // rather than mixed: rose mixed into olive grass is brown, rose light over it is rose air.
-            c = 1.0 - (1.0 - c) * (1.0 - uHaze * uHazeAmt * smoothstep(0.55, 1.0, vUv.y));
+            c = 1.0 - (1.0 - c) * (1.0 - uHaze * uHazeAmt * free * smoothstep(0.55, 1.0, vUv.y));
             vec2 v = (vUv - 0.5) * vec2(uAspect, 1.0);
             float sunSide = smoothstep(-0.15, 0.95, dot(v, uSunDir2));
             // The sky itself, just beyond the top of the frame: its colour glowing along the top
@@ -315,7 +321,7 @@ export class GradePass {
             float band = smoothstep(0.7, 1.0, vUv.y);
             band *= sqrt(band);
             vec3 skyCol = mix(uHaze, uSunGlow, 0.55 * sunSide);
-            c = 1.0 - (1.0 - c) * (1.0 - skyCol * uSkyAmt * band);
+            c = 1.0 - (1.0 - c) * (1.0 - skyCol * uSkyAmt * free * band);
             // Light shafts from a low sun: soft parallel beams through the evening air, slanting in
             // from its side of the frame and drifting slowly.
             vec2 sd = uSunDir2;
@@ -323,10 +329,10 @@ export class GradePass {
             float along = dot(v, sd);
             float wave = 0.5 * sin(across * 7.0 + uTime * 0.05) + 0.3 * sin(across * 13.0 - uTime * 0.08 + 1.7) + 0.2 * sin(across * 23.0 + uTime * 0.11 + 4.1);
             float beam = smoothstep(0.2, 0.8, wave) * smoothstep(-0.9, 0.6, along);
-            c = 1.0 - (1.0 - c) * (1.0 - uSunGlow * uShaftAmt * beam);
+            c = 1.0 - (1.0 - c) * (1.0 - uSunGlow * uShaftAmt * free * beam);
             // A soft glow on the side of the frame the sun (or moon) is on.
-            c = 1.0 - (1.0 - c) * (1.0 - uSunGlow * uSunAmt * sunSide);
-            c *= 1.0 - uVignette * smoothstep(0.4, 1.1, length(v) * 1.15);
+            c = 1.0 - (1.0 - c) * (1.0 - uSunGlow * uSunAmt * free * sunSide);
+            c *= 1.0 - uVignette * free * smoothstep(0.4, 1.1, length(v) * 1.15);
           }
           // A little dither so smooth gradients never band.
           c += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
@@ -462,6 +468,16 @@ export class GradePass {
     const c = color.clone().convertLinearToSRGB();
     u.uSunGlow.value.set(c.r, c.g, c.b);
     u.uSunAmt.value = amount;
+  }
+
+  /** The close-up inset's rectangle in CSS pixels (null when it is not up). */
+  setInset(r: { x: number; y: number; w: number; h: number } | null) {
+    const u = this.material.uniforms;
+    u.uInsetOn.value = r ? 1 : 0;
+    if (!r) return;
+    const W = Math.max(1, window.innerWidth);
+    const H = Math.max(1, window.innerHeight);
+    u.uInset.value.set(r.x / W, 1 - (r.y + r.h) / H, (r.x + r.w) / W, 1 - r.y / H);
   }
 
   /** Draw the graded image to the screen. */

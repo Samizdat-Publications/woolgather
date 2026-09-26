@@ -138,7 +138,7 @@ export class Minimap {
       if (s.state === 'lost') continue;
       const grabbed = s.state === 'grabbed';
       c.beginPath();
-      c.arc(this.px(s.x), this.pz(s.z), grabbed ? 4.6 + Math.sin(time * 12) : s.state === 'folded' ? 2.8 : 4, 0, Math.PI * 2);
+      c.arc(this.px(s.x), this.pz(s.z), grabbed ? 4.8 + Math.sin(time * 12) : s.state === 'folded' ? 3 : 4.6, 0, Math.PI * 2);
       if (grabbed) {
         // The snatch pulses on the map, so the place the banner names can be found at a glance.
         c.save();
@@ -151,28 +151,53 @@ export class Minimap {
       }
       c.fillStyle = grabbed ? '#ff6b4a' : s.state === 'folded' ? '#f4e6c0' : '#ffffff';
       c.fill();
-      c.lineWidth = 1.3;
-      c.strokeStyle = 'rgba(30, 24, 34, 0.9)';
+      c.lineWidth = 1.6;
+      c.strokeStyle = 'rgba(30, 24, 34, 0.95)';
       c.stroke();
     }
-    // Wolves: red dots with a dark ring, a different shape from Pip's arrow.
+    // Wolves: the red diamond of their edge markers.
     for (const w of sim.wolves) {
       if (w.state === 'gone') continue;
-      c.beginPath();
-      c.arc(this.px(w.x), this.pz(w.z), 4.6, 0, Math.PI * 2);
-      c.fillStyle = '#e0503c';
-      c.fill();
+      c.save();
+      c.translate(this.px(w.x), this.pz(w.z));
+      c.rotate(Math.PI / 4);
+      c.fillStyle = '#ff5a3c';
+      c.fillRect(-4.2, -4.2, 8.4, 8.4);
       c.lineWidth = 1.6;
       c.strokeStyle = 'rgba(30, 16, 20, 0.95)';
-      c.stroke();
+      c.strokeRect(-4.2, -4.2, 8.4, 8.4);
+      c.restore();
     }
+    // The fold: the gold home badge of its edge marker, at the gate.
+    const f = this.level.fold;
+    const hx = this.px(f.mouth.x) + 2;
+    const hz = this.pz(f.mouth.z);
+    c.beginPath();
+    c.arc(hx, hz, 7.5, 0, Math.PI * 2);
+    c.fillStyle = '#f2b45a';
+    c.fill();
+    c.lineWidth = 1.5;
+    c.strokeStyle = 'rgba(30, 24, 34, 0.9)';
+    c.stroke();
+    c.beginPath();
+    c.moveTo(hx - 4, hz + 0.5);
+    c.lineTo(hx, hz - 3.5);
+    c.lineTo(hx + 4, hz + 0.5);
+    c.moveTo(hx - 2.8, hz);
+    c.lineTo(hx - 2.8, hz + 3.6);
+    c.lineTo(hx + 2.8, hz + 3.6);
+    c.lineTo(hx + 2.8, hz);
+    c.strokeStyle = '#231c2b';
+    c.lineWidth = 1.5;
+    c.lineJoin = 'round';
+    c.stroke();
     const d = sim.dog;
     const dx = this.px(d.x);
     const dz = this.pz(d.z);
     c.save();
     c.translate(dx, dz);
     c.rotate(-d.facing + Math.PI);
-    c.scale(1.35, 1.35);
+    c.scale(1.8, 1.8);
     c.beginPath();
     c.moveTo(0, -5.5);
     c.lineTo(4, 4);
@@ -182,7 +207,7 @@ export class Minimap {
     c.fillStyle = '#ffc94d';
     c.fill();
     c.strokeStyle = '#231c2b';
-    c.lineWidth = 1.2;
+    c.lineWidth = 1.3;
     c.stroke();
     c.restore();
     this.drawLabels(c);
@@ -191,15 +216,16 @@ export class Minimap {
   /** Place names over everything else, so no dot ever hides a name a banner uses. */
   private drawLabels(c: CanvasRenderingContext2D) {
     c.save();
-    c.font = "800 11.5px 'Nunito Variable', system-ui, sans-serif";
+    c.font = "700 10.5px 'Nunito Variable', system-ui, sans-serif";
     c.textAlign = 'center';
-    c.lineWidth = 3;
+    c.lineWidth = 2.5;
     c.lineJoin = 'round';
-    c.strokeStyle = 'rgba(30, 36, 26, 0.85)';
-    c.fillStyle = 'rgba(255, 250, 235, 0.92)';
+    c.strokeStyle = 'rgba(30, 36, 26, 0.55)';
+    c.fillStyle = 'rgba(255, 250, 235, 0.72)';
     for (const p of PLACES) {
-      c.strokeText(p.name, this.px(p.x), this.pz(p.z));
-      c.fillText(p.name, this.px(p.x), this.pz(p.z));
+      const name = p.name.charAt(0) + p.name.slice(1).toLowerCase();
+      c.strokeText(name, this.px(p.x), this.pz(p.z));
+      c.fillText(name, this.px(p.x), this.pz(p.z));
     }
     c.restore();
   }

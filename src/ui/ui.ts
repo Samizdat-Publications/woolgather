@@ -79,7 +79,7 @@ export class Ui {
             <button class="btn primary" data-act="play">Play <kbd>Enter</kbd></button>
             <button class="btn" data-act="howto">How to play</button>
           </div>
-          <div class="keys-line"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>C</kbd> creep · <kbd>Space</kbd> bark · <kbd>Esc</kbd> pause · <kbd>M</kbd> sound · <kbd>&larr;</kbd><kbd>&rarr;</kbd> evening</div>
+          <div class="keys-line"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>C</kbd> creep · <kbd>Space</kbd> bark · <kbd>Esc</kbd> pause · <kbd>M</kbd> sound · <kbd>&larr;</kbd><kbd>&rarr;</kbd> change the evening</div>
         </div>
       </div>
 
@@ -98,7 +98,6 @@ export class Ui {
             <label class="slider"><span>Music</span><input type="range" min="0" max="1" step="0.05" data-vol="music" /><output></output></label>
             <label class="slider"><span>Effects</span><input type="range" min="0" max="1" step="0.05" data-vol="sfx" /><output></output></label>
             <label class="toggle"><input type="checkbox" data-vol="muted" /><span>Mute everything <kbd>M</kbd></span></label>
-            <div class="sound-note">Every sound and note is made live in your browser.</div>
           </div>
         </div>
       </div></div>
@@ -122,12 +121,13 @@ export class Ui {
             <dl class="controls">
               <dt><kbd>WASD</kbd> <kbd>&uarr;&darr;&larr;&rarr;</kbd></dt><dd>move Pip</dd>
               <dt><kbd>Shift</kbd></dt><dd>sprint (uses stamina)</dd>
-              <dt><kbd>C</kbd> hold</dt><dd>creep: sheep stay calm until you are close</dd>
+              <dt><kbd>C</kbd></dt><dd>hold to creep: sheep stay calm until you are close</dd>
               <dt><kbd>Space</kbd></dt><dd>bark: startles sheep, scares wolves off</dd>
               <dt><kbd>Enter</kbd></dt><dd>latch the gate once enough sheep are home</dd>
-              <dt><kbd>Esc</kbd> <kbd>M</kbd></dt><dd>pause, sound on or off</dd>
-              <dt>Gamepad</dt><dd>stick, RT sprint, LT creep, A bark, Y latch</dd>
+              <dt><kbd>Esc</kbd></dt><dd>pause</dd>
+              <dt><kbd>M</kbd></dt><dd>sound on or off</dd>
             </dl>
+            <div class="pad-line"><b>Gamepad:</b> left stick moves, RT sprints, LT creeps, A barks, Y latches, Start pauses.</div>
           </div>
           <div>
             <h3>Herding</h3>
@@ -345,6 +345,16 @@ export class Ui {
     if (want && el.innerHTML !== want) el.innerHTML = want;
   }
   private promptSince = -1;
+  /** A message or the full latch prompt is showing under the timer. */
+  get bannerUp() {
+    return !$('.toast', this.root).hidden || (!$('.hud-prompt', this.root).hidden && !this.promptIsChip);
+  }
+
+  /** Mark the HUD as paused (play's hints and messages hide under the pause card). */
+  setPaused(on: boolean) {
+    $('.hud', this.root).classList.toggle('paused', on);
+  }
+
   /** The latch prompt has shrunk to its chip. */
   get promptIsChip() {
     return $('.hud-prompt', this.root).classList.contains('chip');
@@ -432,7 +442,10 @@ export class Ui {
     const st = $('.stamina-fill', this.root);
     st.style.width = `${(d.stamina / DOG.staminaMax) * 100}%`;
     st.classList.toggle('tired', d.sprintLock);
-    $('.bark-pip', this.root).classList.toggle('ready', d.barkCd <= 0);
+    const bark = $('.bark-pip', this.root);
+    bark.classList.toggle('ready', d.barkCd <= 0);
+    const reach = DOG.barkRadius + 4;
+    bark.classList.toggle('urgent', sim.wolves.some((w) => w.state !== 'gone' && w.state !== 'flee' && (w.x - d.x) ** 2 + (w.z - d.z) ** 2 < reach * reach));
     $('.bark-fill', this.root).style.width = `${(1 - d.barkCd / DOG.barkCooldown) * 100}%`;
     this.minimap.draw(sim, time);
 
@@ -466,7 +479,8 @@ export class Ui {
     const screen = this.root.querySelector('.end-screen')!;
     screen.classList.toggle('win', win);
     screen.classList.toggle('lose', !win);
-    $('.end-kicker', this.root).textContent = `${win ? "Day's end" : 'Nightfall'} · ${DIFFICULTIES[this.difficulty].label}`;
+    const kicker = win ? "Day's end" : o.reason === 'wolves' ? 'Too many lost' : 'Nightfall';
+    $('.end-kicker', this.root).textContent = `${kicker} · ${DIFFICULTIES[this.difficulty].label}`;
     let tip = '';
     if (o.kind === 'win') {
       title.textContent = o.stars === 3 ? 'Every sheep is home!' : sim.free > 0 ? 'Home before dark' : 'The flock is home';
@@ -497,7 +511,12 @@ export class Ui {
     }
     // Times match the in-game "Nightfall in" countdown, so they are given as daylight left.
     const dayLen = sim.preset.dayLength;
-    const losses = sim.lostLog.map((l) => `${this.level.placeName(l.x, l.z)} (${fmtTime(dayLen - l.t)} left)`).join(' · ');
+    // "on the far bank" -> "Far bank": a labelled list reads better than a run-on sentence.
+    const place = (x: number, z: number) => {
+      const p = this.level.placeName(x, z).replace(/^(in|on|at|by) the /, '');
+      return p.charAt(0).toUpperCase() + p.slice(1);
+    };
+    const losses = sim.lostLog.map((l) => `${place(l.x, l.z)} ${fmtTime(dayLen - l.t)}`).join(' · ');
     const two = Math.ceil((sim.target + sim.total) / 2);
     const stars = win ? [0, 1, 2].map((i) => `<span class="${i < o.stars ? 'on' : ''}">★</span>`).join('') : '';
     const legend = `★ ${sim.target}+ home · ★★ ${two}+ · ★★★ all ${sim.total}`;
@@ -508,9 +527,9 @@ export class Ui {
         ${row('Home in the fold', `${sim.folded} / ${sim.total}`)}
         ${row('Lost to wolves', String(sim.lost))}
         ${row('Rescued from jaws', String(sim.rescues))}
-        ${row(sim.timeLeft > 0.5 ? 'Daylight left' : 'Daylight', sim.timeLeft > 0.5 ? fmtTime(sim.timeLeft) : 'none')}
+        ${row('Daylight left', sim.timeLeft > 0.5 ? fmtTime(sim.timeLeft) : 'none')}
       </div>
-      ${losses ? `<div class="losses">Taken ${escapeHtml(losses)}</div>` : ''}
+      ${losses ? `<div class="losses"><b>Taken by wolves:</b> ${escapeHtml(losses)} <span class="dim">(daylight left)</span></div>` : ''}
       ${tip ? `<div class="tip"><b>Tip</b> ${keycaps(tip)}</div>` : ''}`;
     this.show('end');
   }

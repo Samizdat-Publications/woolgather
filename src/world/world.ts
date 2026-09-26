@@ -446,8 +446,8 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   root.add(instance(a.nature.get('grass_a')!, scatter(1100, tussock, [0.8, 1.6]), { shadow: false }).group);
   root.add(instance(a.nature.get('grass_b')!, scatter(1100, tussock, [0.8, 1.6]), { shadow: false }).group);
   const meadow = (x: number, z: number) => x > -40 && grassTest(x, z) && Math.sin(x * 0.11) * Math.cos(z * 0.13) > 0.42;
-  root.add(instance(a.nature.get('flower_white')!, scatter(130, meadow, [0.9, 1.3]), { shadow: false }).group);
-  root.add(instance(a.nature.get('flower_yellow')!, scatter(130, meadow, [0.9, 1.3]), { shadow: false }).group);
+  root.add(instance(a.nature.get('flower_white')!, scatter(190, meadow, [0.9, 1.3]), { shadow: false }).group);
+  root.add(instance(a.nature.get('flower_yellow')!, scatter(190, meadow, [0.9, 1.3]), { shadow: false }).group);
   // Scree: small stones where the ground steepens under the rim.
   const slope = (x: number, z: number) => Math.hypot(g(x + 1, z) - g(x - 1, z), g(x, z + 1) - g(x, z - 1)) / 2;
   const patch2 = (x: number, z: number) => Math.sin(x * 0.07 + 2.1) * Math.cos(z * 0.061 + 0.3) + Math.sin((x + z) * 0.05) * 0.4;
@@ -465,6 +465,10 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets): WorldHand
   const fern = (x: number, z: number) => upland(x, z) && grassTest(x, z) && patch(x, z, 2.2) > 0.35;
   root.add(instance(a.nature.get('bracken_a')!, scatter(170, fern, [0.9, 1.4]), { shadow: false }).group);
   root.add(instance(a.nature.get('bracken_b')!, scatter(150, fern, [0.9, 1.4]), { shadow: false }).group);
+  // A few clumps of bracken out in the meadows too, so the valley floor is not an empty lawn.
+  const lowFern = (x: number, z: number) => !upland(x, z) && grassTest(x, z) && patch(x, z, 5.3) > 0.62;
+  root.add(instance(a.nature.get('bracken_a')!, scatter(70, lowFern, [0.8, 1.2]), { shadow: false }).group);
+  root.add(instance(a.nature.get('bracken_b')!, scatter(60, lowFern, [0.8, 1.2]), { shadow: false }).group);
   // No gorse where the wolves come out of the trees: its orange flowers beside a wolf's ember
   // outline turned the pair into noise.
   const nearDen = (x: number, z: number) => level.dens.some(([dx, dz]) => (x - dx) ** 2 + (z - dz) ** 2 < 34 * 34);

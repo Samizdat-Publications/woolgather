@@ -52,8 +52,8 @@ def birch(name, seed):
     bark = W.mat("bark_birch", "#ebe6da")
     mark = W.mat("bark_birch_mark", "#2c2a2a")
     # Birch leaves a touch deeper: in the low sun a pale yellow canopy glowed like a flat shape.
-    leaf = W.mat("leaf_birch", "#94ab47")
-    leaf2 = W.mat("leaf_birch_b", "#859c40")
+    leaf = W.mat("leaf_birch", "#7d9a44")
+    leaf2 = W.mat("leaf_birch_b", "#6f8a3a")
     r = W.rng(seed)
     p = W.Part(name)
     p.cyl(bark, loc=(0, 0, 2.3), r1=0.2, r2=0.12, depth=4.6, seg=6)

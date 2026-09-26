@@ -156,6 +156,7 @@ export class Game {
 
   private setMode(m: Mode) {
     this.mode = m;
+    this.ui.setPaused(m === 'paused');
     this.input.setEnabled(m === 'playing');
     this.ui.showHud(m === 'playing' || m === 'paused');
     if (m === 'playing') this.ui.show(null);
@@ -309,6 +310,7 @@ export class Game {
     if (this.mode === 'playing' || this.mode === 'paused') this.wolfCam.update(this.mode === 'paused' ? 0 : dt);
     else this.wolfCam.hide();
     hudState.insetVisible = this.wolfCam.visible;
+    this.stage.grade.setInset(this.wolfCam.visible ? this.wolfCam.rect : null);
     hudState.insetRect = this.wolfCam.rect;
     hudState.mapRect = this.ui.mapRect();
     const forest = this.world.forest;
@@ -353,9 +355,9 @@ export class Game {
     }
     if (best) {
       this.insetWolf = best.id;
-      const dist = Math.round(Math.hypot(best.x - sim.dog.x, best.z - sim.dog.z));
       const dock = this.insetDock(sim, best.x, best.z);
-      this.wolfCam.track(best.x, this.terrain.height(best.x, best.z), best.z, best.heading, `${best.text} · ${dist} m`, dock.x, dock.y, dock.point, dt);
+      // The banner carries the distance; the inset's label only says what it shows.
+      this.wolfCam.track(best.x, this.terrain.height(best.x, best.z), best.z, best.heading, best.text, dock.x, dock.y, dock.point, dt);
     } else if (this.wolfCam.visible) {
       // While the inset lingers, stay on the same wolf rather than on the spot it left.
       const w = sim.wolves.find((o) => o.id === this.insetWolf && o.state !== 'gone');
@@ -417,7 +419,9 @@ export class Game {
     let fz = d.z + d.vz * 0.35;
     // Pip's safe band: the frame always keeps this much ground round him, so he never ends up
     // under the timer and banners at the top or on the bottom edge (north is up the screen).
-    const SAFE = { side: 6, north: 6, south: 4 };
+    const banner = this.ui.bannerUp;
+    const SAFE = { side: 6, north: banner ? 9 : 6, south: 4 };
+    const top = banner ? 13 : 9;
     let minX = d.x - SAFE.side;
     let maxX = d.x + SAFE.side;
     let minZ = d.z - SAFE.north;
@@ -508,9 +512,9 @@ export class Game {
         // The tilted view sees further away from the camera than towards it, so the centre that
         // needs the least zoom sits south of the box's middle: where both margins bind equally.
         const cx0 = fx + ((x0 + x1) / 2 - fx) * 0.85;
-        const cz0 = fz + ((VIEW.north * (z1 + 8) + VIEW.south * (z0 - 9)) / (VIEW.north + VIEW.south) - fz) * 0.85;
+        const cz0 = fz + ((VIEW.north * (z1 + 8) + VIEW.south * (z0 - top)) / (VIEW.north + VIEW.south) - fz) * 0.85;
         const halfW = Math.max(x1 - cx0, cx0 - x0) + 5;
-        return { x: cx0, z: cz0, zoom: Math.max(BASE_ZOOM, halfW / VIEW.half, (z1 - cz0 + 8) / VIEW.south, (cz0 - z0 + 9) / VIEW.north) };
+        return { x: cx0, z: cz0, zoom: Math.max(BASE_ZOOM, halfW / VIEW.half, (z1 - cz0 + 8) / VIEW.south, (cz0 - z0 + top) / VIEW.north) };
       };
       let f = fit(minX, maxX, minZ, maxZ);
       // When everything will not fit, the hunt wins: the wolf, its prey and Pip stay in frame and
