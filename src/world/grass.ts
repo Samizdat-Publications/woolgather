@@ -21,6 +21,8 @@ const U = {
   uWind: { value: new THREE.Vector3(0.85, 0.35, 1) },
   uPush: { value: Array.from({ length: MAX_PUSH }, () => new THREE.Vector4(1e5, 1e5, 0, 0)) },
   uPushN: { value: 0 },
+  /** Centre and radius (xz, r) of the area where any animal is pushing grass. */
+  uPushArea: { value: new THREE.Vector3(0, 0, 0) },
   uTipK: { value: 1.42 },
 };
 
@@ -69,6 +71,7 @@ function grassMaterial() {
         uniform vec3 uWind;
         uniform vec4 uPush[${MAX_PUSH}];
         uniform int uPushN;
+        uniform vec3 uPushArea;
         varying float vH;
         varying float vGust;
         float ghash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -94,8 +97,10 @@ function grassMaterial() {
           vec2 bend = wd * (0.08 + gust * gust * 0.62 * uWind.z) + vec2(flutter, -flutter * 0.6);
           vGust = gust * gust * min(1.5, uWind.z);
           // Animals push the grass aside around them.
+          // Only blades near the animals check them (most of the field is nowhere near one).
+          int pushN = length(root.xz - uPushArea.xy) < uPushArea.z ? uPushN : 0;
           for (int i = 0; i < ${MAX_PUSH}; i++) {
-            if (i >= uPushN) break;
+            if (i >= pushN) break;
             vec2 d = root.xz - uPush[i].xy;
             float dist = length(d);
             float k = 1.0 - smoothstep(uPush[i].z * 0.4, uPush[i].z, dist);
@@ -247,7 +252,16 @@ export class GrassField {
     U.uTime.value = time;
     U.uWind.value.z = windStrength;
     const n = Math.min(MAX_PUSH, pushers.length);
-    for (let i = 0; i < n; i++) U.uPush.value[i].set(pushers[i].x, pushers[i].z, pushers[i].r, pushers[i].k);
+    let cx = 0;
+    let cz = 0;
+    for (let i = 0; i < n; i++) {
+      U.uPush.value[i].set(pushers[i].x, pushers[i].z, pushers[i].r, pushers[i].k);
+      cx += pushers[i].x / n;
+      cz += pushers[i].z / n;
+    }
+    let rad = 0;
+    for (let i = 0; i < n; i++) rad = Math.max(rad, Math.hypot(pushers[i].x - cx, pushers[i].z - cz) + pushers[i].r);
+    U.uPushArea.value.set(cx, cz, n ? rad + 1 : 0);
     U.uPushN.value = n;
   }
 

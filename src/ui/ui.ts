@@ -361,8 +361,10 @@ export class Ui {
       </button>`;
     }).join('');
     $('.charm-shelf', this.root).innerHTML = `<div class="charm-title">Pip's charms <small>earned with stars · wear ${s >= SECOND_CHARM_STARS ? 'two' : 'one'} on any evening</small></div><div class="charm-row">${CHARMS.map((c) => `<span class="charm ${s >= c.stars ? 'got' : ''}"><b>${c.title}</b><small>${s >= c.stars ? c.text : `${c.stars} ★ to earn`}</small></span>`).join('')}</div>`;
-    const done = Object.values(p.evenings).filter((e) => e.stars > 0).length;
-    $('.season-line', this.root).textContent = done ? `${done} of ${SEASON.length} evenings won · ${s} ★` : `${['Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'][SEASON.length - 6] ?? SEASON.length} evenings from midsummer to the first snow`;
+    const done = SEASON.filter((e) => (p.evenings[e.id]?.stars ?? 0) > 0).length;
+    const complete = done === SEASON.length;
+    $('.season-card .kicker', this.root).textContent = complete ? 'The season is complete' : 'A year on the hill farm';
+    $('.season-line', this.root).textContent = complete ? `Season complete · ${s} of ${SEASON.length * 3} ★ · ${totalRibbons(p)} ribbons` : done ? `${done} of ${SEASON.length} evenings won · ${s} ★` : `${['Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'][SEASON.length - 6] ?? SEASON.length} evenings from midsummer to the first snow`;
   }
 
   /** One evening's card: its story, the new thing, the goals, the ribbon and the charms. */
