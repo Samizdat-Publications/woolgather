@@ -22,6 +22,10 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
 | r03-season | claude-video | 7 | 7 | 6 | 6 | 8 | 8 | 7 | 7 | 7.00 |
 | r03-season | gemini-stills | 6 | 8 | 6 | 7 | 8 | 7 | 7 | 7 | 7.00 |
 | r03-season | gemini | 8 | 8 | 7 | 8 | 9 | 8 | 8 | 9 | 8.13 |
+| r04-season | claude-stills | 7 | 7 | 6 | 7 | 7 | 8 | 7 | 7 | 7.00 |
+| r04-season | claude-video | 7 | 7 | 6 | 6 | 7 | 7 | 6 | 7 | 6.63 |
+| r04-season | gemini-stills | 6 | 8 | 7 | 7 | 8 | 7 | 6 | 7 | 7.00 |
+| r04-season | gemini | 8 | 8 | 7 | 8 | 9 | 8 | 8 | 9 | 8.13 |
 
 ## One-line reviews
 
@@ -70,3 +74,14 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
   - worst problem (major): The camera angle in e1-low-view.jpg completely obscures the dog and sheep behind huge clunky low-poly pine tree foliage, ruining visibility.
 - **gemini**: A surprisingly smart, authentic, and cozy sheepdog sim that nails the tension of highland herding despite stiff animations.
   - worst problem (major): The ground-level zoomed-in camera cuts through tree geometry and feels terrible to navigate compared to the top-down view.
+
+### r04-season
+
+- **claude-stills**: A warm, good-looking herding game with a real season to work through and lovely snow, mist and night evenings, held back by fields that too often look like the same mustard lawn from above.
+  - worst problem (major): From the herding camera most locations look like the same flat olive or mustard lawn with tan dirt paths. Loch Ailsa, Crannach Corrie and the Glenbrae show field don't feel like new places: the loch and the crags only show up on the minimap, and Old Angus's corrie is one big mustard-yellow wash.
+- **claude-video**: Gorgeous, gentle sheepdog game with a clever new twist every evening, but from up in the sky it often feels like pushing cotton balls across a lawn while the wolves barely bite.
+  - worst problem (major): Most of the time the camera hangs high over a flat field, so the animals are small, there is no horizon or sky, and the pretty world only shows in cutaways. The Trial especially is a featureless mustard lawn with diagonal shadow stripes for a minute and a half.
+- **gemini-stills**: A surprisingly authentic and structured sheepdog sim hidden behind low-poly visuals - charming if you want real trial tactics, but visually a bit dry.
+  - worst problem (major): The water and riverbanks look harsh, flat, and unnaturally cut out from the terrain instead of sitting naturally in a Scottish highland landscape.
+- **gemini**: A gorgeous, surprisingly tense border collie simulator that trades cozy gimmickry for authentic herding mechanics.
+  - worst problem (major): The low third-person camera angle completely ruins navigation and sightlines compared to the clean top-down view.

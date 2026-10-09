@@ -42,7 +42,8 @@ making it a game you play through rather than one you finish once:
   old synthesised tension layer playing over it when the wolves close in.
 - **A critic system** that reviews gameplay video and stills as a random gamer who knows nothing
   about the code or the design decisions (Gemini 3.8 Flash on the video and the stills, plus two
-  blind Claude critics), with a scoreboard. Four rounds were run.
+  blind Claude critics), with a scoreboard. Five rounds were run: the 1.0 baseline and four of
+  the season.
 
 ## How the critics scored it
 
@@ -55,16 +56,20 @@ wishlist). Full tables and every review: `docs/critic/SCOREBOARD.md` and `docs/c
 | r01 | first season build | 7.25 | 7.38 | 6.63 | 6.75 | 7.00 |
 | r02 | after round 1's fixes | 7.38 | 7.00 | 6.63 | 7.13 | 7.03 |
 | r03 | after round 2's fixes | **8.13** | 7.00 | 7.00 | 6.88 | **7.25** |
+| r04 | flanking, today's evening, orb fix, low view fixed | 8.13 | 7.00 | 6.63 | 7.00 | 7.19 |
 
 Biggest moves since 1.0: variety 3-4 to 7-9, progression 2-3 to 7-8, "would keep playing" 3-5 to
 7-8. Look and readability held at 7-8 throughout. Game feel is the weakest score (6-7).
 
-Round 3 was filmed from the build before flanking, today's evening, the place colours, the orb fix
-and the tree cut-away in the low view went in, so no critic has seen those yet.
+The scores have levelled off at about 7.2 over rounds 3 and 4: what still holds them down is
+structural (see below), not polish. Round 4's critics saw the low view working ("the low zoomed-in
+view of the meadow" was one critic's favourite shot; another asked to play in it) and no orbs.
+They did not see flanking in use (the bot does not flank), and walk-on, the trial crowd and hurdles,
+and the corrie's heather moor went in after round 4.
 
-## What the critics still say (round 3), and what happened to it
+## What the critics still say, and what happened to it
 
-Fixed after round 3, not yet seen by a critic:
+Fixed after round 3 (round 4 confirmed the low view and the orbs):
 
 - **The low view was a mess** (all three who saw it): the camera dropped into the forest edge and
   pines filled the screen. Trees near the camera now vanish while it is tilted.
@@ -78,14 +83,27 @@ Fixed after round 3, not yet seen by a critic:
 - **The mist read as a dirty filter**: it now has a crisp clear area round Pip, rolling banks with
   gaps and a cooler colour.
 
+Changed after round 4, not yet seen by a critic:
+
+- **Walk-on**: a flock driven steadily trots on up to 45% faster (the "dead time driving" complaint).
+- **The trial looks like a show**: a crowd two or three deep behind the bunting, red and white
+  hurdle wings on every gate (they were "two thin sticks"), subtler mown stripes (two critics read
+  the strong ones as smudges or shadows).
+- **The corrie is a heather moor**: purple heather over most of the hill and darker moor grass (it
+  read as "one big mustard-yellow wash").
+
 Still open (worth the planning session):
 
-- **Dead time driving a settled flock** across open ground (Claude video, Gemini video). Flanking
-  and the lope help between flocks; the drive itself could use obstacles (a gap in a wall, a gully)
-  or a "walk on" that quickens a well-driven flock.
-- **The daytime herding view still looks alike between places** from high up (Claude stills): the
-  loch, corrie and show field now differ in colour, but landmarks the herding camera can see (crags
-  in the corrie, a crowd and a judge's tent at the trial) are the next step.
+- **The places still look alike from the high herding camera** (both Claude critics, every round):
+  colour helped less than hoped. Landmarks the camera can see (crags and scree, a loch shore with
+  reeds, walls and gullies) are the next step, and so is a closer default view.
+- **Not enough pressure** (Claude video, round 4): every evening the critics saw was a tidy win,
+  because the capture is played by an expert bot. Wolves that hunt as a pack and a harder replay
+  tier would answer it; a human playtest will say how hard the evenings really are.
+- **Sheep turn pink at sunset** (round 4): the 1.0 grade lets the fleece take the sunset's colour on
+  purpose; two critics found it odd. A small change in the grade if wanted.
+- **A dark slab across the burn** in the night watch dawn shots (round 4): the loch level's bridge
+  seen at a low angle at the end card; worth a look.
 - **Stiff animal motion** (Gemini, both rounds): more squash, lean and fleece bounce in the
   procedural animation.
 - **Wolves come early** (Claude stills): the opposite of round 1's complaint, partly because the
@@ -122,7 +140,8 @@ Still open (worth the planning session):
 
 ## Verification
 
-All on the final state of the branch, the morning of 2026-10-09:
+On the branch, the morning of 2026-10-09 (the self-test was re-run after every later change,
+the last time on the final commit):
 
 - **Self-test** (`npm run playtest`): 0 console errors, 32 of 32 assertions pass (title, menus,
   classic evening, the season map, every evening starting, the results card).
@@ -143,6 +162,8 @@ All on the final state of the branch, the morning of 2026-10-09:
 
   The bot is an expert (it plans with A* and herds by the textbook), so a person will take two to
   four times as long; the day lengths leave room for that, but a human playtest is the real test.
+- **After walk-on and the trial and corrie changes**: the whole season again, all nine won with
+  three stars; the trial and Angus once more on the final commit, both three stars.
 - **Today's evening** on six sampled dates (spring, summer, autumn, winter): all won by the bot.
 - **Frame rate** (`node tests/perf-season.mjs`, 1080p, High, this RTX 5070 Ti laptop): 124 to 141
   fps in every evening, 312 to 377 draw calls, no console errors.
@@ -155,7 +176,7 @@ All on the final state of the branch, the morning of 2026-10-09:
 - ElevenLabs: 765 credits for the 32 sound effects (38 calls), and 1,359 credits for the recorded
   score (four tracks, 198 s of music, one call each). Check the ElevenLabs music terms for the
   account's plan before the score ships on the public site.
-- Gemini: one video and one stills review per critic round, four rounds (gemini-3.8-flash).
+- Gemini: one video and one stills review per critic round, five rounds (gemini-3.8-flash).
 - Nothing else paid was used (OpenAI, Meshy and Sketchfab keys were not needed tonight).
 
 ## Ideas for the planning session

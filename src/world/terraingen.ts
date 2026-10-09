@@ -220,7 +220,7 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
         const k = smoothstep(6, 14, polyDistance(x, z, bound));
         const stripe = Math.cos((x / 9) * Math.PI) > 0 ? 1 : 0;
         c.lerp(C.lush, 0.45 * k);
-        c.multiplyScalar(1 + (stripe ? 0.16 : -0.12) * k);
+        c.multiplyScalar(1 + (stripe ? 0.07 : -0.05) * k);
       }
       const pd = pathDist(x, z);
       c.lerp(C.worn, (1 - smoothstep(1, 2.6, pd)) * 0.6);

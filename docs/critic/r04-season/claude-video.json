@@ -1,0 +1,78 @@
+{
+  "critic": "claude-video",
+  "mode": "contact sheets",
+  "model": "claude-opus-5-5 (blind subagent)",
+  "first_impression": "This looks lovely in the trailer shots. The title screen, the sunset cutaway over the pines at 03:27 and the snowy pass at 11:30 made me want to click right away. Then the actual play is a high camera looking down on a flat lawn while a tiny dog nudges a clump of white blobs, and that is less exciting. I like how each evening adds its own twist, but the herding underneath feels the same every time, and nothing seems to put real pressure on you.",
+  "scores": {
+    "visual_appeal": 7,
+    "readability": 7,
+    "game_feel": 6,
+    "fun_factor": 6,
+    "variety": 7,
+    "sense_of_progression": 7,
+    "want_to_keep_playing": 6,
+    "would_wishlist": 7
+  },
+  "best_things": [
+    "The set pieces look gorgeous: the low sunset cutaways (03:27, 11:30), the low zoomed-in view of the meadow at 00:51-01:00, and the whole First Snow evening (10:54-12:42), with its white fields, a dark burn and a black sheep that stands out in the flock.",
+    "Every evening adds a real new rule with a clear briefing card. Old Angus the ram plants himself and you have to stare him down (05:09-05:36), the Glenbrae Trial has flagged fetch, drive and cross gates (01:24-02:51), Mist on the Moor makes you follow bleats, the Storm floods the ford, and the Night Watch counts down to dawn instead of nightfall.",
+    "The wolf snatch is staged well. You get a red banner with the distance and seconds left, a picture-in-picture of the wolf carrying the sheep, a red ring on the wolf on the ground, then gold rings and 'Sheep rescued!' when you get there (04:39-04:45, 10:15-10:24). The season board with stars, ribbons and charms (00:03, 01:18) gives me a reason to replay."
+  ],
+  "worst_problems": [
+    {
+      "problem": "Most of the time the camera hangs high over a flat field, so the animals are small, there is no horizon or sky, and the pretty world only shows in cutaways. The Trial especially is a featureless mustard lawn with diagonal shadow stripes for a minute and a half.",
+      "where": "01:24-02:51 (Glenbrae Trial), 00:12-00:48, 07:12-08:45",
+      "severity": "major",
+      "suggestion": "Let me play closer and lower, like the 00:51 view, or at least zoom in. Give the field some landmarks, hedges, a crowd at the show field, a slope, so it doesn't look like a putting green."
+    },
+    {
+      "problem": "There are long dead stretches where nothing happens. At the trial pen the sheep mill around the gate while Pip paces back and forth. In Lambing Time Pip stands behind a still flock by the bridge for half a minute. In the Night Watch you circle a flock that is just sitting there.",
+      "where": "02:24-02:51, 04:00-04:36, 12:45-13:09",
+      "severity": "major",
+      "suggestion": "Make penning snappier (a stronger pull once they are at the mouth) and give quiet watches something to react to, like a straggler, a fox or a gust that spooks them, so I'm not waiting."
+    },
+    {
+      "problem": "The wolves never feel like much of a threat. The first evening ends with all 8 home and three stars about a minute after it starts. Snatches are saved within a few seconds, and the Night Watch ends with 'Not one lost'. The pitch promises tension at sundown, but every evening shown is a tidy win.",
+      "where": "00:12-01:15, 04:39-04:45, 10:15-10:24, 13:51",
+      "severity": "major",
+      "suggestion": "Have packs that work together, wolves that circle and split the flock, and a harder tier for replays, so that losing a sheep is a real risk and a three-star night feels earned."
+    },
+    {
+      "problem": "At dusk the play view goes muddy. The ground turns rusty orange-brown with purple speckles, the sheep turn pink, and the mist evening is a brownish-lilac smear. The sunset looks great as a cutaway but murky where I actually play.",
+      "where": "05:48-07:03 (Old Angus), 04:00-05:03 (Lambing Time), 07:48-08:45 (Mist)",
+      "severity": "minor",
+      "suggestion": "Keep the grass looking like grass and keep the sheep white at sunset. Let the sky glow and long shadows carry the mood instead of tinting the whole field."
+    },
+    {
+      "problem": "Some water looks broken. The flooded burn in the Storm reads as a black asphalt road with white lane dashes, the loch in Old Angus has a dark, blocky, stair-stepped edge, and the snowy burn is a smeary blur.",
+      "where": "09:42-10:45, 05:42-06:03, 12:12-12:21",
+      "severity": "minor",
+      "suggestion": "Give the flood visible flow, foam and brown churned water so it reads as a river you cannot cross, and smooth out the loch shoreline."
+    }
+  ],
+  "boredom_points": [
+    "Evening 1 (00:12-01:12) is over in about a minute with no challenge. It's a fine tutorial, but nothing about it hooks me.",
+    "Trying to get the last ewes into the trial pen (02:24-02:51) looks fiddly and slow: one sheep in, the rest standing at the mouth while Pip walks back and forth.",
+    "Lambing Time 04:00-04:36: Pip holds still behind the flock next to the bridge for over half a minute and the frames barely change.",
+    "Mist on the Moor 08:00-08:15: running along an empty track in fog with no sheep in view, just bleat icons stacked on the screen edge.",
+    "Night Watch 12:45-13:09: walking circles round a flock that is just sitting still in blue moonlight."
+  ],
+  "confusions": [
+    "Why do the sheep turn pink at sunset (04:12, 07:51, 10:12)? At first I thought something had happened to them.",
+    "What are the big diagonal dark stripes across the trial field (01:24-02:51)? Shadows from trees I can't see, mown stripes, or something I should avoid?",
+    "In Lambing Time I couldn't tell lambs from ewes from that height (03:00-03:24), so 'keep each lamb with its mother' was hard to follow.",
+    "At 12:06-12:09 a wall of giant pines fills the lower half of the screen and I lost Pip behind them.",
+    "In the mist, the left edge stacks three sheep icons (08:00-08:06). I couldn't tell which way each group was or how far.",
+    "Is the low zoomed-in view at 00:51-01:00 something I can play in, or only a camera trick?",
+    "What is the 'Friday's Evening' card on the season board (00:03, 01:18)?"
+  ],
+  "wish_list": [
+    "A playable low or close camera, or free zoom, so I can see Pip and the sheep up close while herding.",
+    "Whistle-style commands (come-bye, away, walk on) or a more expressive dog with a proper herding crouch and eye.",
+    "A harder replay mode or extra ribbons with smarter wolf packs, for people who three-star everything.",
+    "A farmhouse hub between evenings where you can pet Pip, see the flock grow and spend charms.",
+    "Photo mode, because the sunsets and snow deserve it.",
+    "Couch co-op with two dogs."
+  ],
+  "one_line_review": "Gorgeous, gentle sheepdog game with a clever new twist every evening, but from up in the sky it often feels like pushing cotton balls across a lawn while the wolves barely bite."
+}

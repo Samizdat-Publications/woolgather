@@ -726,8 +726,8 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
     const yellow = new THREE.MeshLambertMaterial({ name: 'flag_yellow', color: '#e8b440', flatShading: true, side: THREE.DoubleSide });
     const wood = a.structures.get('signpost') ? undefined : undefined;
     void wood;
-    const postGeo = new THREE.CylinderGeometry(0.16, 0.2, 2.4, 6);
-    postGeo.translate(0, 1.2, 0);
+    const postGeo = new THREE.CylinderGeometry(0.26, 0.3, 2.8, 6);
+    postGeo.translate(0, 1.4, 0);
     const flagGeo = new THREE.BufferGeometry();
     flagGeo.setAttribute('position', new THREE.Float32BufferAttribute([0, 2.35, 0, 1.1, 2.0, 0, 0, 1.6, 0], 3));
     flagGeo.computeVertexNormals();
@@ -748,7 +748,8 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
         f.castShadow = true;
         course.add(p, f);
       }
-      // A low hurdle wing outside each post, so the gate reads as a gateway.
+      // A hurdle wing outside each post (three rails, red and white), so the gate reads as a
+      // gateway from the herding camera, not two sticks.
       const dx = gt.bx - gt.ax;
       const dz = gt.bz - gt.az;
       const l = Math.hypot(dx, dz);
@@ -756,14 +757,20 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
         [gt.ax, gt.az, -1],
         [gt.bx, gt.bz, 1],
       ] as const) {
-        const hx = ox + (dx / l) * 1.6 * sgn;
-        const hz = oz + (dz / l) * 1.6 * sgn;
-        const hurdle = new THREE.Mesh(new THREE.BoxGeometry(3, 0.12, 0.12), white);
-        hurdle.geometry.userData.disposable = true;
-        hurdle.position.set(hx, g(hx, hz) + 0.7, hz);
-        hurdle.rotation.y = -Math.atan2(dz, dx);
-        hurdle.castShadow = true;
-        course.add(hurdle);
+        const hx = ox + (dx / l) * 1.9 * sgn;
+        const hz = oz + (dz / l) * 1.9 * sgn;
+        for (let r = 0; r < 3; r++) {
+          const rail = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.16, 0.14), r % 2 ? white : red);
+          rail.geometry.userData.disposable = true;
+          rail.position.set(hx, g(hx, hz) + 0.35 + r * 0.38, hz);
+          rail.rotation.y = -Math.atan2(dz, dx);
+          rail.castShadow = true;
+          course.add(rail);
+        }
+        const end = new THREE.Mesh(postGeo, white);
+        end.position.set(ox + (dx / l) * 3.7 * sgn, g(ox + (dx / l) * 3.7 * sgn, oz + (dz / l) * 3.7 * sgn) - 0.05, oz + (dz / l) * 3.7 * sgn);
+        end.scale.set(0.6, 0.5, 0.6);
+        course.add(end);
       }
     }
     if (level.post) {
@@ -803,6 +810,35 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
         m.position.set(bx, g(bx, bz) + 3.2 - Math.abs(Math.sin((i % 8) * (Math.PI / 8))) * 0.6, bz);
         course.add(m);
       }
+      // The crowd: the whole glen turned out, two or three deep behind the bunting, in coats of
+      // every colour (a body and a head each, instanced: two draw calls).
+      const coats = ['#3a5c9a', '#c8402e', '#5f7a3a', '#e8b440', '#7a4a6a', '#2e3a48', '#b86a3a', '#d8d0c0', '#4a7a8a'].map((c) => new THREE.Color(c));
+      const spots: [number, number][] = [];
+      let seed = 7;
+      const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      for (let i = 0; i < 110; i++) {
+        const sx = x - 44 + rnd() * 88;
+        const sz = z + 17 + rnd() * 3.2;
+        if (Math.abs(Math.abs(sx - x) - 12) < 2.6) continue;
+        spots.push([sx, sz]);
+      }
+      const bodyGeo = new THREE.CapsuleGeometry(0.34, 0.8, 2, 6);
+      bodyGeo.translate(0, 0.75, 0);
+      const headGeo = new THREE.SphereGeometry(0.24, 6, 4);
+      headGeo.translate(0, 1.62, 0);
+      bodyGeo.userData.disposable = headGeo.userData.disposable = true;
+      const bodies = new THREE.InstancedMesh(bodyGeo, new THREE.MeshLambertMaterial({ name: 'crowd_coat', flatShading: true }), spots.length);
+      const heads = new THREE.InstancedMesh(headGeo, new THREE.MeshLambertMaterial({ name: 'crowd_face', color: '#e0b494', flatShading: true }), spots.length);
+      const m4 = new THREE.Matrix4();
+      spots.forEach(([sx, sz], i) => {
+        const s = 1.15 + rnd() * 0.3;
+        m4.makeScale(s, s, s).setPosition(sx, g(sx, sz) - 0.05, sz);
+        bodies.setMatrixAt(i, m4);
+        heads.setMatrixAt(i, m4);
+        bodies.setColorAt(i, coats[Math.floor(rnd() * coats.length)]);
+      });
+      bodies.castShadow = heads.castShadow = true;
+      course.add(bodies, heads);
     }
     root.add(course);
   }

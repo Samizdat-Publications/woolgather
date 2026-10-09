@@ -1056,3 +1056,10 @@ Newest at the bottom. Record every non-obvious choice.
   same way for a few seconds trots on up to 45% faster between pushes (`driveT`); a hard turn
   resets it. The bot still wins all nine evenings with three stars; its times are mixed (a wolf
   rescue made the storm slower), so this is a feel change for human drives, not seen by a critic yet.
+- 2026-10-09 (season, round r04): Gemini video 8.13, Gemini stills 7.0, Claude video 6.63, Claude
+  stills 7.0; mean 7.19 (r03 7.25): a plateau. The low view and the orb fix were confirmed (one
+  critic's favourite shot was the low view). What holds the scores is structural: the places still
+  look alike from the high camera, and the expert bot's tidy wins read as no pressure. After it: a
+  crowd two or three deep behind the trial's bunting (instanced bodies and heads, two draw calls),
+  red and white hurdle wings on the trial gates, subtler mown stripes (read as smudges), and the
+  corrie turned heather moor (heather bands over most of the hill, darker moor grass).

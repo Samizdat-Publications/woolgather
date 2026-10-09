@@ -580,3 +580,15 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Night Watch: the flock bedded down by the loch](season-day1-n1-watch.png)
 *Night Watch: the flock bedded down by the loch*
 
+
+## season-day1b (2026-10-09)
+
+![The Glenbrae Trial: the crowd behind the bunting](season-day1b-s7-show-crowd.png)
+*The Glenbrae Trial: the crowd behind the bunting*
+
+![Trial gates: red and white hurdles and a gold line across the next one](season-day1b-s8-show-gate.png)
+*Trial gates: red and white hurdles and a gold line across the next one*
+
+![Crannach Corrie as a heather moor](season-day1b-s9-corrie.png)
+*Crannach Corrie as a heather moor*
+
