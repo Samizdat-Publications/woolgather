@@ -3,7 +3,7 @@
 //
 //   node tests/critic/capture.mjs --dist <dir> --label <name> [--scenario classic]
 //        [--width 1280 --height 720] [--fps 20] [--minutes 9] [--seed 11] [--diff standard]
-//        [--quality high] [--every 2.5] [--crf 24]
+//        [--quality high] [--every 2.5] [--crf 24] [--skill average|expert]
 //
 // --dist     a production build (index.html + assets/, served from the site root). Default: dist/.
 // --label    output folder name: test-results/critic/<label>/ (wiped first).
@@ -59,6 +59,8 @@ const opts = {
   quality: opt('quality', 'high'),
   every: Number(opt('every', 2.5)),
   crf: Number(opt('crf', 24)),
+  /** How HerdBot2 plays in scenarios that use it: expert, or average (a first-time player). */
+  skill: opt('skill', 'average'),
 };
 if (!opts.label) {
   console.error('usage: node tests/critic/capture.mjs --dist <dir> --label <name> [--scenario classic]');
@@ -240,6 +242,8 @@ enc.stdin.on('error', (e) => {
 });
 
 const marks = [];
+/** Events since the scenario last took them (the bot learns of wolves from announcements). */
+const pending = [];
 const framesIndex = [];
 const stills = [];
 let lastJpeg = null;
@@ -262,6 +266,8 @@ async function frame() {
   });
   const vt = videoTime();
   for (const e of evs) marks.push({ label: e.type, video_t: vt, game_t: e.t ?? null, frame: frameN, info: e });
+  pending.push(...evs);
+  if (pending.length > 400) pending.splice(0, pending.length - 400);
   const { data } = await cdp.send('Page.captureScreenshot', { format: 'jpeg', quality: 90, optimizeForSpeed: true });
   lastJpeg = Buffer.from(data, 'base64');
   if (encDead) throw new Error('the ffmpeg encoder stopped');
@@ -333,6 +339,8 @@ const ctx = {
   still,
   mark,
   state,
+  /** The game's events since the last call (for HerdBot2.step). */
+  takeEvents: () => pending.splice(0),
   /** Game time so far (the virtual clock, = video time), in seconds. */
   time: () => frameN / FPS,
   /** True once the virtual clock passes --minutes: scenarios should stop. */

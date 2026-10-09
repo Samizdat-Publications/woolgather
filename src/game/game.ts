@@ -1587,7 +1587,16 @@ export class Game {
       fords: this.level.fords.map((f) => f.open),
       dog: s ? { x: s.dog.x, z: s.dog.z, vx: s.dog.vx, vz: s.dog.vz, stamina: s.dog.stamina, barkCd: s.dog.barkCd, stunT: s.dog.stunT, lying: s.dog.lying, r: s.dogThreatRadius } : null,
       sheep: s ? s.sheep.map((q) => ({ id: q.id, x: q.x, z: q.z, state: q.state, kind: q.kind, stubborn: q.stubborn, yieldT: q.yieldT, motherId: q.motherId })) : [],
-      wolves: s ? s.wolves.filter((w) => w.state !== 'gone').map((w) => ({ id: w.id, x: w.x, z: w.z, state: w.state })) : [],
+      wolves: s
+        ? s.wolves
+            .filter((w) => w.state !== 'gone')
+            .map((w) => {
+              // On screen: what a player can see (the average-skill bot only reacts to these).
+              tmpV.set(w.x, this.terrain.height(w.x, w.z) + 0.8, w.z).project(this.stage.camera);
+              const onScreen = tmpV.z < 1 && Math.abs(tmpV.x) < 0.97 && Math.abs(tmpV.y) < 0.95;
+              return { id: w.id, x: w.x, z: w.z, state: w.state, target: w.target?.id ?? -1, onScreen };
+            })
+        : [],
       dragFeasible: this.dragFeasible,
       /** Trial: the next gate (posts a and b, middle x z) and the results so far. */
       gateIdx: s?.gateIdx ?? 0,

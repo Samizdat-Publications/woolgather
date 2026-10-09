@@ -3,14 +3,18 @@
 //
 //   node tests/playtest.mjs [--out dir] [--scale 2] [--seed 7] [--diff standard] [--headed]
 //                           [--url http://localhost:5317/] [--skip-win] [--skip-lose]
+//                           [--serve <build dir>]
 //
-// Needs the dev server running (npm run dev). Uses the system Chrome/Edge via playwright-core,
+// Needs the dev server running (npm run dev), unless --serve names a production build (for example
+// one made with `npx vite build --outDir test-results/pt-dist`): then it serves that frozen build
+// itself, so the source can change while it runs. The classic evening is played by HerdBot2. Uses the system Chrome/Edge via playwright-core,
 // so no browser download is required.
 
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { HerdBot } from './bot.mjs';
+import { HerdBot2 as HerdBot } from './bot2.mjs';
+import { serveDir } from './serve.mjs';
 
 const args = process.argv.slice(2);
 const opt = (name, def) => {
@@ -24,7 +28,9 @@ const OUT = resolve(opt('out', join('test-results', `run-${stamp}`)));
 const SCALE = Number(opt('scale', '2'));
 const SEED = opt('seed', '7');
 const DIFF = opt('diff', 'standard');
-const BASE = opt('url', 'http://localhost:5317/');
+const SERVE = opt('serve', null);
+const served = SERVE ? await serveDir(resolve(SERVE)) : null;
+const BASE = served ? served.url : opt('url', 'http://localhost:5317/');
 const W = Number(opt('width', '1280'));
 const H = Number(opt('height', '720'));
 mkdirSync(OUT, { recursive: true });
@@ -117,6 +123,7 @@ if (flag('smoke')) {
   writeFileSync(join(OUT, 'report.json'), JSON.stringify(report, null, 2));
   log(`smoke done: ${report.errorCount} errors, fps ${st.fps}, mode ${st.mode}`);
   await browser.close();
+  served?.close();
   process.exit(report.errorCount === 0 && st.mode === 'playing' ? 0 : 1);
 }
 
@@ -371,3 +378,4 @@ const failed = report.assertions.filter((a) => !a.ok);
 writeFileSync(join(OUT, 'report.json'), JSON.stringify(report, null, 2));
 log(`done: ${report.errorCount} errors, ${failed.length}/${report.assertions.length} assertions failed, ${report.shots.length} screenshots -> ${OUT}`);
 await browser.close();
+served?.close();

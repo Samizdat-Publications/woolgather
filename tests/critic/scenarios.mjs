@@ -78,7 +78,7 @@ export const scenarios = {
      * a third element runs that instead of taking a still (for example the player zooming in).
      */
     const play = async (seconds, cues = []) => {
-      const bot = new Bot(page);
+      const bot = new Bot(page, () => {}, { skill: ctx.opts.skill, seed: ctx.opts.seed * 31 + Math.round(ctx.time()) });
       const until = ctx.time() + seconds;
       let st = await state();
       while (st.mode !== 'ended' && ctx.time() < until && !ctx.overTime()) {
@@ -92,7 +92,7 @@ export const scenarios = {
             } else due.push(name);
           }
         }
-        if (st.mode === 'playing') await bot.step(st, 1 / fps);
+        if (st.mode === 'playing') await bot.step(st, 1 / fps, ctx.takeEvents());
         await frame();
         for (const name of due) await still(name);
         st = await state();

@@ -482,10 +482,47 @@ function makeGroups(free, gap = 11) {
   return groups;
 }
 
+/** Seeded random numbers (mulberry32), so a skill's noise is the same run to run. */
+function rng32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * How the bot plays (see docs/BOT2.md):
+ * - expert: perfect knowledge, textbook lines, flanks with Z/X.
+ * - average: a stand-in for a person on a first play. It only reacts to a wolf once it is on screen,
+ *   close, or announced, and 0.4 s late; it goes for the nearest wolf (a bait wolf fools it); it
+ *   changes its mind at most every half second (so it overshoots); its drive points wander 2-3.5 m;
+ *   it walks unless the target is over 40 m away; it stops to look around now and then; it goes
+ *   round a flock closer and only once well off line (so it pushes flocks sideways and splits them),
+ *   going wider once a drive has stalled. Every delay and
+ *   draw uses game time and a seeded RNG, so a run plays the same in season-run and in a capture.
+ */
+const SKILLS = {
+  expert: { react: 0, aim: 0, sprintFar: 18, pause: null, orbit: 15, slack: 0.7, flank: true, nearestWolf: false, hold: 0 },
+  average: { react: 0.4, aim: 3.5, sprintFar: 40, pause: [15, 32, 1.2, 2.6], orbit: 11, slack: 1.3, flank: false, nearestWolf: true, hold: 0.5 },
+};
+
 export class HerdBot2 {
-  constructor(page, log = () => {}) {
+  constructor(page, log = () => {}, opts = {}) {
     this.page = page;
     this.log = log;
+    this.skillName = opts.skill && SKILLS[opts.skill] ? opts.skill : 'expert';
+    this.skill = SKILLS[this.skillName];
+    this.rng = rng32(opts.seed ?? 7);
+    /** Wolves the bot knows about: id -> game time it noticed them. */
+    this.noticed = new Map();
+    this.announced = new Set();
+    this.aimOff = { x: 0, z: 0, until: -1 };
+    this.pauseAt = null;
+    this.pauseUntil = -1;
     this.keys = new Set();
     this.nav = null;
     this.navKey = '';
@@ -668,12 +705,12 @@ export class HerdBot2 {
   }
 
   /** Orbit outside the flight zone when Pip is on the wrong side of the group. */
-  outrun(dog, g, target, minR = 15) {
+  outrun(dog, g, target, minR = 15, slack = 0.7) {
     const orbitR = g.r + minR;
     const cur = Math.atan2(dog.z - g.c.z, dog.x - g.c.x);
     const want = Math.atan2(target.z - g.c.z, target.x - g.c.x);
     const da = angWrap(want - cur);
-    if (Math.abs(da) <= 0.7 || dist(target, g.c) > orbitR + 4) {
+    if (Math.abs(da) <= (this.orbitDir ? 0.7 : slack) || dist(target, g.c) > orbitR + 4) {
       this.orbitDir = 0;
       return null;
     }
@@ -705,6 +742,45 @@ export class HerdBot2 {
     return p ?? { x: g.c.x + Math.cos(cur + step) * r, z: g.c.z + Math.sin(cur + step) * r };
   }
 
+  /** The wolves this bot knows about (all of them for the expert). */
+  knownWolves(st) {
+    if (!this.skill.react) return st.wolves;
+    const now = st.elapsed;
+    for (const w of st.wolves) {
+      if (this.noticed.has(w.id)) continue;
+      if (w.onScreen || w.state === 'drag' || this.announced.has(w.id) || dist(w, st.dog) < 25) this.noticed.set(w.id, now);
+    }
+    for (const id of [...this.noticed.keys()]) if (!st.wolves.some((w) => w.id === id)) this.noticed.delete(id);
+    return st.wolves.filter((w) => this.noticed.has(w.id) && now - this.noticed.get(w.id) >= this.skill.react);
+  }
+
+  /** A person's drive point wanders: a seeded offset redrawn every few seconds of game time. */
+  aim(p) {
+    if (!this.skill.aim) return p;
+    if (this.now >= this.aimOff.until) {
+      const a = this.rng() * Math.PI * 2;
+      const r = this.skill.aim * (0.4 + 0.6 * this.rng());
+      this.aimOff = { x: Math.cos(a) * r, z: Math.sin(a) * r, until: this.now + 2.5 + this.rng() * 2 };
+    }
+    return { x: p.x + this.aimOff.x, z: p.z + this.aimOff.z };
+  }
+
+  /** A person stops to look around now and then (never with a wolf about). */
+  pausing(st) {
+    const P = this.skill.pause;
+    if (!P) return false;
+    const now = st.elapsed;
+    if (this.pauseAt === null) this.pauseAt = now + P[0] + this.rng() * (P[1] - P[0]);
+    if (now < this.pauseUntil) return true;
+    if (now >= this.pauseAt) {
+      this.pauseAt = now + P[0] + this.rng() * (P[1] - P[0]);
+      if (st.wolves.some((w) => w.state === 'drag' || w.state === 'charge')) return false;
+      this.pauseUntil = now + P[2] + this.rng() * (P[3] - P[2]);
+      return true;
+    }
+    return false;
+  }
+
   tally(cat, dt) {
     this.stats[cat] = (this.stats[cat] ?? 0) + dt;
   }
@@ -733,11 +809,15 @@ export class HerdBot2 {
 
     // 1. Wolves: rescue a snatch the game calls feasible, then intercept hunters near the flock.
     const watch = st.objective === 'watch';
-    const draggers = st.dragFeasible === false ? [] : st.wolves.filter((w) => w.state === 'drag');
+    const known = this.knownWolves(st);
+    const draggers = st.dragFeasible === false ? [] : known.filter((w) => w.state === 'drag');
     const nearSheep = (w) => Math.min(Infinity, ...free.map((s) => dist(s, w)));
-    const hunting = st.wolves.filter((w) => w.state === 'stalk' || w.state === 'charge');
+    const hunting = known.filter((w) => w.state === 'stalk' || w.state === 'charge');
     let threat = draggers.sort((a, b) => dist(a, dog) - dist(b, dog))[0];
-    if (!threat) {
+    if (!threat && this.skill.nearestWolf) {
+      // A first-time player runs at the wolf they can see nearest to Pip.
+      threat = hunting.filter((w) => nearSheep(w) < 22 && dist(w, dog) < 45).sort((a, b) => dist(a, dog) - dist(b, dog))[0];
+    } else if (!threat) {
       if (watch) {
         // Every wolf that comes near the flock is met, the one closest to a sheep first.
         threat = hunting.filter((w) => nearSheep(w) < 40).sort((a, b) => nearSheep(a) - nearSheep(b))[0];
@@ -750,7 +830,7 @@ export class HerdBot2 {
       const barkAt = watch ? 16 : 14;
       return {
         target: { x: threat.x, z: threat.z },
-        sprint: d > 6,
+        sprint: d > (this.skillName === 'expert' ? 6 : 10),
         bark: canBark && d < barkAt && (!quiet || threat.state === 'drag' || d < 9),
         why: `wolf ${threat.state} ${d.toFixed(0)}m`,
         cat: threat.state === 'drag' ? 'rescue' : 'wolf',
@@ -771,8 +851,18 @@ export class HerdBot2 {
       const goIn = dist(orphan, fold.mouth) < 16 && !busyMouth;
       const goal = goIn ? fold.inside : fold.mouth;
       // It only follows within 40 m: if Pip got called away, go back for it.
-      if (dl > 30) return { target: { x: orphan.x, z: orphan.z }, sprint: dl > 45, why: `lamb: go back for it (${dl.toFixed(0)}m)`, cat: 'lamb' };
-      if (dl > 10 && dist(dog, fold.mouth) > 4) return { target: null, why: `lamb: wait (${dl.toFixed(0)}m behind)`, cat: 'lamb' };
+      // A lamb that does not come (water or a wall between them) is fetched: Pip goes back to it.
+      if (dl < 7) this.lambFetch = false;
+      if (dl > 30 || this.lambFetch) return { target: { x: orphan.x, z: orphan.z }, sprint: dl > 45, why: `lamb: go back for it (${dl.toFixed(0)}m)`, cat: 'lamb' };
+      if (dl > 10 && dist(dog, fold.mouth) > 4) {
+        this.lambWaitT = (this.lambWaitT ?? 0) + (this.lastDt ?? 0.1);
+        if (this.lambWaitT > 5) {
+          this.lambFetch = true;
+          this.lambWaitT = 0;
+        }
+        return { target: null, why: `lamb: wait (${dl.toFixed(0)}m behind)`, cat: 'lamb' };
+      }
+      this.lambWaitT = 0;
       if (dist(dog, goal) < 1.5) {
         // Standing at the gate with the lamb beside it: a lamb that will not go in is noted and left.
         this.gateWait = dist(orphan, fold.gate) < 8 ? this.gateWait + (this.lastDt ?? 0.1) : 0;
@@ -877,16 +967,25 @@ export class HerdBot2 {
     if (ram && canBark && !quiet && ram.yieldT <= 0 && ram.stubborn > 0.12 && dist(dog, ram) < 12) bark = true;
 
     // 8. Outrun: on the wrong side of the group, orbit it outside the flight zone.
-    const orbit = this.outrun(dog, g, target);
+    const orbit = this.outrun(dog, g, target, this.stalled ? 15 : this.skill.orbit, this.stalled ? 0.7 : this.skill.slack);
     if (orbit) {
       target = orbit;
       why += ' (outrun)';
       cat = 'outrun';
     }
     const dc = dist(dog, g.c);
-    const sprint = orbit ? dc > g.r + 18 : dist(dog, target) > 18 && dc > g.r + 15;
+    const far = this.skill.sprintFar;
+    const sprint = orbit ? dc > g.r + far : dist(dog, target) > far && dc > g.r + 15;
+    // Expert: go round with the flank command (the game keeps Pip just outside the flight zone).
+    let flank = 0;
+    if (orbit && this.skill.flank) {
+      // Only when the game's flank would go round this group (it circles the flock nearest Pip).
+      const nearest = free.slice().sort((a, b) => dist(a, dog) - dist(b, dog))[0];
+      if (nearest && g.all.some((m) => m.id === nearest.id) && dist(nearest, dog) < g.r + 30) flank = this.orbitDir;
+    }
+    if (cat === 'drive' || cat === 'collect' || cat === 'outrun') target = this.aim(target);
     if (this.stalled) why += ' [stalled]';
-    return { target, sprint, bark, why, cat };
+    return { target, sprint, bark, why, cat, flank };
   }
 
   /** Night watch: keep the flock bunched and stay close to it. */
@@ -924,12 +1023,25 @@ export class HerdBot2 {
     return { target: orbit ?? spot, sprint: dist(dog, spot) > 30, why: `watch: to guard spot${orbit ? ' (outrun)' : ''}`, cat: 'guard' };
   }
 
-  async step(st, dt) {
+  /**
+   * One decision and the keys for it. `events` are the game's events since the last step (from
+   * __WG.drain()): the average skill learns of a wolf from its announcement.
+   */
+  async step(st, dt, events = []) {
     this.now = st.elapsed;
     this.lastDt = dt;
+    for (const e of events) if (e.type === 'wolfSpawn' || e.type === 'charge') this.announced.add(e.id);
     await this.ensureNav(st);
     const dog = st.dog;
-    const d = this.decide(st);
+    let d = this.decide(st);
+    if (d.cat !== 'rescue' && d.cat !== 'wolf' && this.pausing(st)) d = { target: null, why: 'looking around', cat: 'pause' };
+    // A person keeps going where they were heading for a moment before changing course.
+    if (this.skill.hold) {
+      const h = this.held;
+      const urgent = (d.cat === 'rescue' || d.cat === 'wolf') && h?.d.cat !== d.cat;
+      if (h && st.elapsed < h.until && !urgent && h.d.cat !== 'pause') d = { ...h.d, bark: d.bark, latch: d.latch };
+      else this.held = { d, until: st.elapsed + this.skill.hold };
+    }
     this.tally(d.cat ?? 'other', dt);
     const keys = new Set();
     if (d.target) {
@@ -956,7 +1068,11 @@ export class HerdBot2 {
         }
       }
       const l = Math.hypot(dx, dz);
-      if (l > 0.7) {
+      if (d.flank && !this.jiggle && r.via === 'line') {
+        // Flank command: X runs round clockwise on screen ("come bye", the angle grows), Z the other way.
+        keys.add(d.flank > 0 ? 'KeyX' : 'KeyZ');
+        if (d.sprint && dog.stamina > 20) keys.add('ShiftLeft');
+      } else if (l > 0.7) {
         if (dx > 0.38 * l) keys.add('KeyD');
         if (dx < -0.38 * l) keys.add('KeyA');
         if (dz > 0.38 * l) keys.add('KeyS');

@@ -2,7 +2,11 @@
 //
 //   node tests/season-run.mjs [--evenings long-light,far-bank,...] [--scale 2] [--port 4790]
 //        [--parallel 2] [--seed 11] [--cap 12] [--quality low] [--wait 0.45] [--out season-run]
-//        [--nobuild] [--headed]
+//        [--nobuild] [--headed] [--skill expert|average] [--dist test-results/bot-dist]
+//
+// --skill average plays like a person on a first play (see docs/BOT2.md); expert is the default.
+// --dist is the build folder (built there unless --nobuild). Give each concurrent run its own,
+// or two runs will empty each other's build.
 //
 // 1. Builds the game into test-results/bot-dist (vite build with its own outDir: dist/ and the dev
 //    server are left alone). If the build fails because the source is mid-edit it waits 60 s and
@@ -48,7 +52,8 @@ const QUALITY = opt('quality', 'low');
 /** Handicap for testing the late evening: Pip does nothing until this fraction of the day has gone. */
 const WAIT = Number(opt('wait', 0));
 const OUT_NAME = opt('out', 'season-run');
-const distDir = path.join(root, 'test-results', 'bot-dist');
+const SKILL = opt('skill', 'expert');
+const distDir = path.resolve(root, opt('dist', path.join('test-results', 'bot-dist')));
 const traceDir = path.join(root, 'test-results', OUT_NAME);
 const t0 = Date.now();
 const log = (...a) => console.log(`[season ${((Date.now() - t0) / 1000).toFixed(0)}s]`, ...a);
@@ -66,7 +71,7 @@ if (!flag('nobuild')) {
   for (let attempt = 1; ; attempt++) {
     try {
       log(`building into ${path.relative(root, distDir)} (attempt ${attempt})`);
-      await build({ root, logLevel: 'warn', build: { outDir: 'test-results/bot-dist', emptyOutDir: true } });
+      await build({ root, logLevel: 'warn', build: { outDir: distDir, emptyOutDir: true } });
       break;
     } catch (e) {
       log(`build failed: ${String(e?.message ?? e).split('\n')[0]}`);
@@ -161,20 +166,24 @@ async function playEvening(id) {
     await page.waitForFunction(() => window.__WG.state().mode === 'playing', null, { timeout: 30000 });
     await page.evaluate((k) => window.__WG.setTimeScale(k), SCALE);
     await page.evaluate(() => window.__WG.drain());
-    const bot = new HerdBot2(page, (...a) => elog(...a));
+    const bot = new HerdBot2(page, (...a) => elog(...a), { skill: SKILL, seed: SEED * 31 + id.length });
     const trace = [];
     const events = [];
     const counts = {};
     let last = null;
     let lastTrace = -1;
-    let lastDrain = 0;
     let lastWhy = '';
     let lastFold = -1;
     const realCap = Date.now() + ((CAP_MIN * 60) / SCALE) * 1000 * 2 + 60000;
     let st;
     while (true) {
       const loop = Date.now();
-      st = await page.evaluate(() => window.__WG.state());
+      let evs;
+      ({ st, evs } = await page.evaluate(() => ({ st: window.__WG.state(), evs: window.__WG.drain() })));
+      for (const e of evs) {
+        counts[e.type] = (counts[e.type] ?? 0) + 1;
+        if (e.type !== 'bark' && e.type !== 'stamp') events.push(e);
+      }
       if (st.mode === 'ended' || st.outcome) break;
       if (st.elapsed > CAP_MIN * 60 || Date.now() > realCap) {
         rec.outcome = { kind: 'cap', reason: `stopped at ${st.elapsed.toFixed(0)} s` };
@@ -187,7 +196,7 @@ async function playEvening(id) {
         // Handicap: Pip sits still until this much of the evening has gone (wolves, floods).
         d = { why: 'handicap: waiting', cat: 'handicap' };
         bot.tally('handicap', dt);
-      } else d = await bot.step(st, dt);
+      } else d = await bot.step(st, dt, evs);
       if (st.elapsed - lastTrace >= 1) {
         lastTrace = st.elapsed;
         const free = st.sheep.filter((s) => !['folded', 'lost', 'grabbed', 'hidden'].includes(s.state));
@@ -199,14 +208,6 @@ async function playEvening(id) {
       if (st.folded !== lastFold) {
         if (lastFold >= 0) elog(`t=${st.elapsed.toFixed(0)}s home ${st.folded}/${st.total} lost ${st.lost} (${d.why})`);
         lastFold = st.folded;
-      }
-      if (Date.now() - lastDrain > 1000) {
-        lastDrain = Date.now();
-        const evs = await page.evaluate(() => window.__WG.drain());
-        for (const e of evs) {
-          counts[e.type] = (counts[e.type] ?? 0) + 1;
-          if (e.type !== 'bark' && e.type !== 'stamp') events.push(e);
-        }
       }
       last = st;
       const wait = 50 - (Date.now() - loop);
@@ -296,7 +297,7 @@ await browser.close();
 server.close();
 
 const out = path.join(root, 'test-results', `${OUT_NAME}.json`);
-fs.writeFileSync(out, JSON.stringify({ when: new Date().toISOString(), scale: SCALE, seed: SEED, quality: QUALITY, wait: WAIT, results }, null, 2));
+fs.writeFileSync(out, JSON.stringify({ when: new Date().toISOString(), skill: SKILL, scale: SCALE, seed: SEED, quality: QUALITY, wait: WAIT, results }, null, 2));
 
 const pad = (s, n) => String(s).padEnd(n);
 console.log('');
