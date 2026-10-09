@@ -273,6 +273,25 @@ export class Sfx {
     }
   }
 
+  /** The bell-wether's bell: a small, dull sheep bell, two hollow knocks. */
+  bell(w: Where) {
+    if (!this.ctx) return;
+    const t = this.e.now;
+    for (const [i, f] of [[0, 1180], [0.13, 1060]] as const) {
+      const out = this.out(w, 0.12, 0.25);
+      for (const [ratio, amp, dec] of [
+        [1, 1, 0.28],
+        [2.4, 0.4, 0.12],
+        [3.9, 0.2, 0.07],
+      ] as const) {
+        const g = this.ctx.createGain();
+        envAD(g.gain, t + i, amp, 0.002, dec);
+        g.connect(out);
+        this.osc('triangle', f * ratio, t + i, dec + 0.05, g);
+      }
+    }
+  }
+
   /** A sheep safely home: a soft glockenspiel note that climbs the scale as the fold fills. */
   chime(step: number, big = false) {
     if (!this.ctx) return;

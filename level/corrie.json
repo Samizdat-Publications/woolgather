@@ -72,6 +72,8 @@
     {"kind": "shieling", "at": [-84, 14], "angle": -15},
     {"kind": "peat_hag", "at": [88, -50], "angle": 20},
     {"kind": "peat_hag", "at": [94, -38], "angle": -30, "scale": 0.8},
-    {"kind": "cairn", "at": [60, -72]}
+    {"kind": "cairn", "at": [60, -72]},
+    {"kind": "crag_b", "at": [90, -6], "angle": -10, "scale": 0.85},
+    {"kind": "standing_stone", "at": [-46, 12], "angle": 0, "scale": 1.1}
   ]
 }

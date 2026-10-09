@@ -74,7 +74,7 @@
     "noiseSeed": 23
   },
   "heather": [{ "maxZ": -52 }],
-  "ground": { "grassA": "#7eaa58", "grassB": "#96bc66", "dry": "#aebb76", "lush": "#669c50" },
+  "ground": {"grassA": "#9cc46a", "grassB": "#b2d27c", "dry": "#d2c88e", "lush": "#88b85e"},
   "titleShot": { "x": 20, "z": 10, "angle": -0.2 },
   "landmarks": [
     {"kind": "jetty", "at": [21, 42], "angle": 90},
@@ -82,6 +82,10 @@
     {"kind": "crag_b", "at": [-56, -70], "angle": -20},
     {"kind": "scree", "at": [-50, -60], "angle": 0},
     {"kind": "cairn", "at": [-20, -72]},
-    {"kind": "shieling", "at": [-98, 14], "angle": 20}
-  ]
+    {"kind": "shieling", "at": [-98, 14], "angle": 20},
+    {"kind": "standing_stone", "at": [116, 4], "angle": 20, "scale": 1.3},
+    {"kind": "cairn", "at": [62, -30]},
+    {"kind": "stell", "at": [-48, 74], "angle": 90}
+  ],
+  "cover": {"flowers": 3.2, "heather": 0.12, "bracken": 0.15, "stones": 0.4, "sand": 0.65}
 }

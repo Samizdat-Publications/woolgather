@@ -23,9 +23,10 @@ export class Minimap {
    */
   memory: Map<number, { x: number; z: number; t: number }> | null = null;
   /** The valley's colour on the map follows the season. */
-  private fill = 'rgba(125, 150, 88, 0.92)';
+  private fill = 'rgba(132, 160, 92, 0.42)';
   setSeason(season: string) {
-    const f = season === 'winter' ? 'rgba(214, 220, 228, 0.94)' : season === 'autumn' ? 'rgba(150, 146, 86, 0.92)' : 'rgba(125, 150, 88, 0.92)';
+    // A watercolour wash over the paper, in the season's colour.
+    const f = season === 'winter' ? 'rgba(200, 212, 226, 0.5)' : season === 'autumn' ? 'rgba(178, 150, 82, 0.42)' : 'rgba(132, 160, 92, 0.42)';
     if (f !== this.fill) {
       this.fill = f;
       this.refresh();
@@ -108,30 +109,81 @@ export class Minimap {
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, this.fullW, this.h);
     const L = this.level;
+    // A shepherd's map: inked on old paper (a flat green panel read as a programmer's placeholder).
+    c.fillStyle = '#e8dcbc';
+    c.fillRect(0, 0, this.fullW, this.h);
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < (this.fullW * this.h) / 40; i++) {
+      c.fillStyle = rnd() < 0.5 ? 'rgba(120, 96, 60, 0.07)' : 'rgba(255, 250, 235, 0.12)';
+      c.fillRect(rnd() * this.fullW, rnd() * this.h, 1.2, 1.2);
+    }
+    // The woods round the valley: little inked tree marks on the paper.
+    c.strokeStyle = 'rgba(70, 82, 52, 0.45)';
+    c.lineWidth = 1;
+    for (let gz = 4; gz < this.h; gz += 9) {
+      for (let gx = 4 + ((gz / 9) % 2) * 4.5; gx < this.fullW; gx += 9) {
+        const wx = (gx - this.ox) / this.scale;
+        const wz = (gz - this.oz) / this.scale;
+        if (L.insideValley(wx, wz)) continue;
+        c.beginPath();
+        c.arc(gx, gz, 2.2, Math.PI, 0);
+        c.moveTo(gx, gz);
+        c.lineTo(gx, gz + 2.5);
+        c.stroke();
+      }
+    }
     c.beginPath();
     L.boundary.forEach(([x, z], i) => (i ? c.lineTo(this.px(x), this.pz(z)) : c.moveTo(this.px(x), this.pz(z))));
     c.closePath();
+    c.fillStyle = '#efe6cc';
+    c.fill();
     c.fillStyle = this.fill;
     c.fill();
-    c.strokeStyle = 'rgba(40, 52, 36, 0.9)';
-    c.lineWidth = 2;
+    c.strokeStyle = 'rgba(70, 52, 34, 0.9)';
+    c.lineWidth = 1.6;
     c.stroke();
     c.save();
     c.clip();
+    // Hachures: short ink strokes down the hillsides under the rim, as on an old survey map.
+    c.strokeStyle = 'rgba(90, 70, 46, 0.32)';
+    c.lineWidth = 0.9;
+    for (let gz = 2; gz < this.h; gz += 4) {
+      for (let gx = 2 + ((gz / 4) % 2) * 2; gx < this.fullW; gx += 4) {
+        const wx = (gx - this.ox) / this.scale;
+        const wz = (gz - this.oz) / this.scale;
+        const bd = L.boundaryDistance(wx, wz);
+        if (bd > 14 || !L.insideValley(wx, wz) || rnd() > 0.55 * (1 - bd / 14)) continue;
+        const e = 1.5 / this.scale;
+        const dx = L.boundaryDistance(wx + e, wz) - L.boundaryDistance(wx - e, wz);
+        const dz = L.boundaryDistance(wx, wz + e) - L.boundaryDistance(wx, wz - e);
+        const dl = Math.hypot(dx, dz) || 1;
+        c.beginPath();
+        c.moveTo(gx, gz);
+        c.lineTo(gx + (dx / dl) * 2.6, gz + (dz / dl) * 2.6);
+        c.stroke();
+      }
+    }
     for (const l of L.lochs) {
       c.beginPath();
       l.pts.forEach(([x, z], i) => (i ? c.lineTo(this.px(x), this.pz(z)) : c.moveTo(this.px(x), this.pz(z))));
       c.closePath();
-      c.fillStyle = '#5e9ccc';
+      c.fillStyle = '#9cc0d2';
       c.fill();
+      c.strokeStyle = 'rgba(52, 84, 110, 0.85)';
+      c.lineWidth = 1.2;
+      c.stroke();
     }
     for (const s of L.streams) {
       c.beginPath();
       s.pts.forEach(([x, z], i) => (i ? c.lineTo(this.px(x), this.pz(z)) : c.moveTo(this.px(x), this.pz(z))));
-      c.strokeStyle = '#6aa6d6';
-      c.lineWidth = Math.max(2, s.half * 2 * this.scale);
       c.lineCap = 'round';
       c.lineJoin = 'round';
+      c.strokeStyle = 'rgba(52, 84, 110, 0.85)';
+      c.lineWidth = Math.max(2, s.half * 2 * this.scale) + 1.6;
+      c.stroke();
+      c.strokeStyle = '#9cc0d2';
+      c.lineWidth = Math.max(2, s.half * 2 * this.scale);
       c.stroke();
     }
     c.restore();
@@ -262,7 +314,8 @@ export class Minimap {
       let x = s.x;
       let z = s.z;
       let alpha = 1;
-      if (mem && s.state !== 'folded' && !grabbed) {
+      const bell = s.id === sim.bellId && s.state !== 'folded';
+      if (mem && s.state !== 'folded' && !grabbed && !bell) {
         const m = mem.get(s.id);
         if (!m) continue;
         // Where Pip last saw it, fading as the memory gets old.
@@ -291,6 +344,13 @@ export class Minimap {
       c.lineWidth = 1.6;
       c.strokeStyle = 'rgba(30, 24, 34, 0.95)';
       c.stroke();
+      if (bell) {
+        c.beginPath();
+        c.arc(this.px(x), this.pz(z), r + 3, 0, Math.PI * 2);
+        c.strokeStyle = '#d99a2b';
+        c.lineWidth = 2;
+        c.stroke();
+      }
       c.globalAlpha = 1;
     }
     for (const w of sim.wolves) {
@@ -363,12 +423,13 @@ export class Minimap {
   /** Place names over everything else, so no dot ever hides a name a banner uses. */
   private drawLabels(c: CanvasRenderingContext2D) {
     c.save();
-    c.font = "800 11.5px 'Nunito Variable', system-ui, sans-serif";
+    // Hand-lettered names: the display serif in italic, inked, on a paper halo.
+    c.font = "italic 700 12px 'Fraunces Variable', Georgia, serif";
     c.textAlign = 'center';
-    c.lineWidth = 3;
+    c.lineWidth = 3.2;
     c.lineJoin = 'round';
-    c.strokeStyle = 'rgba(30, 36, 26, 0.75)';
-    c.fillStyle = 'rgba(255, 248, 228, 0.9)';
+    c.strokeStyle = 'rgba(239, 230, 204, 0.92)';
+    c.fillStyle = 'rgba(52, 38, 26, 0.95)';
     for (const p of this.level.places) {
       // Bridges and fords are drawn on the map; their names would crowd the place names.
       if (p.kind === 'crossing') continue;

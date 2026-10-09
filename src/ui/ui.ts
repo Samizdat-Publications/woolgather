@@ -2,7 +2,7 @@ import type { AudioSettings } from '../audio/engine';
 import { DIFFICULTIES, DOG, type Difficulty } from '../game/config';
 import type { Level } from '../game/level';
 import type { Rules } from '../game/rules';
-import { CHARMS, SECOND_CHARM_STARS, THIRD_CHARM_STARS, SEASON, dailyEvening, moonOpen, moonRules, moonStars, totalRibbons, totalStars, unlocked, type Evening, type Progress } from '../game/season';
+import { CHARMS, COATS, coatOpen, SECOND_CHARM_STARS, THIRD_CHARM_STARS, SEASON, dailyEvening, moonOpen, moonRules, moonStars, totalRibbons, totalStars, unlocked, type Evening, type Progress } from '../game/season';
 import type { Outcome, Sim } from '../game/sim';
 import { dawnTime, moodTime, SUN_MOON_SWAP } from '../render/daycycle';
 import { MARKER_ICONS } from './indicators';
@@ -371,7 +371,12 @@ export class Ui {
         ${moonOpen(p, e) ? `<span class="ev-moon" title="Wolf Moon">☾ <span class="ev-stars">${stars(rec?.moon?.stars ?? 0)}</span></span>` : ''}
       </button>`;
     }).join('') + this.dailyCard(p, focusId);
-    $('.charm-shelf', this.root).innerHTML = `<div class="charm-title">Pip's charms <small>earned with stars · wear ${s >= THIRD_CHARM_STARS ? 'three' : s >= SECOND_CHARM_STARS ? 'two' : 'one'} on any evening</small></div><div class="charm-row">${CHARMS.map((c) => `<span class="charm ${s >= c.stars ? 'got' : ''}"><b>${c.title}</b><small>${s >= c.stars ? c.text : `${c.stars} ★ to earn`}</small></span>`).join('')}</div>`;
+    $('.charm-shelf', this.root).innerHTML = `<div class="charm-title">Pip's charms <small>earned with stars · wear ${s >= THIRD_CHARM_STARS ? 'three' : s >= SECOND_CHARM_STARS ? 'two' : 'one'} on any evening</small></div><div class="charm-row">${CHARMS.map((c) => `<span class="charm ${s >= c.stars ? 'got' : ''}"><b>${c.title}</b><small>${s >= c.stars ? c.text : `${c.stars} ★ to earn`}</small></span>`).join('')}</div><div class="charm-title">Pip's coat <small>won with ribbons and Wolf Moon stars</small></div><div class="coat-row">${COATS.map((c) => {
+      const open = coatOpen(p, c.id);
+      const on = (p.coat ?? 'black') === c.id;
+      const need = c.ribbons ? `${c.ribbons} ribbons` : c.moon ? `${c.moon} ☾ stars` : '';
+      return `<button class="coat ${on ? 'on' : ''} ${open ? '' : 'locked'}" data-act="coat" data-arg="${c.id}"${open ? '' : ' tabindex="-1"'}><span class="coat-swatch" style="background:${c.color}"></span><span><b>${c.title}</b>${open ? '' : `<small>${need}</small>`}</span></button>`;
+    }).join('')}</div>`;
     const done = SEASON.filter((e) => (p.evenings[e.id]?.stars ?? 0) > 0).length;
     const complete = done === SEASON.length;
     $('.season-card .kicker', this.root).textContent = complete ? 'The season is complete' : 'A year on the hill farm';

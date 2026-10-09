@@ -4,6 +4,7 @@
 //        [--parallel 2] [--seed 11] [--cap 12] [--quality low] [--wait 0.45] [--out season-run]
 //        [--nobuild] [--headed] [--skill expert|average] [--dist test-results/bot-dist]
 //
+// --moon plays each evening's Wolf Moon (the harder tier).
 // --skill average plays like a person on a first play (see docs/BOT2.md); expert is the default.
 // --dist is the build folder (built there unless --nobuild). Give each concurrent run its own,
 // or two runs will empty each other's build.
@@ -41,7 +42,7 @@ const opt = (name, def) => {
 };
 const flag = (name) => args.includes(`--${name}`);
 
-const ALL = ['long-light', 'far-bank', 'lambing', 'angus', 'show', 'night-watch', 'mist', 'storm', 'first-snow'];
+const ALL = ['long-light', 'far-bank', 'lambing', 'angus', 'show', 'night-watch', 'mist', 'storm', 'gather', 'first-snow'];
 const evenings = (opt('evenings', ALL.join(',')) || '').split(',').filter(Boolean);
 const SCALE = Number(opt('scale', 2));
 const PORT = Number(opt('port', 0));
@@ -53,6 +54,8 @@ const QUALITY = opt('quality', 'low');
 const WAIT = Number(opt('wait', 0));
 const OUT_NAME = opt('out', 'season-run');
 const SKILL = opt('skill', 'expert');
+/** --moon plays each evening's Wolf Moon. */
+const MOON = flag('moon');
 const distDir = path.resolve(root, opt('dist', path.join('test-results', 'bot-dist')));
 const traceDir = path.join(root, 'test-results', OUT_NAME);
 const t0 = Date.now();
@@ -160,8 +163,8 @@ async function playEvening(id) {
   try {
     await page.goto(`${baseUrl}?test=1&seed=${SEED}&quality=${QUALITY}`);
     await page.waitForFunction(() => !!window.__WG, null, { timeout: 180000 });
-    await page.evaluate(() => window.__WG.progress('all'));
-    const ok = await page.evaluate((e) => window.__WG.evening(e, true), id);
+    await page.evaluate((m) => window.__WG.progress(m ? 'moon' : 'all'), MOON);
+    const ok = await page.evaluate(([e, m]) => window.__WG.evening(e, true, m), [id, MOON]);
     if (!ok) throw new Error(`__WG.evening('${id}') returned false`);
     await page.waitForFunction(() => window.__WG.state().mode === 'playing', null, { timeout: 30000 });
     await page.evaluate((k) => window.__WG.setTimeScale(k), SCALE);
@@ -282,6 +285,8 @@ function ribbon(id, st, bot) {
       return has('black', (s) => s.state === 'folded');
     case 'storm':
       return st.folded === st.total;
+    case 'gather':
+      return st.lost === 0;
     case 'first-snow':
       return st.sheep.filter((s) => (s.kind === 'ram' || s.kind === 'black') && s.state === 'folded').length >= 2;
   }
@@ -302,7 +307,7 @@ await browser.close();
 server.close();
 
 const out = path.join(root, 'test-results', `${OUT_NAME}.json`);
-fs.writeFileSync(out, JSON.stringify({ when: new Date().toISOString(), skill: SKILL, scale: SCALE, seed: SEED, quality: QUALITY, wait: WAIT, results }, null, 2));
+fs.writeFileSync(out, JSON.stringify({ when: new Date().toISOString(), skill: SKILL, moon: MOON, scale: SCALE, seed: SEED, quality: QUALITY, wait: WAIT, results }, null, 2));
 
 const pad = (s, n) => String(s).padEnd(n);
 console.log('');

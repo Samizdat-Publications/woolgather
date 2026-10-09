@@ -251,8 +251,40 @@ export const SEASON: Evening[] = [
     },
   },
   {
-    id: 'first-snow',
+    id: 'gather',
     num: 9,
+    title: 'The Gathering',
+    when: 'Late autumn',
+    place: 'The High Pass',
+    story: "Every flock on the hill comes down to the farm for the winter, the whole length of the pass. Old Fly, Pip's mother, comes out to help one last time.",
+    newThing: { tip: 'F sends Fly to lie down where Pip stands · F again calls her back', title: 'Old Fly', text: 'Press F: Fly lies down where Pip stands and holds that spot, and the sheep keep off it. Press F again to call her back to heel. Lay her across a gap or beside a crossing and the flock cannot break that way while Pip fetches the next one.' },
+    ribbon: { title: 'Not one lost on the way down', check: (s) => s.lost === 0 },
+    rules: {
+      levelId: 'pass',
+      objective: 'gather',
+      dayLength: 520,
+      target: 18,
+      wolfStart: 0.2,
+      maxWolves: 3,
+      pack: 'gentle',
+      wolfRespawn: [12, 18],
+      wolfSpeedScale: 1,
+      flock: [
+        { at: 'west-fold', ewes: 5 },
+        { at: 'west-moor', ewes: 5 },
+        { at: 'crags', ewes: 4 },
+        { at: 'midglen', ewes: 4 },
+        { at: 'east-moor', ewes: 4 },
+      ],
+      weather: 'clear',
+      season: 'autumn',
+      fly: true,
+      seed: 1010,
+    },
+  },
+  {
+    id: 'first-snow',
+    num: 10,
     title: 'First Snow',
     when: 'Winter',
     place: 'The High Pass',
@@ -290,7 +322,7 @@ export interface Charm {
   stars: number;
   perks: Partial<Perks>;
   /** A charm that adds something to do, not a number: Fly the old dog, or the outrun. */
-  verb?: 'fly' | 'outrun';
+  verb?: 'fly' | 'outrun' | 'bell';
 }
 
 export const CHARMS: Charm[] = [
@@ -299,13 +331,14 @@ export const CHARMS: Charm[] = [
   { id: 'gruff', title: 'Gruff Bark', text: 'Barks carry 30% further and come back sooner.', stars: 9, perks: { barkRadius: 1.3, barkCooldown: 0.85 } },
   { id: 'outrun', title: 'The Outrun', text: 'Hold Z and X together: Pip runs wide round to the far side of the nearest loose flock.', stars: 7, perks: {}, verb: 'outrun' },
   { id: 'eye', title: 'Steady Eye', text: 'Rams give way faster; creeping is calmer still.', stars: 13, perks: { eye: 1.7, creep: 0.8 } },
+  { id: 'bell', title: 'The Bell-wether', text: 'The oldest ewe of the biggest flock wears a bell: her flock keeps close round her, you hear her through mist and dark, and she is always on the map.', stars: 22, perks: {}, verb: 'bell' },
   { id: 'fly', title: 'Old Fly', text: "Pip's mother comes along. Press F: she lies down where Pip stands and holds it (sheep keep off, wolves stay away). F again calls her back.", stars: 16, perks: {}, verb: 'fly' },
 ];
 
 /** The verb charms a set of worn charms brings (Fly, the outrun). */
 export function verbsFor(ids: string[]) {
   const v = new Set(ids.map((id) => CHARMS.find((c) => c.id === id)?.verb).filter(Boolean));
-  return { fly: v.has('fly'), outrun: v.has('outrun') };
+  return { fly: v.has('fly'), outrun: v.has('outrun'), bell: v.has('bell') };
 }
 
 /** Two charms may be worn once this many stars are earned. */
@@ -340,6 +373,21 @@ export interface Progress {
   charms: string[];
   /** The last evening played (the season map opens on it). */
   last?: string;
+  /** Pip's coat (an id from COATS). */
+  coat?: string;
+}
+
+/** Pip's coats: the black and white he is born with, and more won with ribbons and Wolf Moon stars. */
+export const COATS: { id: string; title: string; color: string; ribbons?: number; moon?: number }[] = [
+  { id: 'black', title: 'Black and white', color: '#2a2e3c' },
+  { id: 'red', title: 'Red and white', color: '#7c3c22', ribbons: 3 },
+  { id: 'merle', title: 'Blue merle', color: '#6e7888', ribbons: 6 },
+  { id: 'sable', title: 'Sable', color: '#9a6a34', moon: 6 },
+  { id: 'slate', title: 'Moonlit slate', color: '#3e4658', moon: 15 },
+];
+export function coatOpen(p: Progress, id: string) {
+  const c = COATS.find((q) => q.id === id);
+  return !!c && totalRibbons(p) >= (c.ribbons ?? 0) && moonStars(p) >= (c.moon ?? 0);
 }
 
 const KEY = 'woolgather.season.v1';
@@ -349,7 +397,7 @@ export function loadProgress(): Progress {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as Progress;
-      if (p && typeof p === 'object' && p.evenings) return { evenings: p.evenings, charms: Array.isArray(p.charms) ? p.charms : [], last: p.last };
+      if (p && typeof p === 'object' && p.evenings) return { evenings: p.evenings, charms: Array.isArray(p.charms) ? p.charms : [], last: p.last, coat: typeof p.coat === 'string' ? p.coat : undefined };
     }
   } catch {
     // Storage blocked or corrupt: a fresh season.

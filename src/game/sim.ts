@@ -157,7 +157,9 @@ export type SimEvent =
   /** The flanker is in position behind the flock: a low growl from that side. */
   | { type: 'growl'; x: number; z: number; id: number }
   /** Pip sends Fly to lie down where he stands (down) or calls her back to heel. */
-  | { type: 'fly'; x: number; z: number; down: boolean };
+  | { type: 'fly'; x: number; z: number; down: boolean }
+  /** The bell-wether's bell. */
+  | { type: 'bell'; x: number; z: number };
 
 export type Outcome =
   | { kind: 'win'; reason: 'all-home' | 'nightfall' | 'latched' | 'dawn' | 'trial'; stars: number }
@@ -174,6 +176,10 @@ export class Sim {
   readonly dog: Dog;
   /** Fly, the old dog (a charm), or null. */
   readonly fly: Helper | null;
+  /** The ewe wearing the bell (a charm), or -1. */
+  bellId = -1;
+  private bellT = 0;
+  private flyCmdT = 0;
   readonly sheep: Sheep[] = [];
   readonly wolves: Wolf[] = [];
   readonly events: SimEvent[] = [];
@@ -310,11 +316,17 @@ export class Sim {
       this.sheep.push(s);
       return s;
     };
+    let bellSize = 0;
     for (const g of rules.flock) {
       const grp = level.def.sheepGroups.find((q) => q.id === g.at) ?? level.def.sheepGroups[0];
       const [gx, gz] = grp.center;
       const ewes: Sheep[] = [];
       for (let i = 0; i < g.ewes; i++) ewes.push(spawn('ewe', gx, gz, grp.radius));
+      // The bell-wether: the first ewe of the biggest flock.
+      if (rules.bell && ewes.length > bellSize) {
+        bellSize = ewes.length;
+        this.bellId = ewes[0].id;
+      }
       if (g.ram) spawn('ram', gx, gz, grp.radius * 0.6);
       for (let i = 0; i < (g.black ?? 0); i++) spawn('black', gx, gz, grp.radius);
       for (let i = 0; i < (g.lambs ?? 0); i++) {
@@ -423,6 +435,7 @@ export class Sim {
     this.elapsed += dt;
     this.updateDog(dt, input);
     if (this.fly) this.updateFly(this.fly, dt, input);
+    if (this.bellId >= 0) this.updateBell(dt);
     this.updateSheep(dt);
     this.updateWolves(dt);
     this.updateWeather(dt);
@@ -484,7 +497,10 @@ export class Sim {
    */
   private updateFly(f: Helper, dt: number, input: Input | null) {
     const d = this.dog;
-    if (input?.pressed('fly')) {
+    // One press, one command: a frame can hold several sim steps that all see the same key edge.
+    this.flyCmdT = Math.max(0, this.flyCmdT - dt);
+    if (input?.pressed('fly') && this.flyCmdT <= 0) {
+      this.flyCmdT = 0.3;
       if (f.mode === 'heel') {
         f.mode = 'go';
         f.tx = d.x;
@@ -591,6 +607,17 @@ export class Sim {
     const sz = f.cz + Math.sin(sa) * (R + 4);
     const sl = Math.hypot(sx - d.x, sz - d.z) || 1;
     return { x: (sx - d.x) / sl, z: (sz - d.z) / sl };
+  }
+
+  /** The bell rings as its ewe walks: an event every so often while she moves. */
+  private updateBell(dt: number) {
+    const b = this.sheep[this.bellId];
+    if (!b || !this.isFree(b)) return;
+    this.bellT -= dt * Math.min(2.5, 0.3 + b.speed * 0.45);
+    if (this.bellT <= 0) {
+      this.bellT = 1;
+      this.events.push({ type: 'bell', x: b.x, z: b.z });
+    }
   }
 
   private updateDog(dt: number, input: Input | null) {
@@ -942,6 +969,20 @@ export class Sim {
       }
       if (neighbourAlert) s.alertT = Math.max(s.alertT, 0.8);
       const cohK = (s.kind === 'black' ? 0.5 : lamb ? 0.3 : s.kind === 'ram' ? 0.4 : 1) * (s.strayT > 0 ? 0.15 : 1);
+      // The bell-wether: her flock keeps close round her (and she leads the way when it moves).
+      if (this.bellId >= 0 && s.id !== this.bellId) {
+        const b = this.sheep[this.bellId];
+        if (b && this.isFree(b)) {
+          const bx = b.x - s.x;
+          const bz = b.z - s.z;
+          const bd = Math.hypot(bx, bz);
+          if (bd > 3 && bd < 18) {
+            const k = (alert ? 1.6 : 0.7) * Math.min(1, (bd - 3) / 6);
+            vx += (bx / bd) * k;
+            vz += (bz / bd) * k;
+          }
+        }
+      }
       if (n > 0) {
         cx /= n;
         cz /= n;

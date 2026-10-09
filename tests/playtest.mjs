@@ -336,7 +336,7 @@ if (!flag('skip-season')) {
     check('season: a charm can be worn', await page.locator('.intro-card .charm.pick.on').isVisible());
   } else check('season: charms offered with stars', false);
   await shot('evening-card', 'an evening card with charms');
-  for (const id of ['long-light', 'far-bank', 'lambing', 'angus', 'night-watch', 'mist', 'storm', 'first-snow']) {
+  for (const id of ['long-light', 'far-bank', 'lambing', 'angus', 'night-watch', 'mist', 'storm', 'gather', 'first-snow']) {
     await page.evaluate((e) => window.__WG.evening(e, true), id);
     await page.evaluate(() => window.__WG.setTimeScale(4));
     await sleep(2500);

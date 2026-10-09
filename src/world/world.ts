@@ -658,15 +658,18 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
   // The grass field (grass.ts) is the sward; a few darker tussocks stay for texture.
   add('grass_a', scatter(220, tussock, [0.9, 1.5]));
   add('grass_b', scatter(220, tussock, [0.9, 1.5]));
-  const meadow = (x: number, z: number) => grassTest(x, z) && level.boundaryDistance(x, z) > 18 && Math.sin(x * 0.11) * Math.cos(z * 0.13) > 0.42;
-  const flowers = season === 'winter' ? 0 : season === 'autumn' ? 50 : 190;
+  const cov = { flowers: 1, heather: 1, bracken: 1, stones: 1, ...L.cover };
+  // A flower-thick place (a machair) has drifts everywhere, not only in the meadow patches.
+  const drift = cov.flowers > 2 ? 0.05 : 0.42;
+  const meadow = (x: number, z: number) => grassTest(x, z) && level.boundaryDistance(x, z) > 18 && Math.sin(x * 0.11) * Math.cos(z * 0.13) > drift;
+  const flowers = (season === 'winter' ? 0 : season === 'autumn' ? 50 : 190) * cov.flowers;
   add('flower_white', scatter(flowers, meadow, [0.9, 1.3]));
   add('flower_yellow', scatter(season === 'heather' ? flowers * 0.6 : flowers, meadow, [0.9, 1.3]));
   const slope = (x: number, z: number) => Math.hypot(g(x + 1, z) - g(x - 1, z), g(x, z + 1) - g(x, z - 1)) / 2;
   const patch2 = (x: number, z: number) => Math.sin(x * 0.07 + 2.1) * Math.cos(z * 0.061 + 0.3) + Math.sin((x + z) * 0.05) * 0.4;
-  const scree = (x: number, z: number) => level.boundaryDistance(x, z) < 24 && grassTest(x, z) && slope(x, z) > 0.2 && patch2(x, z) > 0.2;
+  const scree = (x: number, z: number) => (cov.stones > 1.5 || (level.boundaryDistance(x, z) < 24 && slope(x, z) > 0.2)) && grassTest(x, z) && patch2(x, z) > (cov.stones > 1.5 ? -0.2 : 0.2);
   for (const [k, kind] of ['rock_a', 'rock_b', 'rock_c'].entries()) {
-    add(kind, scatter(70, scree, [0.14, 0.32]).map((p) => ({ ...p, y: p.y - 0.05, rot: p.rot + k })));
+    add(kind, scatter(70 * cov.stones, scree, [0.14, 0.32]).map((p) => ({ ...p, y: p.y - 0.05, rot: p.rot + k })));
   }
   // Highland cover: heather, bracken and gorse in patches on the uplands and along every slope
   // near the rim, where the grass gives way to the hill.
@@ -675,10 +678,10 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
     (L.heather ?? []).some((b) => (b.maxX === undefined || x < b.maxX) && (b.minX === undefined || x > b.minX) && (b.maxZ === undefined || z < b.maxZ) && (b.minZ === undefined || z > b.minZ));
   const upland = (x: number, z: number) => band(x, z) || level.boundaryDistance(x, z) < 18;
   const hill = (x: number, z: number) => upland(x, z) && grassTest(x, z) && patch(x, z, 0.3) > 0.1;
-  add('heather', scatter(season === 'heather' ? 640 : 460, hill, [0.9, 1.6]));
+  add('heather', scatter((season === 'heather' ? 640 : 460) * cov.heather, hill, [0.9, 1.6]));
   const fern = (x: number, z: number) => upland(x, z) && grassTest(x, z) && patch(x, z, 2.2) > 0.35;
-  add('bracken_a', scatter(170, fern, [0.9, 1.4]));
-  add('bracken_b', scatter(150, fern, [0.9, 1.4]));
+  add('bracken_a', scatter(170 * cov.bracken, fern, [0.9, 1.4]));
+  add('bracken_b', scatter(150 * cov.bracken, fern, [0.9, 1.4]));
   // No gorse where the wolves come out of the trees (its orange flowers beside a wolf read as noise).
   const nearDen = (x: number, z: number) => level.dens.some(([dx, dz]) => (x - dx) ** 2 + (z - dz) ** 2 < 34 * 34);
   const gorseSpot = (x: number, z: number) => level.boundaryDistance(x, z) < 14 && !nearDen(x, z) && grassTest(x, z) && patch(x, z, 4.1) > 0.45;

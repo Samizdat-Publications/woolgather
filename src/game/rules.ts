@@ -73,6 +73,8 @@ export interface Rules {
   fly?: boolean;
   /** Pip can run an outrun to the far side of a flock (a charm). */
   outrun?: boolean;
+  /** One ewe wears a bell: her flock keeps close round her (a charm). */
+  bell?: boolean;
   /** Trial judged strictly (Wolf Moon's championship course): missed gates and a slow round cost more. */
   strict?: boolean;
 }

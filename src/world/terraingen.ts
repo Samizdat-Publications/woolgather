@@ -170,11 +170,19 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
   const at = (ix: number, iz: number) => data[clamp(iz, 0, nz - 1) * nx + clamp(ix, 0, nx - 1)];
 
   // ---------------------------------------------------------------- colours
-  const P: Palette = season === 'winter' ? PALETTES[season] : { ...PALETTES[season], ...def.ground };
+  // The place's own ground over the season's palette; in autumn only a third of it shows through
+  // (the bracken and grass have turned), and winter is snow everywhere.
+  const autumnMix = (k: string, v: string | number | undefined) => {
+    const base = (PALETTES[season] as unknown as Record<string, string | number>)[k];
+    if (typeof v !== 'string' || typeof base !== 'string') return v;
+    return `#${new THREE.Color(base).lerp(new THREE.Color(v), 0.35).getHexString()}`;
+  };
+  const own = season === 'autumn' && def.ground ? Object.fromEntries(Object.entries(def.ground).map(([k, v]) => [k, autumnMix(k, v)])) : def.ground;
+  const P: Palette = season === 'winter' ? PALETTES[season] : { ...PALETTES[season], ...own };
   const C = {
     a: col(P.grassA), b: col(P.grassB), dry: col(P.dry), lush: col(P.lush), worn: col(P.worn), mud: col(P.mud), straw: col(P.straw),
     heather: col(P.heather), bed: col(P.bed), foldFloor: col(P.foldFloor), yard: col(P.yard), forest: col(P.forest), forestDeep: col(P.forestDeep),
-    rocky: col(P.rocky), shingle: col(P.shingle), wetMud: col('#4a4232'), snow: col('#eef1f5'), snowShade: col('#dfe5ee'), lochBed: col('#5f6a52'),
+    rocky: col(P.rocky), shingle: col(P.shingle), wetMud: col('#4a4232'), snow: col('#eef1f5'), snowShade: col('#dfe5ee'), lochBed: col('#5f6a52'), sand: col('#d6c9a0'),
   };
   const c = new THREE.Color();
   const heatherAt = (x: number, z: number) => {
@@ -209,6 +217,14 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
       for (const [rx, rz, rr] of def.rocks) {
         const dr = Math.hypot(x - rx, z - rz);
         if (dr < rr + 1.5) c.lerp(C.rocky, (1 - smoothstep(rr * 0.6, rr + 1.5, dr)) * 0.45);
+      }
+      // Machair: pale shell-sand blown up from the loch shore in soft patches.
+      if (def.cover?.sand && level.lochs.length) {
+        const q = level.lochQuery(x, z);
+        if (q.d > 0 && q.d < 50) {
+          const sp = smoothstep(0.1, 0.45, fbm(x / 18 + 7, z / 18 - 3, 2, 5.1)) * (1 - smoothstep(14, 50, q.d));
+          c.lerp(C.sand, sp * def.cover.sand);
+        }
       }
       // Stony ground round crags and under screes; trodden earth round a stell and a shieling.
       for (const l of def.landmarks ?? []) {

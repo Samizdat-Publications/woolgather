@@ -87,6 +87,11 @@
     {"kind": "peat_hag", "at": [-112, -42], "angle": 15},
     {"kind": "peat_hag", "at": [128, 44], "angle": -20},
     {"kind": "peat_hag", "at": [-170, 40], "angle": 40, "scale": 0.9},
-    {"kind": "shieling", "at": [120, -46], "angle": 10}
-  ]
+    {"kind": "shieling", "at": [120, -46], "angle": 10},
+    {"kind": "cairn", "at": [-140, 48]},
+    {"kind": "standing_stone", "at": [44, 30], "angle": 15, "scale": 1.2},
+    {"kind": "peat_hag", "at": [98, -44], "angle": 10}
+  ],
+  "cover": {"stones": 4, "heather": 0.6, "flowers": 0.5},
+  "ground": {"grassA": "#8a9a5e", "grassB": "#98a468", "dry": "#a8a888", "lush": "#77895a"}
 }

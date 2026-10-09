@@ -55,3 +55,20 @@ Resume notes for the second 24-hour run (plan: `docs/RUN2-PLAN.md`). Newest at t
   7.00), video 7.25 (r04 6.63). The footage change alone lifts the Claude means a little.
 - Balance pass 2 (seed 11 and 23): expert 7 of 9 (lost storm and first snow, far off), average 8
   of 17. Pass 3 eases storm and first snow and tightens the evenings the average bot won easily.
+
+## Phase 4-5 and stretch (ahead of schedule: run started 14:20, this at about 18:00)
+
+- Blind place test (10 unlabelled herding shots, 2 per place): before 3 of 5 pairs right,
+  distinct 4/10; after the first landmark pass 2 of 5, distinct 5/10. Within noise: the places
+  were told apart only by water, snow, the trial gate or the jetty; green meadows without a
+  landmark in frame still blurred (Hollow Valley and Loch Ailsa had the same lime lawn). Response:
+  per-place ground (`ground` and new `cover` multipliers in the level file: Hollow Valley a rich
+  pasture with buttercups and little heather, Loch Ailsa a pale flower-thick machair with shell-sand
+  patches, the High Pass stony all over) and more landmarks beside each grazing spot.
+- Stretch work done: Pip's coats (won with ribbons and Wolf Moon stars), a paper-and-ink minimap
+  (hachured hillsides, inked water and wood marks, italic place names), the Bell-wether charm
+  (22 stars), gamepad rumble, and a tenth evening, The Gathering (High Pass, late autumn, 22 sheep
+  in five flocks, Old Fly comes along charm or not, teaching her).
+- Fixed: one F press could toggle Fly twice when a frame held several sim steps (debounced); the
+  expert bot's flank key ran round and round a flock across the stream at a bridge (flank only on
+  open ground now).

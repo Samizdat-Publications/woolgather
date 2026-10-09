@@ -31,6 +31,44 @@ drag a sheep into the trees. Night falls in violet and moonlight.
 The clips are the finished game, recorded one frame at a time at 60 fps while the test bot played
 one Standard evening (see [Footage](#footage)); in that evening it brought all twelve home in 3:33.
 
+## The Season (Woolgather 2)
+
+Version 2 turns one evening into a season: **nine evenings on one hill farm**, midsummer to the first
+snow, over **five places**, each evening adding one new thing to herd around.
+
+| # | Evening | Place | New tonight |
+| --- | --- | --- | --- |
+| 1 | Long Light | Hollow Valley | herding, and one early wolf |
+| 2 | The Far Bank | Hollow Valley | crossings: the bridge and the ford |
+| 3 | Lambing Time | Loch Ailsa | lambs that follow their mothers, and a lost lamb |
+| 4 | Old Angus | Crannach Corrie | the ram, who must be stared down; wolves that hunt as a pack |
+| 5 | The Glenbrae Trial | Glenbrae Show Field | a sheepdog trial: gates in order, judged on points |
+| 6 | Night Watch | Loch Ailsa | guard the flock until dawn |
+| 7 | Mist on the Moor | The High Pass | mist: find the flock by its bleating |
+| 8 | The Storm | Hollow Valley | thunder that scatters the flock, and a flood |
+| 9 | First Snow | The High Pass | everything at once |
+
+- **It is hard.** Each evening is short, the wolves come early, and from Old Angus on they hunt in
+  pairs: one shows itself on your side of the flock and feints, while its mate circles round to
+  the far side and waits for you to take the bait.
+- **Stars, ribbons and Wolf Moon.** Every evening has three stars and a ribbon (an optional
+  challenge). Three stars open its **Wolf Moon**: the same evening shorter, with one more wolf, a
+  full pack and one more sheep needed.
+- **Charms** are bought with stars. Some are small edges (faster paws, a gruffer bark); three change
+  how you play: **The Outrun** (Z and X together: a wide run to the far side of a loose flock),
+  **Old Fly** (F: Pip's mother lies down where he stands and holds that spot, so the sheep keep off
+  it) and **The Bell-wether** (the flock keeps close round a ewe with a bell, and you can hear her in
+  the mist).
+- **Pip's coats** are won with ribbons and Wolf Moon stars.
+- **Today's evening:** a new evening every day, made from the date: a place, the real season, the
+  weather, two or three flocks.
+- **Classic evening** is the 1.0 game, at Gentle, Standard or Hard.
+
+Each place has its own ground and landmarks: a green machair with a jetty on Loch Ailsa, a heather
+moor under crags and screes in Crannach Corrie, standing stones and a stell in Hollow Valley, a mown
+show field with a crowd and a judges' box at Glenbrae, a stony pass with cairns and peat hags.
+Weather runs from midsummer gold to rain, mist and snow, with a recorded score and sound.
+
 ## Play it
 
 Online: **https://woolgather.pages.dev/play/**. To run it locally (Node 20 or newer, a browser with
@@ -58,6 +96,10 @@ and open http://localhost:4317/.
 | Move Pip | WASD or arrow keys | Left stick |
 | Sprint (uses stamina) | Shift | RT or RB |
 | Creep: sheep stay calm until you are close | C (hold) | LT or LB |
+| Lie down: the flock stops and settles | Q (hold) | B |
+| Flank: run round the nearest flock ("away" / "come bye") | Z or X (hold) | D-pad left or right |
+| Outrun (charm) | Z and X together (hold) | Left stick click |
+| Old Fly: lie down here, or come back (charm) | F | D-pad down |
 | Bark: startles sheep, scares wolves off | Space or B | A or X |
 | Latch the gate once enough sheep are home | Enter | Y |
 | Pause (sound and graphics settings) | Esc or P | Start |

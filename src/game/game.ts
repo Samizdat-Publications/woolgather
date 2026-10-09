@@ -26,7 +26,7 @@ import { Input } from './input';
 import { Level } from './level';
 import type { LevelDef } from './leveldef';
 import { classicRules, type Rules } from './rules';
-import { dailyEvening, loadProgress, moonOpen, moonRules, perksFor, verbsFor, THIRD_CHARM_STARS, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type EveningRecord, type Progress } from './season';
+import { COATS, coatOpen, dailyEvening, loadProgress, moonOpen, moonRules, perksFor, verbsFor, THIRD_CHARM_STARS, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type EveningRecord, type Progress } from './season';
 import { Sim, type SimEvent } from './sim';
 
 // Top-level state machine: title -> (season map -> evening card) or classic -> playing <-> paused
@@ -154,6 +154,8 @@ export class Game {
     const assets = await loadAssets(onProgress);
     this.assets = assets;
     this.actors = new Actors(assets, this.terrain);
+    const coat = COATS.find((c) => c.id === this.progress.coat && coatOpen(this.progress, c.id));
+    if (coat) this.actors.setCoat(coat.color);
     this.stage.scene.add(this.actors.root);
     this.weatherFx = new WeatherFx();
     this.stage.scene.add(this.weatherFx.root);
@@ -257,6 +259,14 @@ export class Game {
       case 'charm':
         if (arg) this.toggleCharm(arg);
         break;
+      case 'coat':
+        if (arg && coatOpen(this.progress, arg)) {
+          this.progress.coat = arg;
+          saveProgress(this.progress);
+          this.ui.renderSeason(this.progress);
+          this.actors?.setCoat(COATS.find((c) => c.id === arg)!.color);
+        }
+        break;
       case 'tier':
         // The intro card's switch between the evening and its Wolf Moon.
         if (this.evening) {
@@ -292,7 +302,9 @@ export class Game {
   }
 
   private eveningRules(ev: Evening): Rules {
-    const r: Rules = { ...ev.rules, id: ev.id, perks: perksFor(this.progress.charms), ...verbsFor(this.progress.charms) };
+    const v = verbsFor(this.progress.charms);
+    // An evening may bring a helper itself (Fly comes along for the Gathering, charm or not).
+    const r: Rules = { ...ev.rules, id: ev.id, perks: perksFor(this.progress.charms), fly: ev.rules.fly || v.fly, outrun: ev.rules.outrun || v.outrun, bell: ev.rules.bell || v.bell };
     return tuned(this.moon && moonOpen(this.progress, ev) ? moonRules(r) : r);
   }
 
@@ -1273,15 +1285,21 @@ export class Game {
           break;
         case 'grab':
           this.stage.addShake(0.35);
+          this.input.rumble(0.8, 0.5, 0.3);
           break;
         case 'lost':
           this.ui.toast('A sheep was dragged into the woods.', 'danger');
           break;
         case 'rescued':
           this.ui.toast('Sheep rescued!', 'good');
+          this.input.rumble(0.4, 0.4, 0.2);
           break;
         case 'bark':
           this.stage.addShake(0.12);
+          this.input.rumble(0, 0.35, 0.07);
+          break;
+        case 'thunder':
+          this.input.rumble(0.3, 0.6, 0.5);
           break;
         case 'butt':
           if (!e.wolf) this.once('butt', () => this.ui.toast('Angus butts Pip away! Stand still near him, or bark, to stare him down', 'warn'));

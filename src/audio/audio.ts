@@ -161,6 +161,9 @@ export class GameAudio {
           if (!this.rec('growl', w, 0.75, false, 0.8)) this.sfx.growl(w);
           break;
         }
+        case 'bell':
+          if (this.where(e.x, e.z).level > 0.12) this.sfx.bell(this.where(e.x, e.z, 0.35));
+          break;
         case 'fly':
           // Pip's mother answers with a short, deeper bark.
           if (!this.rec('bark', this.where(e.x, e.z, 0.5), 0.7, false, 0.82)) this.sfx.bark(this.where(e.x, e.z, 0.5));

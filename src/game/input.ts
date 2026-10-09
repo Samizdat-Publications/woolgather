@@ -164,6 +164,15 @@ export class Input {
     this.outrun = outrun;
   }
 
+  /** A gamepad rumble (if the player is on a pad that has one). Strength 0..1, seconds. */
+  rumble(strong: number, weak: number, seconds: number) {
+    if (this.device !== 'gamepad' || !navigator.getGamepads) return;
+    for (const pad of navigator.getGamepads()) {
+      const act = (pad as (Gamepad & { vibrationActuator?: { playEffect?: (t: string, p: object) => Promise<unknown> } }) | null)?.vibrationActuator;
+      act?.playEffect?.('dual-rumble', { duration: Math.round(seconds * 1000), strongMagnitude: strong, weakMagnitude: weak })?.catch?.(() => {});
+    }
+  }
+
   pressed(e: Edge) {
     return this.edges.has(e);
   }

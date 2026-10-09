@@ -434,6 +434,12 @@ export class Actors {
     this.flyRing.mesh.visible = false;
     this.root.add(this.flyRing.mesh);
   }
+  /** Pip's coat colour (the black of his black and white). */
+  setCoat(hex: string) {
+    this.charMats.find((m) => m.name === 'coat_black')?.color.set(hex);
+  }
+
+  private bellMat = new THREE.MeshLambertMaterial({ name: 'bell_brass', color: '#c8952e', emissive: new THREE.Color(0x3a2808), flatShading: true });
   private flyDog: Rig;
   private flyRing: GroundRing;
   private flyAnim = new AnimState();
@@ -667,6 +673,20 @@ export class Actors {
     }
     sim.sheep.forEach((s, i) => {
       const r = this.sheep[i];
+      // The bell-wether wears a small brass bell under her chin.
+      const bellOn = i === sim.bellId;
+      if (bellOn !== !!r.root.userData.bell) {
+        if (bellOn) {
+          const m = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.16, 7), this.bellMat);
+          m.position.set(0, -0.2, 0.12);
+          m.castShadow = false;
+          (r.head ?? r.root).add(m);
+          r.root.userData.bell = m;
+        } else {
+          (r.root.userData.bell as THREE.Mesh).removeFromParent();
+          r.root.userData.bell = null;
+        }
+      }
       r.root.visible = s.state !== 'lost' && s.state !== 'hidden';
       if (!r.root.visible) return;
       const grabbed = s.state === 'grabbed';

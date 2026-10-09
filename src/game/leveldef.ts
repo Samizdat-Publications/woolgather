@@ -169,4 +169,10 @@ export interface LevelDef {
   ground?: { grassA?: string; grassB?: string; dry?: string; lush?: string; heatherAmt?: number };
   /** Landmarks the herding camera passes: crags, standing stones, a stell, a jetty (landmarks.glb). */
   landmarks?: LandmarkDef[];
+  /**
+   * What grows here, as multiples of the usual scatter, so each place has its own ground from the
+   * herding camera: flowers (a machair is thick with them), heather, bracken, stones (a rocky
+   * pass has them everywhere, not only under the rim), and sand (pale patches near a loch).
+   */
+  cover?: { flowers?: number; heather?: number; bracken?: number; stones?: number; sand?: number };
 }
