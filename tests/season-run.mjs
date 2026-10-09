@@ -55,7 +55,7 @@ const log = (...a) => console.log(`[season ${((Date.now() - t0) / 1000).toFixed(
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 for (const id of evenings) {
-  if (!ALL.includes(id)) {
+  if (!ALL.includes(id) && !id.startsWith('daily')) {
     console.error(`unknown evening "${id}"; known: ${ALL.join(', ')}`);
     process.exit(2);
   }

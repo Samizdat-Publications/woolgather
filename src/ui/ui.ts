@@ -2,7 +2,7 @@ import type { AudioSettings } from '../audio/engine';
 import { DIFFICULTIES, DOG, type Difficulty } from '../game/config';
 import type { Level } from '../game/level';
 import type { Rules } from '../game/rules';
-import { CHARMS, SECOND_CHARM_STARS, SEASON, totalRibbons, totalStars, unlocked, type Evening, type Progress } from '../game/season';
+import { CHARMS, SECOND_CHARM_STARS, SEASON, dailyEvening, totalRibbons, totalStars, unlocked, type Evening, type Progress } from '../game/season';
 import type { Outcome, Sim } from '../game/sim';
 import { dawnTime, moodTime, SUN_MOON_SWAP } from '../render/daycycle';
 import { MARKER_ICONS } from './indicators';
@@ -363,7 +363,7 @@ export class Ui {
         <span class="ev-place">${e.place}</span>
         <span class="ev-foot">${open ? `<span class="ev-stars">${stars(rec?.stars ?? 0)}</span>${RIBBON(!!rec?.ribbon)}` : `${LOCK}<span class="ev-lock">Win evening ${e.num - 1} to open</span>`}</span>
       </button>`;
-    }).join('');
+    }).join('') + this.dailyCard(p, focusId);
     $('.charm-shelf', this.root).innerHTML = `<div class="charm-title">Pip's charms <small>earned with stars · wear ${s >= SECOND_CHARM_STARS ? 'two' : 'one'} on any evening</small></div><div class="charm-row">${CHARMS.map((c) => `<span class="charm ${s >= c.stars ? 'got' : ''}"><b>${c.title}</b><small>${s >= c.stars ? c.text : `${c.stars} ★ to earn`}</small></span>`).join('')}</div>`;
     const done = SEASON.filter((e) => (p.evenings[e.id]?.stars ?? 0) > 0).length;
     const complete = done === SEASON.length;
@@ -372,10 +372,24 @@ export class Ui {
   }
 
   /** One evening's card: its story, the new thing, the goals, the ribbon and the charms. */
+  /** Today's evening, in the season map's spare slot: open once the first evening is won. */
+  private dailyCard(p: Progress, focusId: string) {
+    const d = dailyEvening();
+    const open = unlocked(p, 1);
+    const rec = p.evenings[d.id];
+    const cls = ['ev', 'daily', open ? '' : 'locked', rec?.stars ? 'won' : '', `season-${d.rules.season}`, d.id === focusId && open ? 'focus-me' : ''].join(' ');
+    return `<button class="${cls}" data-act="evening" data-arg="${d.id}"${open ? '' : ' tabindex="-1"'}>
+        <span class="ev-when">Today · ${escapeHtml(d.when)}</span>
+        <b class="ev-title">${escapeHtml(d.title)}</b>
+        <span class="ev-place">${escapeHtml(d.place)}</span>
+        <span class="ev-foot">${open ? `<span class="ev-stars">${stars(rec?.stars ?? 0)}</span>${RIBBON(!!rec?.ribbon)}` : `${LOCK}<span class="ev-lock">Win evening 1 to open</span>`}</span>
+      </button>`;
+  }
+
   renderIntro(e: Evening, p: Progress) {
     const r = e.rules;
     const total = r.flock.reduce((a, g) => a + g.ewes + (g.lambs ?? 0) + (g.ram ? 1 : 0) + (g.black ?? 0), 0) + (r.lostLamb ? 1 : 0);
-    $('.intro-kicker', this.root).textContent = `Evening ${e.num} · ${e.when} · ${e.place}`;
+    $('.intro-kicker', this.root).textContent = `${e.num ? `Evening ${e.num}` : 'Today'} · ${e.when} · ${e.place}`;
     $('.intro-title', this.root).textContent = e.title;
     $('.intro-story', this.root).textContent = e.story;
     $('.intro-new', this.root).innerHTML = e.newThing ? `<div class="new-label">New tonight: ${escapeHtml(e.newThing.title)}</div><p>${keycaps(e.newThing.text)}</p>` : '';
@@ -695,7 +709,7 @@ export class Ui {
     screen.classList.toggle('lose', !win);
     const ev = ctx.evening;
     const kicker = sim.trial ? 'The judges' : win ? (sim.watch ? 'Dawn' : "Day's end") : o.reason === 'wolves' ? 'Too many lost' : 'Nightfall';
-    $('.end-kicker', this.root).textContent = ev ? `${kicker} · Evening ${ev.num}: ${ev.title}` : `${kicker} · ${DIFFICULTIES[this.difficulty].label}`;
+    $('.end-kicker', this.root).textContent = ev ? `${kicker} · ${ev.num ? `Evening ${ev.num}: ` : ''}${ev.title}` : `${kicker} · ${DIFFICULTIES[this.difficulty].label}`;
     let tip = '';
     if (sim.trial) {
       const sc = sim.trialScore();

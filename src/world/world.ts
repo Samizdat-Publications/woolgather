@@ -121,6 +121,11 @@ const MAX_HOLES = 6;
 const HOLES = { value: Array.from({ length: MAX_HOLES }, () => new THREE.Vector3()) };
 const HOLE_COUNT = { value: 0 };
 const BUF_H = { value: 720 };
+/** The low (tilted) camera: how far it is tilted (x, 0..1) and within what distance trees vanish (y). */
+const NEAR_CUT = { value: new THREE.Vector2(0, 0) };
+export function setNearCut(tilt: number, dist: number) {
+  NEAR_CUT.value.set(tilt, dist);
+}
 let holeCountMain = 0;
 /** Tree cut-outs follow the main view; switch them off while another camera renders. */
 export function treeHoles(on: boolean) {
@@ -137,12 +142,16 @@ function fadeMaterial(src: THREE.Material) {
     shader.uniforms.uHoles = HOLES;
     shader.uniforms.uHoleCount = HOLE_COUNT;
     shader.uniforms.uBufH = BUF_H;
+    shader.uniforms.uNearCut = NEAR_CUT;
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float instanceFade;\nvarying float vFade;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFade = instanceFade;');
+      .replace('#include <common>', '#include <common>\nattribute float instanceFade;\nvarying float vFade;\nvarying float vCamDepth;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFade = instanceFade;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvCamDepth = -mvPosition.z;');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
         varying float vFade;
+        varying float vCamDepth;
+        uniform vec2 uNearCut;
         uniform vec3 uHoles[${MAX_HOLES}];
         uniform int uHoleCount;
         uniform float uBufH;`)
@@ -156,7 +165,9 @@ function fadeMaterial(src: THREE.Material) {
           cut = min(cut, smoothstep(uHoles[i].z * 0.65, uHoles[i].z, d));
         }
         float fore = mix(0.3, 1.0, smoothstep(0.06, 0.3, gl_FragCoord.y / uBufH));
-        gl_FragColor.a = min(mix(cut, 1.0, vFade), fore);`,
+        gl_FragColor.a = min(mix(cut, 1.0, vFade), fore);
+        // The low camera: trees between it and Pip vanish rather than fill the screen.
+        gl_FragColor.a = min(gl_FragColor.a, mix(1.0, smoothstep(uNearCut.y * 0.75, uNearCut.y, vCamDepth), uNearCut.x));`,
       );
   };
   m.customProgramCacheKey = () => 'wg-fade-holes';

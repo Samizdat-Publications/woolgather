@@ -1,4 +1,5 @@
-import { NO_PERKS, type Perks, type Rules } from './rules';
+import { Rng } from './math';
+import { NO_PERKS, type FlockSpec, type Perks, type Rules, type Weather } from './rules';
 import type { Sim } from './sim';
 
 // The season: nine evenings on one hill farm from midsummer to the first snow. Each evening adds
@@ -339,14 +340,92 @@ export function saveProgress(p: Progress) {
   }
 }
 
+/** The season's own evenings (today's evening keeps its best apart and earns no charms). */
+const seasonRecords = (p: Progress) => Object.entries(p.evenings).filter(([id]) => !id.startsWith('daily-')).map(([, e]) => e);
 export function totalStars(p: Progress) {
-  return Object.values(p.evenings).reduce((a, e) => a + e.stars, 0);
+  return seasonRecords(p).reduce((a, e) => a + e.stars, 0);
 }
 export function totalRibbons(p: Progress) {
-  return Object.values(p.evenings).filter((e) => e.ribbon).length;
+  return seasonRecords(p).filter((e) => e.ribbon).length;
 }
 
 /** An evening is open once the one before it has been won (the first is always open). */
 export function unlocked(p: Progress, i: number) {
   return i === 0 || (p.evenings[SEASON[i - 1].id]?.stars ?? 0) > 0;
+}
+
+// ---------------------------------------------------------------- today's evening
+
+/** Where today's evening may be: the place, its flocks, and the weather that suits it. */
+const DAILY_PLACES: { levelId: string; place: string; groups: string[]; weather: Weather[]; extra: number }[] = [
+  { levelId: 'hollow', place: 'Hollow Valley', groups: ['meadow', 'grove', 'hillside', 'rocks', 'farm', 'knoll', 'farbank-north', 'farbank-south'], weather: ['clear', 'clear', 'storm'], extra: 0 },
+  { levelId: 'loch', place: 'Loch Ailsa', groups: ['north-hill', 'promontory', 'shore', 'east-shore', 'rocks'], weather: ['clear', 'clear', 'fog'], extra: 20 },
+  { levelId: 'corrie', place: 'Crannach Corrie', groups: ['upper-west', 'tarnside', 'east-shelf', 'screes'], weather: ['clear', 'fog'], extra: 30 },
+  { levelId: 'pass', place: 'The High Pass', groups: ['west-moor', 'crags', 'midglen', 'east-moor'], weather: ['clear', 'fog'], extra: 90 },
+];
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/** Today's date as a key (local time): the same evening for everyone on the same day. */
+export function dayKey(date = new Date()) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Today's evening: made from the date, so it is the same all day and new tomorrow. A place, the
+ * real season (spring brings lambs, winter snow), the weather, two or three flocks, sometimes a ram
+ * or a black sheep, and a ribbon.
+ */
+export function dailyEvening(date = new Date()): Evening {
+  const key = dayKey(date);
+  let h = 2166136261;
+  for (const ch of key) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const rng = new Rng(h >>> 0);
+  const where = rng.pick(DAILY_PLACES);
+  const m = date.getMonth();
+  const season: Rules['season'] = m === 11 || m <= 1 ? 'winter' : m === 8 ? 'heather' : m >= 9 ? 'autumn' : 'summer';
+  const weather: Weather = season === 'winter' ? 'snow' : rng.pick(where.weather);
+  const spring = m >= 2 && m <= 5;
+  const groups = [...where.groups];
+  const n = where.levelId === 'pass' ? 2 : rng.int(2, 3);
+  const flock: FlockSpec[] = [];
+  for (let i = 0; i < n; i++) {
+    const at = groups.splice(rng.int(0, groups.length - 1), 1)[0];
+    flock.push({ at, ewes: rng.int(3, 5) });
+  }
+  if (spring || rng.next() < 0.3) flock[0].lambs = rng.int(2, 3);
+  if (rng.next() < 0.3) flock[rng.int(0, n - 1)].ram = true;
+  if (rng.next() < 0.35) flock[rng.int(0, n - 1)].black = 1;
+  const total = flock.reduce((a, g) => a + g.ewes + (g.lambs ?? 0) + (g.ram ? 1 : 0) + (g.black ?? 0), 0);
+  const ribbons = [
+    { title: 'Not a single sheep lost', check: (s: Sim) => s.lost === 0 },
+    { title: 'Every sheep home', check: everyHome },
+    { title: 'Quiet dog: win without barking', check: (s: Sim) => s.barks === 0 },
+  ];
+  const sky = weather === 'storm' ? 'A storm is coming in over the hill.' : weather === 'fog' ? 'The mist is down: listen for them.' : weather === 'snow' ? 'Snow on the hill tonight.' : 'A clear evening.';
+  const extras = [flock.some((g) => g.lambs) ? 'lambs at heel' : '', flock.some((g) => g.ram) ? 'a ram' : '', flock.some((g) => g.black) ? 'a black sheep' : ''].filter(Boolean);
+  return {
+    id: `daily-${key}`,
+    num: 0,
+    title: `${WEEKDAYS[date.getDay()]}'s Evening`,
+    when: `${date.getDate()} ${MONTHS[m]}`,
+    place: where.place,
+    story: `${sky} ${n === 2 ? 'Two' : 'Three'} flocks are out${extras.length ? `, with ${extras.join(' and ')}` : ''}. A new evening every day: come back tomorrow for another.`,
+    ribbon: rng.pick(ribbons),
+    rules: {
+      levelId: where.levelId,
+      objective: 'gather',
+      dayLength: 300 + 75 * n + where.extra + (weather === 'fog' || weather === 'snow' ? 60 : 0),
+      target: Math.round(total * 0.72),
+      wolfStart: rng.range(0.16, 0.24),
+      maxWolves: n,
+      wolfRespawn: [22, 34],
+      wolfSpeedScale: 0.95,
+      flock,
+      weather,
+      season,
+      ...(weather === 'storm' ? { floodAt: 0.4, thunder: [24, 38] as [number, number] } : {}),
+      seed: (h >>> 0) % 100000,
+    },
+  };
 }

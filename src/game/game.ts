@@ -19,13 +19,13 @@ import { Particles } from '../world/particles';
 import { Terrain } from '../world/terrain';
 import { generateTerrain, type Season } from '../world/terraingen';
 import { WeatherFx } from '../world/weatherfx';
-import { buildWorld, disposeWorld, treeHoles, updateWorld, type WorldHandles } from '../world/world';
+import { buildWorld, disposeWorld, setNearCut, treeHoles, updateWorld, type WorldHandles } from '../world/world';
 import type { Difficulty } from './config';
 import { Input } from './input';
 import { Level } from './level';
 import type { LevelDef } from './leveldef';
 import { classicRules, type Rules } from './rules';
-import { loadProgress, perksFor, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type Progress } from './season';
+import { dailyEvening, loadProgress, perksFor, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type Progress } from './season';
 import { Sim, type SimEvent } from './sim';
 
 // Top-level state machine: title -> (season map -> evening card) or classic -> playing <-> paused
@@ -246,7 +246,7 @@ export class Game {
         this.newDay(classicRules(this.ui.difficulty));
         break;
       case 'evening': {
-        const ev = SEASON.find((e) => e.id === arg);
+        const ev = arg?.startsWith('daily') ? dailyEvening() : SEASON.find((e) => e.id === arg);
         if (ev) this.openEvening(ev);
         break;
       }
@@ -258,7 +258,7 @@ export class Game {
         break;
       case 'next': {
         const i = this.evening ? SEASON.indexOf(this.evening) : -1;
-        const next = SEASON[i + 1];
+        const next = i >= 0 ? SEASON[i + 1] : undefined;
         if (next) this.openEvening(next);
         else this.openSeason();
         break;
@@ -649,6 +649,9 @@ export class Game {
     this.stage.updateCamera(this.mode === 'paused' ? 0 : rawDt);
     this.updateMist(sim);
     this.updateGateLine(sim);
+    const cam = this.stage.camera.position;
+    const fo = this.stage.focus;
+    setNearCut(this.stage.tilt, Math.hypot(cam.x - fo.x, cam.y - fo.y, cam.z - fo.z) * 0.72);
     updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt, tgt.width, tgt.height, this.wx);
     if (sim && !this.cutaway && (this.mode === 'playing' || this.mode === 'paused')) {
       this.indicators.update(this.stage.camera, this.markers(sim));
@@ -790,7 +793,7 @@ export class Game {
       evening: ev,
       ribbon,
       firstWin,
-      next: ev && o.kind === 'win' ? (SEASON[i + 1] ?? null) : null,
+      next: ev && i >= 0 && o.kind === 'win' ? (SEASON[i + 1] ?? null) : null,
       unlocked,
       seasonDone: !!ev && o.kind === 'win' && i === SEASON.length - 1,
       newBest,
@@ -1492,7 +1495,8 @@ export class Game {
 
   /** Test hook: open an evening's card, or start it at once. */
   testEvening(id: string, begin: boolean) {
-    const ev = SEASON.find((e) => e.id === id);
+    // 'daily' is today's evening; 'daily-YYYY-MM-DD' that day's.
+    const ev = id.startsWith('daily') ? dailyEvening(id.length > 6 ? new Date(`${id.slice(6)}T12:00:00`) : new Date()) : SEASON.find((e) => e.id === id);
     if (!ev) return false;
     this.openEvening(ev);
     if (begin) this.newDay(this.eveningRules(ev));
