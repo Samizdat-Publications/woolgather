@@ -57,6 +57,8 @@ export interface Rules {
   /** First-evening tutorial tips. */
   tutorial?: boolean;
   perks?: Perks;
+  /** Where Pip starts, if not the level's usual spot. */
+  dogStart?: [number, number];
   /** Fixed seed for the flock's placement (evenings look the same each time you play them). */
   seed?: number;
 }

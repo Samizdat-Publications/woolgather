@@ -371,7 +371,7 @@ export class Game {
     this.ui.prompt(null);
     if (rules.objective === 'watch') this.tip('move', 'Keep the flock together · run at wolves or bark (Space) to drive them off', 10, 0);
     else if (rules.tutorial || (!this.evening && this.runs === 1)) this.tip('move', 'WASD moves Pip · get behind the sheep · hold C to creep', 10, 0);
-    else if (this.evening?.newThing) this.tip('new', this.evening.newThing.text, 12, 0);
+    else if (this.evening?.newThing) this.tip('new', this.evening.newThing.tip, 10, 0);
     this.setMode('playing');
   }
 

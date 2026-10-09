@@ -10,7 +10,7 @@ import type { Terrain } from './terrain';
 // procedural animation can move them (milestone 3 adds the full motion).
 
 // Characters are drawn larger than life so they read from the herding camera's height.
-export const SCALE = { dog: 2.4, sheep: 1.9, wolf: 2.3, lamb: 1.18, ram: 2.4 };
+export const SCALE = { dog: 2.4, sheep: 1.9, wolf: 2.3, lamb: 1.18, ram: 2.75 };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
 /** The reach ring by moonlight: a cooler, brighter white. */
 const RING_NIGHT = new THREE.Color('#e8f0ff');
@@ -372,23 +372,24 @@ export class Actors {
     const woolMat = this.charMats.find((m) => m.name === 'wool')!;
     const ramWool = woolMat.clone();
     ramWool.name = 'ram_wool';
-    ramWool.color.set('#e2d4b4');
+    ramWool.color.set('#b8a888');
+    ramWool.emissive.set(0x2a2418);
     const blackWool = woolMat.clone();
     blackWool.name = 'black_wool';
     blackWool.color.set('#4a4248');
     blackWool.emissive.set(0x161214);
-    const horn = new THREE.MeshLambertMaterial({ name: 'ram_horn', color: '#cdb88c', flatShading: true });
+    const horn = new THREE.MeshLambertMaterial({ name: 'ram_horn', color: '#efe0b8', emissive: new THREE.Color(0x3a3020), flatShading: true });
     this.ramProto = withMaterials(a.sheep, { wool: ramWool });
     this.blackProto = withMaterials(a.sheep, { wool: blackWool });
     const head = this.ramProto.getObjectByName('head');
     if (head) {
       for (const sx of [1, -1]) {
         // A curled horn: most of a thick ring standing beside the head, turning forwards and down.
-        const g = new THREE.TorusGeometry(0.12, 0.05, 5, 10, Math.PI * 1.55);
+        const g = new THREE.TorusGeometry(0.16, 0.065, 6, 12, Math.PI * 1.6);
         g.rotateY(Math.PI / 2);
         g.rotateX(-0.4);
         const m = new THREE.Mesh(g, horn);
-        m.position.set(0.19 * sx, 0.08, -0.01);
+        m.position.set(0.21 * sx, 0.1, -0.02);
         m.rotation.y = 0.25 * sx;
         m.castShadow = true;
         head.add(m);
@@ -514,6 +515,9 @@ export class Actors {
     const wantTurn = d.speed < 0.3 && endOn ? (lookAt !== null && lookAt < 0 ? -0.55 : 0.55) : 0;
     this.idleTurn += (wantTurn - this.idleTurn) * (1 - Math.exp(-(wantTurn ? 2.5 : 10) * dt));
     dr.rotation.y = d.facing + this.idleTurn;
+    // Butted by the ram: Pip reels, rocking and spinning a little until he finds his feet.
+    dr.rotation.z = d.stunT > 0 ? Math.sin(d.stunT * 26) * 0.32 * Math.min(1, d.stunT / 0.3) : 0;
+    if (d.stunT > 0) dr.rotation.y += Math.sin(d.stunT * 9) * 0.6 * d.stunT;
     animateDog(this.dog, this.dogAnim, d, dt, this.time, lookAt === null ? null : lookAt - this.idleTurn);
     if (this.dogAnim.steps !== this.dogSteps) {
       this.dogSteps = this.dogAnim.steps;

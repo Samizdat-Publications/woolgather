@@ -157,7 +157,7 @@ export class Sim {
     this.perks = rules.perks ?? NO_PERKS;
     this.rng = new Rng(seed);
     for (const f of level.fords) f.open = true;
-    const [dx, dz] = level.def.dogStart;
+    const [dx, dz] = rules.dogStart ?? level.def.dogStart;
     this.dog = {
       x: dx,
       z: dz,
@@ -460,7 +460,7 @@ export class Sim {
         const dd = Math.hypot(ddx, ddz);
         if (stubborn) {
           if (dd < RAM_EYE_RANGE && d.speed < 3.2) {
-            s.stubborn -= dt * (d.creeping ? 0.42 : 0.3) * this.perks.eye;
+            s.stubborn -= dt * (d.creeping ? 0.3 : 0.2) * this.perks.eye;
             if (s.stubborn <= 0.15) this.ramYields(s);
           }
           if (dd < RAM_BUTT_RANGE + d.r && !d.creeping && s.buttCd <= 0 && d.stunT <= 0) {

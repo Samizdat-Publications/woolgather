@@ -243,7 +243,7 @@ export class Ui {
   setRules(r: Rules) {
     const watch = r.objective === 'watch';
     $('.t-word', this.root).textContent = watch ? 'Dawn in' : 'Nightfall in';
-    $('.of-word', this.root).textContent = watch ? 'lost' : 'home';
+    $('.of-word', this.root).textContent = watch ? 'safe' : 'home';
     this.root.querySelector('.hud-counts')!.classList.toggle('watch', watch);
     $('.pips', this.root).dataset.key = '';
   }
@@ -545,8 +545,8 @@ export class Ui {
 
   update(sim: Sim, dt: number, time: number) {
     const watch = sim.watch;
-    $('.n-home', this.root).textContent = String(watch ? sim.lost : sim.folded);
-    $('.n-need', this.root).textContent = watch ? `${sim.target} alive` : String(sim.target);
+    $('.n-home', this.root).textContent = String(watch ? sim.total - sim.lost : sim.folded);
+    $('.n-need', this.root).textContent = watch ? `${sim.target} to dawn` : String(sim.target);
     $('.count-home .of', this.root).classList.toggle('met', sim.targetMet);
     const pips = $('.pips', this.root);
     const pipKey = `${sim.folded}|${sim.lost}|${sim.total}|${sim.target}|${watch}`;

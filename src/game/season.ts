@@ -13,7 +13,7 @@ export interface Evening {
   place: string;
   story: string;
   /** The one new thing this evening asks of you (title and how to handle it). */
-  newThing?: { title: string; text: string };
+  newThing?: { title: string; text: string; tip: string };
   ribbon: { title: string; check: (sim: Sim) => boolean };
   rules: Omit<Rules, 'id' | 'perks'>;
 }
@@ -28,7 +28,7 @@ export const SEASON: Evening[] = [
     when: 'Midsummer',
     place: 'Hollow Valley',
     story: 'The longest evening of the year. Two small flocks are out by the farm: bring them in before the light goes.',
-    newThing: { title: 'Herding', text: 'Sheep move away from Pip. Get behind them and they trot on ahead. Hold C to creep up without scaring them.' },
+    newThing: { tip: 'Get behind the sheep and they trot on ahead · hold C to creep', title: 'Herding', text: 'Sheep move away from Pip. Get behind them and they trot on ahead. Hold C to creep up without scaring them.' },
     ribbon: { title: 'Quiet dog: win without barking', check: (s) => s.barks === 0 },
     rules: {
       levelId: 'hollow',
@@ -56,7 +56,7 @@ export const SEASON: Evening[] = [
     when: 'Midsummer',
     place: 'Hollow Valley',
     story: 'Half the flock has wandered over the stream. Sheep will not swim: bring them back over the bridge or through the shallow ford.',
-    newThing: { title: 'Crossings', text: 'Drive the flock straight at the bridge or the ford and it files across. Pip can wade anywhere; the sheep cannot.' },
+    newThing: { tip: 'Sheep will not swim: drive them straight at the bridge or the ford', title: 'Crossings', text: 'Drive the flock straight at the bridge or the ford and it files across. Pip can wade anywhere; the sheep cannot.' },
     ribbon: { title: 'Daylight to spare: win with a minute left', check: (s) => s.timeLeft >= 60 },
     rules: {
       levelId: 'hollow',
@@ -84,7 +84,7 @@ export const SEASON: Evening[] = [
     when: 'Early summer',
     place: 'Loch Ailsa',
     story: 'The ewes have lambed by the loch. The lambs stay at their mothers\' heels, and the wolves know a lamb is easy prey.',
-    newThing: { title: 'Lambs', text: 'Lambs follow their mothers. If a lamb is left behind its mother turns back for it, so keep each pair together. One lamb is lost on the hill: find it and it will follow Pip.' },
+    newThing: { tip: 'Keep each lamb with its mother · a lost lamb is bleating somewhere on the hill', title: 'Lambs', text: 'Lambs follow their mothers. If a lamb is left behind its mother turns back for it, so keep each pair together. One lamb is lost on the hill: find it and it will follow Pip.' },
     ribbon: { title: 'Find the lost lamb and bring it home', check: (s) => s.sheep.some((q) => q.kind === 'lamb' && q.motherId < 0 && q.state === 'folded') },
     rules: {
       levelId: 'loch',
@@ -113,7 +113,7 @@ export const SEASON: Evening[] = [
     when: 'High summer',
     place: 'Hollow Valley',
     story: 'Old Angus the ram is out with the ewes, and he does not care for collies. Where he goes, the flock goes.',
-    newThing: { title: 'The ram', text: 'Angus will not be pushed by a running dog: crowd him and he butts Pip away. Stand still near him (or creep) to stare him down, or bark at him. Once he gives way he moves off and the ewes follow him. Wolves keep clear of his horns.' },
+    newThing: { tip: 'Angus stands his ground: stand still near him or bark (Space) until he gives way', title: 'The ram', text: 'Angus will not be pushed by a running dog: crowd him and he butts Pip away. Stand still near him (or creep) to stare him down, or bark at him. Once he gives way he moves off and the ewes follow him. Wolves keep clear of his horns.' },
     ribbon: { title: 'Bring Angus home', check: (s) => s.sheep.some((q) => q.kind === 'ram' && q.state === 'folded') },
     rules: {
       levelId: 'hollow',
@@ -141,7 +141,7 @@ export const SEASON: Evening[] = [
     when: 'Late summer',
     place: 'Loch Ailsa',
     story: 'The pack is hungry and the fold wall is down. Keep the flock together by the loch and keep the wolves off them until the sun comes up.',
-    newThing: { title: 'Until dawn', text: 'No fold tonight: the flock grazes where it is. Wolves come from every side. Keep the sheep bunched and chase off every wolf until dawn.' },
+    newThing: { tip: 'Keep the flock bunched and chase off every wolf until the sun comes up', title: 'Until dawn', text: 'No fold tonight: the flock grazes where it is. Wolves come from every side. Keep the sheep bunched and chase off every wolf until dawn.' },
     ribbon: { title: 'Not a single sheep lost', check: (s) => s.lost === 0 },
     rules: {
       levelId: 'loch',
@@ -153,6 +153,7 @@ export const SEASON: Evening[] = [
       wolfRespawn: [9, 13],
       wolfSpeedScale: 1,
       flock: [{ at: 'promontory', ewes: 9, lambs: 3 }],
+      dogStart: [-8, 36],
       weather: 'clear',
       season: 'heather',
       seed: 505,
@@ -165,7 +166,7 @@ export const SEASON: Evening[] = [
     when: 'Autumn',
     place: 'The High Pass',
     story: 'The flock is up at the west end of the pass and the mist has come down. You will hear them before you see them.',
-    newThing: { title: 'Mist', text: 'You can only see a little way. The map only shows sheep Pip has seen lately; listen for bleating. A black sheep is in the flock: it is flighty and bolts when scared.' },
+    newThing: { tip: 'You can only see a little way: listen for bleating · the map shows where Pip saw them', title: 'Mist', text: 'You can only see a little way. The map only shows sheep Pip has seen lately; listen for bleating. A black sheep is in the flock: it is flighty and bolts when scared.' },
     ribbon: { title: 'Bring the black sheep home', check: (s) => s.sheep.some((q) => q.kind === 'black' && q.state === 'folded') },
     rules: {
       levelId: 'pass',
@@ -193,7 +194,7 @@ export const SEASON: Evening[] = [
     when: 'Autumn',
     place: 'Hollow Valley',
     story: 'A storm is coming up the valley. Thunder scatters the flock, and when the stream rises the ford will be gone.',
-    newThing: { title: 'Thunder and flood', text: 'Each thunderclap sends the sheep bolting: gather them again. Halfway through the evening the stream floods and the ford closes; only the bridge is left.' },
+    newThing: { tip: 'Thunder scatters the flock · the ford will flood halfway through: use the bridge', title: 'Thunder and flood', text: 'Each thunderclap sends the sheep bolting: gather them again. Halfway through the evening the stream floods and the ford closes; only the bridge is left.' },
     ribbon: { title: 'Every sheep home', check: everyHome },
     rules: {
       levelId: 'hollow',
@@ -224,7 +225,7 @@ export const SEASON: Evening[] = [
     when: 'Winter',
     place: 'The High Pass',
     story: 'The first snow is falling and the wolves are hungrier than ever. Bring the whole flock, Angus and all, down the pass to the winter fold.',
-    newThing: { title: 'Everything at once', text: 'Angus, the black sheep, a long drove over two burns, and the biggest pack of the year.' },
+    newThing: { tip: 'A long drove over two burns: Angus leads, the black sheep bolts, the pack is hungry', title: 'Everything at once', text: 'Angus, the black sheep, a long drove over two burns, and the biggest pack of the year.' },
     ribbon: { title: 'Angus and the black sheep both home', check: (s) => s.sheep.filter((q) => (q.kind === 'ram' || q.kind === 'black') && q.state === 'folded').length >= 2 },
     rules: {
       levelId: 'pass',

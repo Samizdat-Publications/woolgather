@@ -918,3 +918,35 @@ Newest at the bottom. Record every non-obvious choice.
   `/play/` (models load through `import.meta.env.BASE_URL`). Created once as a classic Pages project
   (`wrangler pages project create --force`, as for VoidWing: wrangler 4 now sends new Pages projects
   to Workers). `site/media/` is committed so the site can be rebuilt without filming again.
+- 2026-10-09 (season, overnight): Stewart asked to take the game to the next level with full licence
+  to change anything. Plan in `docs/NEXT-LEVEL-PLAN.md`; work on branch `season` (main and the live
+  site stay on 1.0.0 until he reviews). Considered porting to Godot (offered): stayed on Three.js
+  because the game ships to the web and the whole test rig (Playwright bot, virtual-clock filming,
+  critics) drives the browser build; a port would have eaten the night before gameplay improved.
+- 2026-10-09: critic system. A "random gamer" persona (`tests/critic/persona.md`) that sees only a
+  store blurb and footage, never code or design notes, scoring look, readability, feel, fun,
+  variety, progression, keep playing and wishlist 1-10. Gemini (`gemini-3.8-flash`, Stewart's pick:
+  best value and newer than 3.1 Pro) watches the mp4 and reads the stills; two blind Claude
+  subagents read contact-sheet filmstrips and stills. Baseline r00 on 1.0.0: means 4.6-5.5. All four
+  critics agreed: gorgeous, but one valley, no progression, too little variety, dead running.
+- 2026-10-09: levels are data. `level/*.json` (LevelDef) and the ground, water and tracks are generated
+  at load in TypeScript (`world/terraingen.ts`, a port of `blender_scripts/terrain.py`), so a new
+  place or season needs no Blender round trip. Blender still makes the props and animals (the fold,
+  bridge and farmhouse models are reused, rotated and scaled). `level/valley.json` is kept only for
+  the Blender scripts and the 1.0 bot; `level/hollow.json` is the same layout in the new format.
+- 2026-10-09: the game is now a season of eight evenings over three places (Hollow Valley, Loch Ailsa,
+  The High Pass), each adding one thing: crossings, lambs (follow their mothers; a lost lamb follows
+  Pip once found), Old Angus the ram (will not be pushed: stare him down or bark; butts a crowding
+  dog; the ewes follow him; wolves fear him), a night watch run backwards to dawn, mist, a storm
+  (thunder scatters the flock, the ford floods), first snow. Stars plus one ribbon (optional
+  challenge) per evening; charms (perks) unlocked by stars. Progress in localStorage. The 1.0 evening
+  stays as "Classic evening". Evenings use fixed placement seeds so a retry starts the same way.
+- 2026-10-09: visual leap: an instanced grass field coloured from the ground, with wind gusts rolling
+  across it as waves of light and parted by the animals (the double-sided normal flip had to be
+  removed or half the blades went black); seasonal palettes generated into the ground colours and
+  recoloured props; shader snow on every upward face; mist as a grade-pass veil round Pip with the
+  map only remembering what Pip has seen; overcast, rain, snowfall and autumn leaves; a starling
+  murmuration over the sunset; chimney smoke; rabbits that bolt from Pip.
+- 2026-10-09: sound: 32 recorded sounds generated with the ElevenLabs Sound Effects API (765
+  credits; `tools/gen-sfx.mjs`, `docs/audio/SFX.md`), loaded by `audio/samples.ts`; the 1.0
+  synthesis stays as the fallback and still makes the music, chimes and stings.
