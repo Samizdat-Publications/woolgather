@@ -26,6 +26,12 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
 | r04-season | claude-video | 7 | 7 | 6 | 6 | 7 | 7 | 6 | 7 | 6.63 |
 | r04-season | gemini-stills | 6 | 8 | 7 | 7 | 8 | 7 | 6 | 7 | 7.00 |
 | r04-season | gemini | 8 | 8 | 7 | 8 | 9 | 8 | 8 | 9 | 8.13 |
+| r04b-control | claude-stills | 7 | 7 | 6 | 7 | 8 | 8 | 7 | 7 | 7.13 |
+| r04b-control | claude-video | 8 | 6 | 7 | 7 | 8 | 8 | 7 | 7 | 7.25 |
+| r05-season | claude-stills | 8 | 7 | 6 | 7 | 7 | 8 | 7 | 7 | 7.13 |
+| r05-season | claude-video | 7 | 6 | 6 | 7 | 8 | 8 | 7 | 7 | 7.00 |
+| r05-season | gemini-stills | 7 | 7 | 6 | 7 | 8 | 8 | 7 | 8 | 7.25 |
+| r05-season | gemini | 7 | 8 | 7 | 8 | 8 | 7 | 8 | 8 | 7.63 |
 
 ## One-line reviews
 
@@ -85,3 +91,21 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
   - worst problem (major): The water and riverbanks look harsh, flat, and unnaturally cut out from the terrain instead of sitting naturally in a Scottish highland landscape.
 - **gemini**: A gorgeous, surprisingly tense border collie simulator that trades cozy gimmickry for authentic herding mechanics.
   - worst problem (major): The low third-person camera angle completely ruins navigation and sightlines compared to the clean top-down view.
+
+### r04b-control
+
+- **claude-stills**: A cosy, handsome sheepdog season with a fresh twist every evening and real reasons to come back; just let me actually see the wolves and the flock when it counts.
+  - worst problem (major): The low tilted view turns the wolf moment into mush: huge see-through pine cones fill the foreground, Pip is a tiny black sliver behind a tree, and the wolf is jammed at the bottom edge half under the stamina bar. The banner says a wolf is stalking my flock but I cannot see where it is going or which sheep it wants.
+- **claude-video**: A gorgeous, cosy sheepdog season where the weather and the wolves change every evening, but the herding loop underneath barely does, and the mist and storm evenings look muddier than they should.
+  - worst problem (major): The mist evening is a washed-out beige-lilac fog over the whole screen for most of its run; sheep become grey ghost blobs and Pip is the only thing with contrast, so for a viewer it reads as a broken render more than atmosphere.
+
+### r05-season
+
+- **claude-stills**: A beautiful, gentle sheepdog game with a real season to work through; the herding view can look samey and empty, but the sunsets, snow and storm evenings had me wanting just one more night on the hill.
+  - worst problem (major): The night watch is the hardest screen to read in the game. The three round white boulders look exactly like sheep, the flock itself is jammed up under the timer and the faded 'A wolf is stalking your flock!' banner, and the wolf is half hidden behind the bottom control bar with only its red marker poking out.
+- **claude-video**: A cosy, surprisingly deep sheepdog season with real variety and a lovely golden hour, held back by a too-distant camera, a muddy purple dusk and a couple of dull evenings.
+  - worst problem (major): After sunset the ground stops looking like a place and becomes a smeared purple and orange gradient with big dark blotches over it; at Crannach Corrie the lake edge sits under a black smudge and the heather turns neon violet, so the evening I most want to admire looks like a bruise.
+- **gemini-stills**: Part cozy pastoral daydream, part tense tactical arcade game, Woolgather turns real sheepdog trials into something surprisingly smart and addictive.
+  - worst problem (major): The camera angle in third-person view creates severe blind spots behind riverbanks and obstacles, making it hard to track stray sheep.
+- **gemini**: Equal parts soothing pastoral simulator and nerve-shredding wolf thriller - an absolute gem of an indie herding game.
+  - worst problem (major): The camera defaults to an almost clinical top-down satellite view, stripping away the gorgeous atmospheric landscapes teased during cutscenes.

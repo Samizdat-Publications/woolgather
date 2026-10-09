@@ -273,6 +273,28 @@ export class Sfx {
     }
   }
 
+  /** The show crowd's applause from the far side of the field: a patter of claps that swells and fades. */
+  applause(big = false) {
+    if (!this.ctx) return;
+    const t = this.e.now;
+    const out = this.out({ pan: 0, level: big ? 0.5 : 0.32 }, 0.5, 0.35);
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 2200;
+    bp.Q.value = 0.8;
+    bp.connect(out);
+    const dur = big ? 2.6 : 1.6;
+    const claps = big ? 90 : 50;
+    for (let i = 0; i < claps; i++) {
+      const at = t + Math.pow(Math.random(), 0.8) * dur;
+      const k = 1 - (at - t) / dur;
+      const g = this.ctx.createGain();
+      envAD(g.gain, at, 0.25 + 0.75 * k * Math.random(), 0.002, 0.03);
+      g.connect(bp);
+      this.noiseBurst(at, 0.04, g);
+    }
+  }
+
   /** The bell-wether's bell: a small, dull sheep bell, two hollow knocks. */
   bell(w: Where) {
     if (!this.ctx) return;

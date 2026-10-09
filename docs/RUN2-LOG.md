@@ -72,3 +72,22 @@ Resume notes for the second 24-hour run (plan: `docs/RUN2-PLAN.md`). Newest at t
 - Fixed: one F press could toggle Fly twice when a frame held several sim steps (debounced); the
   expert bot's flank key ran round and round a flock across the stream at a bridge (flank only on
   open ground now).
+
+## Round r05 (built 17:00, average-bot footage, before the ground pass)
+
+| Critic | r04 | r04b control | r05 |
+| --- | --- | --- | --- |
+| Gemini video | 8.13 | - | 7.63 |
+| Gemini stills | 7.00 | - | 7.25 |
+| Claude video | 6.63 | 7.25 | 7.00 |
+| Claude stills | 7.00 | 7.13 | 7.13 |
+
+Flat. Repeated majors: dusk ground a purple/orange smear with neon heather; mist a beige wash with
+ghostly sheep; the trial flat; boulders reading as sheep at night; places alike (the ground pass
+came after this capture); the Wolf Moon card running off a 720p screen. Fixed since: heather fades
+to dusk-brown after sunset, stone darkens much more at night, the mist is a cooler blue-grey and
+thinner at most, the crowd claps every gate and penned ewe, the storm's rain is finer and fainter,
+the intro card's charm descriptions moved to a tooltip, the moon badge no longer covers the ribbon.
+Wolf Moon gate: the expert won all ten, so the tier was made harder (now 7 of 10 for the expert,
+target never the whole flock). Packs now pair with any lone wolf stalking within 70 m of Pip (only
+three formed in the whole r05 capture).

@@ -441,13 +441,14 @@ export function moonRules<R extends Omit<Rules, 'id' | 'perks'>>(r: R): R {
   if (r.objective === 'watch') return { ...r, dayLength: Math.round(r.dayLength * 1.25), maxWolves: r.maxWolves + 1, wolfRespawn: [r.wolfRespawn[0] * 0.8, r.wolfRespawn[1] * 0.8], pack: 'full', target: Math.min(total - 1, r.target + 1) };
   return {
     ...r,
-    dayLength: Math.round(r.dayLength * 0.88),
-    wolfStart: r.wolfStart === null ? null : r.wolfStart * 0.75,
+    dayLength: Math.round(r.dayLength * 0.82),
+    wolfStart: r.wolfStart === null ? null : r.wolfStart * 0.6,
     maxWolves: r.maxWolves + 1,
-    wolfRespawn: [r.wolfRespawn[0] * 0.75, r.wolfRespawn[1] * 0.75],
-    wolfSpeedScale: r.wolfSpeedScale * 1.05,
+    wolfRespawn: [r.wolfRespawn[0] * 0.6, r.wolfRespawn[1] * 0.6],
+    wolfSpeedScale: r.wolfSpeedScale * 1.1,
     pack: 'full',
-    target: Math.min(total, r.target + 1),
+    // One more sheep needed, but never the whole flock: a single loss must not end the evening.
+    target: Math.max(r.target, Math.min(total - 1, r.target + 1)),
   };
 }
 export function totalRibbons(p: Progress) {

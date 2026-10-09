@@ -365,7 +365,7 @@ export class GradePass {
               float far = smoothstep(uMistR * 0.45, uMistR * 1.5, length(mv) + (bank - 0.5) * 0.22);
               float mist = uMist * (0.04 + 0.82 * far) * (0.45 + 1.0 * smoothstep(0.25, 0.75, bank));
               // Never a solid wall: the ground and anything on it show through the far mist as shapes.
-              c = mix(c, uMistCol, clamp(mist, 0.0, 0.8) * free);
+              c = mix(c, uMistCol, clamp(mist, 0.0, 0.7) * free);
             }
             // Lightning: the whole frame flashes cold white for an instant.
             c = 1.0 - (1.0 - c) * (1.0 - vec3(0.86, 0.9, 1.0) * uFlash * 0.75);

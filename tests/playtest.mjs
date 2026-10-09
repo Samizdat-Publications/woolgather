@@ -381,10 +381,13 @@ if (!flag('skip-season')) {
   await sleep(400);
   check('wolf moon: the intro card shows the tier switch', await page.locator('.intro-card.moon .tier-switch').isVisible());
   await shot('wolf-moon-card', 'the Wolf Moon intro card');
+  await page.evaluate(() => window.__WG.evening('storm', true, true));
+  await sleep(500);
+  const tMoon = (await state()).target;
+  check('wolf moon: one more sheep needed', tMoon === tNormal + 1, `${tMoon} (normal storm ${tNormal})`);
   await page.evaluate(() => window.__WG.evening('long-light', true, true));
   await sleep(500);
   const m0 = await state();
-  check('wolf moon: one more sheep needed', m0.target === Math.min(m0.total, 7 + 1) && tNormal === 11, `${m0.target} (normal storm ${tNormal})`);
   await page.evaluate((n) => window.__WG.placeInFold(n), m0.target);
   await sleep(800);
   await page.keyboard.press('Enter');

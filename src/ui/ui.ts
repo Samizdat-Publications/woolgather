@@ -422,7 +422,7 @@ export class Ui {
     const slots = s >= THIRD_CHARM_STARS ? 3 : s >= SECOND_CHARM_STARS ? 2 : 1;
     const got = CHARMS.filter((c) => s >= c.stars);
     $('.intro-charms', this.root).innerHTML = got.length
-      ? `<div class="charm-title">Wear ${slots === 3 ? 'three charms' : slots === 2 ? 'two charms' : 'a charm'}${e.rules.objective === 'trial' && p.charms.includes('fly') ? ' · Fly sits out the trial: one dog per run' : ''}</div><div class="charm-row">${got.map((c) => `<button class="charm pick ${p.charms.includes(c.id) ? 'on' : ''}" data-act="charm" data-arg="${c.id}"><b>${c.title}</b><small>${c.text}</small></button>`).join('')}</div>`
+      ? `<div class="charm-title">Wear ${slots === 3 ? 'three charms' : slots === 2 ? 'two charms' : 'a charm'}${e.rules.objective === 'trial' && p.charms.includes('fly') ? ' · Fly sits out the trial: one dog per run' : ''}</div><div class="charm-row">${got.map((c) => `<button class="charm pick ${p.charms.includes(c.id) ? 'on' : ''}" data-act="charm" data-arg="${c.id}" title="${escapeHtml(c.text)}"><b>${c.title}</b><small>${c.text}</small></button>`).join('')}</div>`
       : '';
   }
 

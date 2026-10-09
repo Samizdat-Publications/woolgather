@@ -1,0 +1,2519 @@
+[
+ {
+  "label": "still:title",
+  "video_t": 2.95,
+  "game_t": 0,
+  "frame": 59,
+  "info": null
+ },
+ {
+  "label": "still:season-map",
+  "video_t": 5.95,
+  "game_t": 0,
+  "frame": 119,
+  "info": null
+ },
+ {
+  "label": "season-map",
+  "video_t": 5.95,
+  "game_t": 0,
+  "frame": 119,
+  "info": null
+ },
+ {
+  "label": "still:evening-1-card",
+  "video_t": 9.95,
+  "game_t": 0,
+  "frame": 199,
+  "info": null
+ },
+ {
+  "label": "evening",
+  "video_t": 10,
+  "game_t": 0,
+  "frame": 200,
+  "info": {
+   "id": "long-light"
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 26.3,
+  "game_t": 16.35,
+  "frame": 526,
+  "info": {
+   "type": "folded",
+   "x": 53.53718944192446,
+   "z": 40.95314760041873,
+   "id": 7,
+   "count": 1,
+   "t": 16.35
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 26.35,
+  "game_t": 16.4,
+  "frame": 527,
+  "info": {
+   "type": "folded",
+   "x": 53.514434436403334,
+   "z": 42.96490517282496,
+   "id": 5,
+   "count": 2,
+   "t": 16.4
+  }
+ },
+ {
+  "label": "still:e1-first-home",
+  "video_t": 26.35,
+  "game_t": 16.35,
+  "frame": 527,
+  "info": null
+ },
+ {
+  "label": "folded",
+  "video_t": 26.7,
+  "game_t": 16.75,
+  "frame": 534,
+  "info": {
+   "type": "folded",
+   "x": 53.55981407933696,
+   "z": 41.42021870383011,
+   "id": 6,
+   "count": 3,
+   "t": 16.75
+  }
+ },
+ {
+  "label": "dusk",
+  "video_t": 26.75,
+  "game_t": 16.8,
+  "frame": 535,
+  "info": {
+   "type": "dusk",
+   "t": 16.8
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 27.85,
+  "game_t": 17.05,
+  "frame": 557,
+  "info": {
+   "type": "folded",
+   "x": 53.51026649201775,
+   "z": 42.376521411691,
+   "id": 4,
+   "count": 4,
+   "t": 17.05
+  }
+ },
+ {
+  "label": "still:e1-herding",
+  "video_t": 30.85,
+  "game_t": 20,
+  "frame": 617,
+  "info": null
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 32.6,
+  "game_t": 21.8,
+  "frame": 652,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -22,
+   "z": 86,
+   "id": 0,
+   "tx": -16.03977222855453,
+   "tz": 49.27803680394184,
+   "t": 21.8
+  }
+ },
+ {
+  "label": "still:e1-wolf",
+  "video_t": 36,
+  "game_t": 25.15,
+  "frame": 720,
+  "info": null
+ },
+ {
+  "label": "bark",
+  "video_t": 37.95,
+  "game_t": 27.15,
+  "frame": 759,
+  "info": {
+   "type": "bark",
+   "x": -17.31482196404442,
+   "z": 60.59163348371182,
+   "t": 27.15
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 37.95,
+  "game_t": 27.15,
+  "frame": 759,
+  "info": {
+   "type": "wolfScared",
+   "x": -15.871392246443081,
+   "z": 69.12124298355357,
+   "id": 0,
+   "t": 27.15
+  }
+ },
+ {
+  "label": "zoom-in",
+  "video_t": 48.85,
+  "game_t": 38,
+  "frame": 977,
+  "info": null
+ },
+ {
+  "label": "still:e1-low-view",
+  "video_t": 55.9,
+  "game_t": 45,
+  "frame": 1118,
+  "info": null
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 61.85,
+  "game_t": 51,
+  "frame": 1237,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -22,
+   "z": 86,
+   "id": 1,
+   "tx": -6.918935316230555,
+   "tz": 38.509024155052025,
+   "t": 51
+  }
+ },
+ {
+  "label": "zoom-out",
+  "video_t": 62.85,
+  "game_t": 52,
+  "frame": 1257,
+  "info": null
+ },
+ {
+  "label": "folded",
+  "video_t": 74.5,
+  "game_t": 63.65,
+  "frame": 1490,
+  "info": {
+   "type": "folded",
+   "x": 53.54057811807243,
+   "z": 40.96549073121817,
+   "id": 2,
+   "count": 5,
+   "t": 63.65
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 74.55,
+  "game_t": 63.7,
+  "frame": 1491,
+  "info": {
+   "type": "folded",
+   "x": 53.52468040882043,
+   "z": 43.34425839153464,
+   "id": 1,
+   "count": 6,
+   "t": 63.7
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 75,
+  "game_t": 64.15,
+  "frame": 1500,
+  "info": {
+   "type": "folded",
+   "x": 53.538002713266394,
+   "z": 40.7514561273362,
+   "id": 3,
+   "count": 7,
+   "t": 64.15
+  }
+ },
+ {
+  "label": "targetMet",
+  "video_t": 75,
+  "game_t": 64.15,
+  "frame": 1500,
+  "info": {
+   "type": "targetMet",
+   "t": 64.15
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 75.05,
+  "game_t": 64.17,
+  "frame": 1501,
+  "info": {
+   "type": "folded",
+   "x": 53.52720525489103,
+   "z": 43.02886527877294,
+   "id": 0,
+   "count": 8,
+   "t": 64.17
+  }
+ },
+ {
+  "label": "outcome",
+  "video_t": 75.05,
+  "game_t": 64.17,
+  "frame": 1501,
+  "info": {
+   "kind": "win",
+   "reason": "all-home",
+   "stars": 3
+  }
+ },
+ {
+  "label": "still:evening-1-result",
+  "video_t": 77.55,
+  "game_t": 64.17,
+  "frame": 1551,
+  "info": null
+ },
+ {
+  "label": "still:season-map-after-1",
+  "video_t": 82.05,
+  "game_t": 64.17,
+  "frame": 1641,
+  "info": null
+ },
+ {
+  "label": "still:evening-5-trial-card",
+  "video_t": 85.05,
+  "game_t": 64.17,
+  "frame": 1701,
+  "info": null
+ },
+ {
+  "label": "evening",
+  "video_t": 85.1,
+  "game_t": 64.17,
+  "frame": 1702,
+  "info": {
+   "id": "show"
+  }
+ },
+ {
+  "label": "gate",
+  "video_t": 107.2,
+  "game_t": 22.15,
+  "frame": 2144,
+  "info": {
+   "type": "gate",
+   "index": 0,
+   "name": "Fetch gates",
+   "passed": true,
+   "x": 0,
+   "z": -16,
+   "t": 22.15
+  }
+ },
+ {
+  "label": "still:evening-5-trial",
+  "video_t": 115.15,
+  "game_t": 30.05,
+  "frame": 2303,
+  "info": null
+ },
+ {
+  "label": "gate",
+  "video_t": 120.2,
+  "game_t": 35.15,
+  "frame": 2404,
+  "info": {
+   "type": "gate",
+   "index": 1,
+   "name": "Drive gates",
+   "passed": true,
+   "x": 46,
+   "z": 4.5,
+   "t": 35.15
+  }
+ },
+ {
+  "label": "still:evening-3-lambing-card",
+  "video_t": 178.1,
+  "game_t": 90.05,
+  "frame": 3562,
+  "info": null
+ },
+ {
+  "label": "evening",
+  "video_t": 178.15,
+  "game_t": 90.05,
+  "frame": 3563,
+  "info": {
+   "id": "lambing"
+  }
+ },
+ {
+  "label": "fly-down",
+  "video_t": 206.15,
+  "game_t": 28.05,
+  "frame": 4123,
+  "info": null
+ },
+ {
+  "label": "fly",
+  "video_t": 206.2,
+  "game_t": 28.1,
+  "frame": 4124,
+  "info": {
+   "type": "fly",
+   "x": -23.925161218278557,
+   "z": 34.694985815797814,
+   "down": true,
+   "t": 28.1
+  }
+ },
+ {
+  "label": "fly",
+  "video_t": 206.2,
+  "game_t": 28.1,
+  "frame": 4124,
+  "info": {
+   "type": "fly",
+   "x": -23.942060818056284,
+   "z": 34.689296344476624,
+   "down": false,
+   "t": 28.1
+  }
+ },
+ {
+  "label": "fly",
+  "video_t": 206.2,
+  "game_t": 28.1,
+  "frame": 4124,
+  "info": {
+   "type": "fly",
+   "x": -23.956850896884255,
+   "z": 34.68431707097686,
+   "down": true,
+   "t": 28.1
+  }
+ },
+ {
+  "label": "still:evening-3-fly",
+  "video_t": 209.2,
+  "game_t": 31.05,
+  "frame": 4184,
+  "info": null
+ },
+ {
+  "label": "folded",
+  "video_t": 216.75,
+  "game_t": 38.65,
+  "frame": 4335,
+  "info": {
+   "type": "folded",
+   "x": -51.501154505645424,
+   "z": 29.72445935023744,
+   "id": 9,
+   "count": 1,
+   "t": 38.65
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 217.4,
+  "game_t": 39.3,
+  "frame": 4348,
+  "info": {
+   "type": "folded",
+   "x": -51.52987562373162,
+   "z": 29.16220025823846,
+   "id": 6,
+   "count": 2,
+   "t": 39.3
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 217.6,
+  "game_t": 39.5,
+  "frame": 4352,
+  "info": {
+   "type": "folded",
+   "x": -51.58872009594657,
+   "z": 30.696633040112452,
+   "id": 8,
+   "count": 3,
+   "t": 39.5
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 217.85,
+  "game_t": 39.75,
+  "frame": 4357,
+  "info": {
+   "type": "folded",
+   "x": -51.54805696368631,
+   "z": 29.256178487937554,
+   "id": 7,
+   "count": 4,
+   "t": 39.75
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 217.9,
+  "game_t": 39.8,
+  "frame": 4358,
+  "info": {
+   "type": "folded",
+   "x": -51.507560735004304,
+   "z": 30.95511197771214,
+   "id": 11,
+   "count": 5,
+   "t": 39.8
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 218.15,
+  "game_t": 40.05,
+  "frame": 4363,
+  "info": {
+   "type": "folded",
+   "x": -51.558671706857766,
+   "z": 29.098176821325623,
+   "id": 10,
+   "count": 6,
+   "t": 40.05
+  }
+ },
+ {
+  "label": "dusk",
+  "video_t": 225.15,
+  "game_t": 47.05,
+  "frame": 4503,
+  "info": {
+   "type": "dusk",
+   "t": 47.05
+  }
+ },
+ {
+  "label": "still:evening-3-lambing",
+  "video_t": 228.25,
+  "game_t": 50.05,
+  "frame": 4565,
+  "info": null
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 230.15,
+  "game_t": 52,
+  "frame": 4603,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -60,
+   "z": -104,
+   "id": 0,
+   "tx": -36.30667714054836,
+   "tz": -45.25443761242775,
+   "t": 52
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 242.8,
+  "game_t": 64.65,
+  "frame": 4856,
+  "info": {
+   "type": "bark",
+   "x": -33.56691505069704,
+   "z": -39.891577490924135,
+   "t": 64.65
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 242.8,
+  "game_t": 64.65,
+  "frame": 4856,
+  "info": {
+   "type": "wolfScared",
+   "x": -41.66570280220834,
+   "z": -49.878441150545775,
+   "id": 0,
+   "t": 64.65
+  }
+ },
+ {
+  "label": "fly-back",
+  "video_t": 248.2,
+  "game_t": 70,
+  "frame": 4964,
+  "info": null
+ },
+ {
+  "label": "fly",
+  "video_t": 248.25,
+  "game_t": 70.05,
+  "frame": 4965,
+  "info": {
+   "type": "fly",
+   "x": -26.348655288931848,
+   "z": 33.872804752293895,
+   "down": false,
+   "t": 70.05
+  }
+ },
+ {
+  "label": "fly",
+  "video_t": 248.25,
+  "game_t": 70.05,
+  "frame": 4965,
+  "info": {
+   "type": "fly",
+   "x": -26.35230079022273,
+   "z": 33.84810701289353,
+   "down": true,
+   "t": 70.05
+  }
+ },
+ {
+  "label": "fly",
+  "video_t": 248.25,
+  "game_t": 70.05,
+  "frame": 4965,
+  "info": {
+   "type": "fly",
+   "x": -26.358434329830818,
+   "z": 33.80694834258683,
+   "down": false,
+   "t": 70.05
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 265.25,
+  "game_t": 87.05,
+  "frame": 5305,
+  "info": {
+   "type": "wolfSpawn",
+   "x": 136,
+   "z": -30,
+   "id": 1,
+   "tx": 48.31538433462877,
+   "tz": -10.782951867168196,
+   "t": 87.05
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 274.5,
+  "game_t": 96.3,
+  "frame": 5490,
+  "info": {
+   "type": "folded",
+   "x": -51.51745631515492,
+   "z": 29.606331446603928,
+   "id": 0,
+   "count": 7,
+   "t": 96.3
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 274.65,
+  "game_t": 96.45,
+  "frame": 5493,
+  "info": {
+   "type": "folded",
+   "x": -51.550475591714516,
+   "z": 31.17814773174926,
+   "id": 3,
+   "count": 8,
+   "t": 96.45
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 274.85,
+  "game_t": 96.65,
+  "frame": 5497,
+  "info": {
+   "type": "folded",
+   "x": -51.58283887505683,
+   "z": 30.581376166372955,
+   "id": 5,
+   "count": 9,
+   "t": 96.65
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 275.05,
+  "game_t": 96.85,
+  "frame": 5501,
+  "info": {
+   "type": "folded",
+   "x": -51.55295771111883,
+   "z": 29.174471152988,
+   "id": 2,
+   "count": 10,
+   "t": 96.85
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 275.4,
+  "game_t": 97.2,
+  "frame": 5508,
+  "info": {
+   "type": "folded",
+   "x": -51.52404510868364,
+   "z": 28.48048373874242,
+   "id": 4,
+   "count": 11,
+   "t": 97.2
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 275.5,
+  "game_t": 97.3,
+  "frame": 5510,
+  "info": {
+   "type": "folded",
+   "x": -51.5642538395746,
+   "z": 30.398600738367236,
+   "id": 1,
+   "count": 12,
+   "t": 97.3
+  }
+ },
+ {
+  "label": "charge",
+  "video_t": 284.65,
+  "game_t": 106.45,
+  "frame": 5693,
+  "info": {
+   "type": "charge",
+   "x": 55.868278788413384,
+   "z": -13.10269711583368,
+   "id": 1,
+   "t": 106.45
+  }
+ },
+ {
+  "label": "grab",
+  "video_t": 285.9,
+  "game_t": 107.7,
+  "frame": 5718,
+  "info": {
+   "type": "grab",
+   "x": 41.14323594763182,
+   "z": -11.635292489736813,
+   "id": 15,
+   "t": 107.7
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 286.2,
+  "game_t": 108,
+  "frame": 5724,
+  "info": {
+   "type": "bark",
+   "x": 29.338202265845585,
+   "z": -16.58896072006241,
+   "t": 108
+  }
+ },
+ {
+  "label": "rescued",
+  "video_t": 286.2,
+  "game_t": 108,
+  "frame": 5724,
+  "info": {
+   "type": "rescued",
+   "x": 42.97285711401251,
+   "z": -9.464281460974345,
+   "id": 15,
+   "t": 108
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 286.2,
+  "game_t": 108,
+  "frame": 5724,
+  "info": {
+   "type": "wolfScared",
+   "x": 41.62632301269244,
+   "z": -11.719767507971914,
+   "id": 1,
+   "t": 108
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 310.45,
+  "game_t": 132.11,
+  "frame": 6209,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -40,
+   "z": 104,
+   "id": 2,
+   "tx": -14.713675412990415,
+   "tz": 6.963552331829946,
+   "t": 132.11
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 318.1,
+  "game_t": 139.76,
+  "frame": 6362,
+  "info": {
+   "type": "folded",
+   "x": -51.52506617669846,
+   "z": 29.6855580977095,
+   "id": 12,
+   "count": 13,
+   "t": 139.76
+  }
+ },
+ {
+  "label": "targetMet",
+  "video_t": 318.1,
+  "game_t": 139.76,
+  "frame": 6362,
+  "info": {
+   "type": "targetMet",
+   "t": 139.76
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 318.45,
+  "game_t": 140.11,
+  "frame": 6369,
+  "info": {
+   "type": "folded",
+   "x": -51.51095420903534,
+   "z": 29.918850497310867,
+   "id": 15,
+   "count": 14,
+   "t": 140.11
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 318.85,
+  "game_t": 140.51,
+  "frame": 6377,
+  "info": {
+   "type": "folded",
+   "x": -51.54773313378662,
+   "z": 29.98509827046764,
+   "id": 13,
+   "count": 15,
+   "t": 140.51
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 319.05,
+  "game_t": 140.71,
+  "frame": 6381,
+  "info": {
+   "type": "folded",
+   "x": -51.51677799065022,
+   "z": 29.00019385104509,
+   "id": 14,
+   "count": 16,
+   "t": 140.71
+  }
+ },
+ {
+  "label": "still:evening-4-angus-card",
+  "video_t": 331.15,
+  "game_t": 149.81,
+  "frame": 6623,
+  "info": null
+ },
+ {
+  "label": "evening",
+  "video_t": 331.2,
+  "game_t": 149.81,
+  "frame": 6624,
+  "info": {
+   "id": "angus"
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 337.75,
+  "game_t": 6.6,
+  "frame": 6755,
+  "info": {
+   "type": "bark",
+   "x": -44.185971439532935,
+   "z": 0.41965213607497154,
+   "t": 6.6
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 339.1,
+  "game_t": 7.95,
+  "frame": 6782,
+  "info": {
+   "type": "bark",
+   "x": -43.53777020910518,
+   "z": -3.361854123134922,
+   "t": 7.95
+  }
+ },
+ {
+  "label": "ramYield",
+  "video_t": 339.1,
+  "game_t": 7.95,
+  "frame": 6782,
+  "info": {
+   "type": "ramYield",
+   "x": -34.17598346925739,
+   "z": -5.025365059055894,
+   "t": 7.95
+  }
+ },
+ {
+  "label": "still:evening-4-angus",
+  "video_t": 351.25,
+  "game_t": 34.5,
+  "frame": 7025,
+  "info": null
+ },
+ {
+  "label": "dusk",
+  "video_t": 358.15,
+  "game_t": 41.45,
+  "frame": 7163,
+  "info": {
+   "type": "dusk",
+   "t": 41.45
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 366.55,
+  "game_t": 46.4,
+  "frame": 7331,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -60,
+   "z": 100,
+   "id": 0,
+   "tx": -20.95385583904578,
+   "tz": 28.580339025218592,
+   "t": 46.4
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 378.45,
+  "game_t": 58.3,
+  "frame": 7569,
+  "info": {
+   "type": "bark",
+   "x": -23.61046851619953,
+   "z": 53.172816601806154,
+   "t": 58.3
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 378.45,
+  "game_t": 58.3,
+  "frame": 7569,
+  "info": {
+   "type": "wolfScared",
+   "x": -34.00629412214505,
+   "z": 62.064978949410914,
+   "id": 0,
+   "t": 58.3
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 378.9,
+  "game_t": 58.7,
+  "frame": 7578,
+  "info": {
+   "type": "folded",
+   "x": -41.57053203777536,
+   "z": 49.241577651081165,
+   "id": 0,
+   "count": 1,
+   "t": 58.7
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 379.2,
+  "game_t": 59,
+  "frame": 7584,
+  "info": {
+   "type": "folded",
+   "x": -41.549083638342466,
+   "z": 50.624225994063885,
+   "id": 3,
+   "count": 2,
+   "t": 59
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 379.35,
+  "game_t": 59.15,
+  "frame": 7587,
+  "info": {
+   "type": "folded",
+   "x": -41.52476899080099,
+   "z": 49.15187166468937,
+   "id": 2,
+   "count": 3,
+   "t": 59.15
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 379.75,
+  "game_t": 59.55,
+  "frame": 7595,
+  "info": {
+   "type": "folded",
+   "x": -41.547971617000385,
+   "z": 49.84285922082628,
+   "id": 1,
+   "count": 4,
+   "t": 59.55
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 380.3,
+  "game_t": 60.1,
+  "frame": 7606,
+  "info": {
+   "type": "folded",
+   "x": -41.55964573544592,
+   "z": 50.08501903143732,
+   "id": 4,
+   "count": 5,
+   "t": 60.1
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 396.9,
+  "game_t": 76.7,
+  "frame": 7938,
+  "info": {
+   "type": "wolfSpawn",
+   "x": 124,
+   "z": 0,
+   "id": 1,
+   "tx": 70.29848126363052,
+   "tz": -12.366006852012829,
+   "t": 76.7
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 425.4,
+  "game_t": 105.2,
+  "frame": 8508,
+  "info": {
+   "type": "folded",
+   "x": -41.52376129896865,
+   "z": 49.23810742621398,
+   "id": 10,
+   "count": 6,
+   "t": 105.2
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 426.7,
+  "game_t": 106.5,
+  "frame": 8534,
+  "info": {
+   "type": "folded",
+   "x": -41.52432299162102,
+   "z": 48.569430851861696,
+   "id": 9,
+   "count": 7,
+   "t": 106.5
+  }
+ },
+ {
+  "label": "charge",
+  "video_t": 428.05,
+  "game_t": 107.85,
+  "frame": 8561,
+  "info": {
+   "type": "charge",
+   "x": 12.671320049600503,
+   "z": -59.44979685761855,
+   "id": 1,
+   "t": 107.85
+  }
+ },
+ {
+  "label": "grab",
+  "video_t": 428.9,
+  "game_t": 108.7,
+  "frame": 8578,
+  "info": {
+   "type": "grab",
+   "x": 8.044913962860889,
+   "z": -69.70887639050672,
+   "id": 8,
+   "t": 108.7
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 438.65,
+  "game_t": 118.45,
+  "frame": 8773,
+  "info": {
+   "type": "wolfSpawn",
+   "x": 20,
+   "z": -104,
+   "id": 2,
+   "tx": 29.404176591728362,
+   "tz": -72.82542005194335,
+   "t": 118.45
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 440.15,
+  "game_t": 119.95,
+  "frame": 8803,
+  "info": {
+   "type": "bark",
+   "x": 8.611420261000566,
+   "z": -65.94460097455668,
+   "t": 119.95
+  }
+ },
+ {
+  "label": "rescued",
+  "video_t": 440.15,
+  "game_t": 119.95,
+  "frame": 8803,
+  "info": {
+   "type": "rescued",
+   "x": 13.959127393397939,
+   "z": -75.13090425883203,
+   "id": 8,
+   "t": 119.95
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 440.15,
+  "game_t": 119.95,
+  "frame": 8803,
+  "info": {
+   "type": "wolfScared",
+   "x": 14.64479795837988,
+   "z": -78.40579391794346,
+   "id": 1,
+   "t": 119.95
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 442.9,
+  "game_t": 122.56,
+  "frame": 8858,
+  "info": {
+   "type": "bark",
+   "x": 17.958533279644175,
+   "z": -75.29171399319993,
+   "t": 122.56
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 442.9,
+  "game_t": 122.56,
+  "frame": 8858,
+  "info": {
+   "type": "wolfScared",
+   "x": 24.467929535907775,
+   "z": -87.35041020364712,
+   "id": 2,
+   "t": 122.56
+  }
+ },
+ {
+  "label": "still:evening-6-mist-card",
+  "video_t": 454.2,
+  "game_t": 130.81,
+  "frame": 9084,
+  "info": null
+ },
+ {
+  "label": "evening",
+  "video_t": 454.25,
+  "game_t": 130.81,
+  "frame": 9085,
+  "info": {
+   "id": "mist"
+  }
+ },
+ {
+  "label": "still:evening-6-mist",
+  "video_t": 474.3,
+  "game_t": 62.9,
+  "frame": 9486,
+  "info": null
+ },
+ {
+  "label": "dusk",
+  "video_t": 485.4,
+  "game_t": 74.05,
+  "frame": 9708,
+  "info": {
+   "type": "dusk",
+   "t": 74.05
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 491.2,
+  "game_t": 79,
+  "frame": 9824,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -30,
+   "z": -60,
+   "id": 0,
+   "tx": 18.927729212508027,
+   "tz": -7.9128867299874734,
+   "t": 79
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 525.25,
+  "game_t": 113.05,
+  "frame": 10505,
+  "info": {
+   "type": "folded",
+   "x": 143.53321561617977,
+   "z": -0.4363813537158749,
+   "id": 8,
+   "count": 1,
+   "t": 113.05
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 525.45,
+  "game_t": 113.25,
+  "frame": 10509,
+  "info": {
+   "type": "folded",
+   "x": 143.572312042163,
+   "z": 1.0219840786693755,
+   "id": 9,
+   "count": 2,
+   "t": 113.25
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 525.75,
+  "game_t": 113.55,
+  "frame": 10515,
+  "info": {
+   "type": "folded",
+   "x": 143.62522091561672,
+   "z": -0.5511006350008237,
+   "id": 7,
+   "count": 3,
+   "t": 113.55
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 525.95,
+  "game_t": 113.75,
+  "frame": 10519,
+  "info": {
+   "type": "folded",
+   "x": 143.5179140279103,
+   "z": 0.8665400875213521,
+   "id": 6,
+   "count": 4,
+   "t": 113.75
+  }
+ },
+ {
+  "label": "still:evening-7-storm-card",
+  "video_t": 557.25,
+  "game_t": 142.05,
+  "frame": 11145,
+  "info": null
+ },
+ {
+  "label": "evening",
+  "video_t": 557.3,
+  "game_t": 142.05,
+  "frame": 11146,
+  "info": {
+   "id": "storm"
+  }
+ },
+ {
+  "label": "thunder",
+  "video_t": 575.8,
+  "game_t": 18.55,
+  "frame": 11516,
+  "info": {
+   "type": "thunder",
+   "x": 56.97596040616931,
+   "z": 27.129128450140136,
+   "t": 18.55
+  }
+ },
+ {
+  "label": "still:evening-7-storm",
+  "video_t": 577.35,
+  "game_t": 51,
+  "frame": 11547,
+  "info": null
+ },
+ {
+  "label": "dusk",
+  "video_t": 586.35,
+  "game_t": 60.05,
+  "frame": 11727,
+  "info": {
+   "type": "dusk",
+   "t": 60.05
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 592.15,
+  "game_t": 65,
+  "frame": 11843,
+  "info": {
+   "type": "wolfSpawn",
+   "x": 30,
+   "z": 84,
+   "id": 0,
+   "tx": 47.21360666534144,
+   "tz": 53.53709254708139,
+   "t": 65
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 594.5,
+  "game_t": 67.35,
+  "frame": 11890,
+  "info": {
+   "type": "bark",
+   "x": 41.15142350494836,
+   "z": 63.65414524687624,
+   "t": 67.35
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 594.5,
+  "game_t": 67.35,
+  "frame": 11890,
+  "info": {
+   "type": "wolfScared",
+   "x": 33.064721445345896,
+   "z": 74.82035053256746,
+   "id": 0,
+   "t": 67.35
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 606.2,
+  "game_t": 79,
+  "frame": 12124,
+  "info": {
+   "type": "folded",
+   "x": 53.52735267163222,
+   "z": 42.299976644771334,
+   "id": 11,
+   "count": 1,
+   "t": 79
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 606.75,
+  "game_t": 79.55,
+  "frame": 12135,
+  "info": {
+   "type": "folded",
+   "x": 53.5611171340491,
+   "z": 42.16385734335903,
+   "id": 12,
+   "count": 2,
+   "t": 79.55
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 607.25,
+  "game_t": 80.05,
+  "frame": 12145,
+  "info": {
+   "type": "folded",
+   "x": 53.5296614226607,
+   "z": 42.55054411767259,
+   "id": 13,
+   "count": 3,
+   "t": 80.05
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 609.5,
+  "game_t": 82.3,
+  "frame": 12190,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -104,
+   "z": 30,
+   "id": 1,
+   "tx": -64.65955968951586,
+   "tz": 29.21435218594092,
+   "t": 82.3
+  }
+ },
+ {
+  "label": "thunder",
+  "video_t": 612.3,
+  "game_t": 85.1,
+  "frame": 12246,
+  "info": {
+   "type": "thunder",
+   "x": -60.6454219666253,
+   "z": -43.70442490286591,
+   "t": 85.1
+  }
+ },
+ {
+  "label": "charge",
+  "video_t": 627.75,
+  "game_t": 100.55,
+  "frame": 12555,
+  "info": {
+   "type": "charge",
+   "x": -48.02896553627786,
+   "z": 10.798450641978045,
+   "id": 1,
+   "t": 100.55
+  }
+ },
+ {
+  "label": "grab",
+  "video_t": 628.55,
+  "game_t": 101.35,
+  "frame": 12571,
+  "info": {
+   "type": "grab",
+   "x": -41.99894674254863,
+   "z": 2.6,
+   "id": 4,
+   "t": 101.35
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 635.95,
+  "game_t": 108.75,
+  "frame": 12719,
+  "info": {
+   "type": "wolfSpawn",
+   "x": 42,
+   "z": -80,
+   "id": 2,
+   "tx": 38.06223661915845,
+   "tz": -5.248138983256294,
+   "t": 108.75
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 639.4,
+  "game_t": 112.2,
+  "frame": 12788,
+  "info": {
+   "type": "bark",
+   "x": -51.112687554071066,
+   "z": 7.157927586974742,
+   "t": 112.2
+  }
+ },
+ {
+  "label": "rescued",
+  "video_t": 639.4,
+  "game_t": 112.2,
+  "frame": 12788,
+  "info": {
+   "type": "rescued",
+   "x": -60.789095463837306,
+   "z": 10.93618794023935,
+   "id": 4,
+   "t": 112.2
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 639.4,
+  "game_t": 112.2,
+  "frame": 12788,
+  "info": {
+   "type": "wolfScared",
+   "x": -63.84949086210653,
+   "z": 12.286374966579718,
+   "id": 1,
+   "t": 112.2
+  }
+ },
+ {
+  "label": "thunder",
+  "video_t": 640.35,
+  "game_t": 113.01,
+  "frame": 12807,
+  "info": {
+   "type": "thunder",
+   "x": -50.79932907823196,
+   "z": 2.9548356107866978,
+   "t": 113.01
+  }
+ },
+ {
+  "label": "flood",
+  "video_t": 641.35,
+  "game_t": 114.01,
+  "frame": 12827,
+  "info": {
+   "type": "flood",
+   "t": 114.01
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 649.95,
+  "game_t": 122.61,
+  "frame": 12999,
+  "info": {
+   "type": "bark",
+   "x": 24.799484760125644,
+   "z": -16.01009427245088,
+   "t": 122.61
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 649.95,
+  "game_t": 122.61,
+  "frame": 12999,
+  "info": {
+   "type": "wolfScared",
+   "x": 38.156931944272074,
+   "z": -18.636867444571696,
+   "id": 2,
+   "t": 122.61
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 660.75,
+  "game_t": 133.36,
+  "frame": 13215,
+  "info": {
+   "type": "folded",
+   "x": 53.52963253241588,
+   "z": 41.83903842037959,
+   "id": 10,
+   "count": 4,
+   "t": 133.36
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 661.1,
+  "game_t": 133.72,
+  "frame": 13222,
+  "info": {
+   "type": "folded",
+   "x": 53.536397986369266,
+   "z": 41.08358661677975,
+   "id": 9,
+   "count": 5,
+   "t": 133.72
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 661.25,
+  "game_t": 133.87,
+  "frame": 13225,
+  "info": {
+   "type": "folded",
+   "x": 53.50819795548272,
+   "z": 42.91279253265847,
+   "id": 8,
+   "count": 6,
+   "t": 133.87
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 670.6,
+  "game_t": 143.22,
+  "frame": 13412,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -104,
+   "z": 30,
+   "id": 3,
+   "tx": -69.62541570014363,
+   "tz": 18.78137202864464,
+   "t": 143.22
+  }
+ },
+ {
+  "label": "thunder",
+  "video_t": 675.55,
+  "game_t": 148.17,
+  "frame": 13511,
+  "info": {
+   "type": "thunder",
+   "x": -56.201699168304366,
+   "z": -37.63193985718345,
+   "t": 148.17
+  }
+ },
+ {
+  "label": "still:evening-8-snow-card",
+  "video_t": 680.3,
+  "game_t": 149.92,
+  "frame": 13606,
+  "info": null
+ },
+ {
+  "label": "evening",
+  "video_t": 680.35,
+  "game_t": 149.92,
+  "frame": 13607,
+  "info": {
+   "id": "first-snow"
+  }
+ },
+ {
+  "label": "still:evening-8-snow",
+  "video_t": 700.4,
+  "game_t": 57.2,
+  "frame": 14008,
+  "info": null
+ },
+ {
+  "label": "dusk",
+  "video_t": 713.6,
+  "game_t": 70.45,
+  "frame": 14272,
+  "info": {
+   "type": "dusk",
+   "t": 70.45
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 722,
+  "game_t": 75.4,
+  "frame": 14440,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -30,
+   "z": -60,
+   "id": 0,
+   "tx": -27.616454075045652,
+   "tz": -3.521529207290873,
+   "t": 75.4
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 742.15,
+  "game_t": 95.55,
+  "frame": 14843,
+  "info": {
+   "type": "bark",
+   "x": 50.198721743382464,
+   "z": -4.234195147020939,
+   "t": 95.55
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 742.15,
+  "game_t": 95.55,
+  "frame": 14843,
+  "info": {
+   "type": "wolfScared",
+   "x": 40.1401285395734,
+   "z": -8.07685533761696,
+   "id": 0,
+   "t": 95.55
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 755.8,
+  "game_t": 109.15,
+  "frame": 15116,
+  "info": {
+   "type": "folded",
+   "x": 143.52864733986584,
+   "z": 0.17470850505795651,
+   "id": 10,
+   "count": 1,
+   "t": 109.15
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 756.15,
+  "game_t": 109.5,
+  "frame": 15123,
+  "info": {
+   "type": "folded",
+   "x": 143.59746759893196,
+   "z": -0.9808676359585121,
+   "id": 6,
+   "count": 2,
+   "t": 109.5
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 756.15,
+  "game_t": 109.5,
+  "frame": 15123,
+  "info": {
+   "type": "folded",
+   "x": 143.55400316950997,
+   "z": 1.3244951390081368,
+   "id": 9,
+   "count": 3,
+   "t": 109.5
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 756.45,
+  "game_t": 109.8,
+  "frame": 15129,
+  "info": {
+   "type": "folded",
+   "x": 143.5578199525422,
+   "z": -0.2589403537870626,
+   "id": 8,
+   "count": 4,
+   "t": 109.8
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 756.75,
+  "game_t": 110.1,
+  "frame": 15135,
+  "info": {
+   "type": "folded",
+   "x": 143.51483786627054,
+   "z": 1.008252203474629,
+   "id": 7,
+   "count": 5,
+   "t": 110.1
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 760.2,
+  "game_t": 113.55,
+  "frame": 15204,
+  "info": {
+   "type": "wolfSpawn",
+   "x": 60,
+   "z": 84,
+   "id": 1,
+   "tx": 34.06611399211099,
+   "tz": 14.60056478022486,
+   "t": 113.55
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 772,
+  "game_t": 125.35,
+  "frame": 15440,
+  "info": {
+   "type": "bark",
+   "x": 34.81712303606452,
+   "z": 22.042171094462013,
+   "t": 125.35
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 772,
+  "game_t": 125.35,
+  "frame": 15440,
+  "info": {
+   "type": "wolfScared",
+   "x": 42.54100004040295,
+   "z": 32.98112153305016,
+   "id": 1,
+   "t": 125.35
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 789.8,
+  "game_t": 143.11,
+  "frame": 15796,
+  "info": {
+   "type": "wolfSpawn",
+   "x": 60,
+   "z": 84,
+   "id": 2,
+   "tx": 83.05193698106443,
+   "tz": 21.41549621276133,
+   "t": 143.11
+  }
+ },
+ {
+  "label": "still:wolf-moon-card",
+  "video_t": 793.35,
+  "game_t": 143.66,
+  "frame": 15867,
+  "info": null
+ },
+ {
+  "label": "evening",
+  "video_t": 793.4,
+  "game_t": 143.66,
+  "frame": 15868,
+  "info": {
+   "id": "storm",
+   "moon": true
+  }
+ },
+ {
+  "label": "dusk",
+  "video_t": 808.45,
+  "game_t": 67.63,
+  "frame": 16169,
+  "info": {
+   "type": "dusk",
+   "t": 67.63
+  }
+ },
+ {
+  "label": "thunder",
+  "video_t": 810.75,
+  "game_t": 69.08,
+  "frame": 16215,
+  "info": {
+   "type": "thunder",
+   "x": -70.18709834634521,
+   "z": -17.694843508621485,
+   "t": 69.08
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 814.25,
+  "game_t": 72.58,
+  "frame": 16285,
+  "info": {
+   "type": "wolfSpawn",
+   "x": 30,
+   "z": 84,
+   "id": 0,
+   "tx": 48.800726908253914,
+   "tz": 39.208964581112106,
+   "t": 72.58
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 814.7,
+  "game_t": 73.03,
+  "frame": 16294,
+  "info": {
+   "type": "folded",
+   "x": 53.54272002538338,
+   "z": 41.20175415618153,
+   "id": 11,
+   "count": 1,
+   "t": 73.03
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 814.9,
+  "game_t": 73.23,
+  "frame": 16298,
+  "info": {
+   "type": "folded",
+   "x": 53.53007842387846,
+   "z": 42.958006157015525,
+   "id": 12,
+   "count": 2,
+   "t": 73.23
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 815.05,
+  "game_t": 73.38,
+  "frame": 16301,
+  "info": {
+   "type": "folded",
+   "x": 53.573593394123925,
+   "z": 41.2598206343776,
+   "id": 13,
+   "count": 3,
+   "t": 73.38
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 826.1,
+  "game_t": 84.43,
+  "frame": 16522,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -104,
+   "z": 30,
+   "id": 1,
+   "tx": -63.78597965545527,
+   "tz": 35.560252464561835,
+   "t": 84.43
+  }
+ },
+ {
+  "label": "charge",
+  "video_t": 835.6,
+  "game_t": 93.93,
+  "frame": 16712,
+  "info": {
+   "type": "charge",
+   "x": -55.127472497471906,
+   "z": 44.81133576942242,
+   "id": 0,
+   "t": 93.93
+  }
+ },
+ {
+  "label": "grab",
+  "video_t": 836.9,
+  "game_t": 95.23,
+  "frame": 16738,
+  "info": {
+   "type": "grab",
+   "x": -64.85438791661669,
+   "z": 32.73795731445745,
+   "id": 4,
+   "t": 95.23
+  }
+ },
+ {
+  "label": "thunder",
+  "video_t": 837.05,
+  "game_t": 95.38,
+  "frame": 16741,
+  "info": {
+   "type": "thunder",
+   "x": -56.30940832299213,
+   "z": 32.0662458410068,
+   "t": 95.38
+  }
+ },
+ {
+  "label": "flood",
+  "video_t": 842,
+  "game_t": 100.33,
+  "frame": 16840,
+  "info": {
+   "type": "flood",
+   "t": 100.33
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 851.15,
+  "game_t": 109.48,
+  "frame": 17023,
+  "info": {
+   "type": "bark",
+   "x": -81.52498545350159,
+   "z": 26.985025136069137,
+   "t": 109.48
+  }
+ },
+ {
+  "label": "rescued",
+  "video_t": 851.15,
+  "game_t": 109.48,
+  "frame": 17023,
+  "info": {
+   "type": "rescued",
+   "x": -88.21185560129989,
+   "z": 31.102709964541145,
+   "id": 4,
+   "t": 109.48
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 851.15,
+  "game_t": 109.48,
+  "frame": 17023,
+  "info": {
+   "type": "wolfScared",
+   "x": -94.72502550723534,
+   "z": 30.747742136896008,
+   "id": 0,
+   "t": 109.48
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 852.95,
+  "game_t": 111.14,
+  "frame": 17059,
+  "info": {
+   "type": "bark",
+   "x": -76.66977968805179,
+   "z": 19.155564410217696,
+   "t": 111.14
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 852.95,
+  "game_t": 111.14,
+  "frame": 17059,
+  "info": {
+   "type": "wolfScared",
+   "x": -75.44378468503957,
+   "z": 5.374493438669617,
+   "id": 1,
+   "t": 111.14
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 866.45,
+  "game_t": 124.6,
+  "frame": 17329,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -104,
+   "z": 30,
+   "id": 2,
+   "tx": -74.34240723043872,
+   "tz": 34.548757946734305,
+   "t": 124.6
+  }
+ },
+ {
+  "label": "thunder",
+  "video_t": 866.75,
+  "game_t": 124.9,
+  "frame": 17335,
+  "info": {
+   "type": "thunder",
+   "x": -86.30367276437899,
+   "z": 37.230912644445546,
+   "t": 124.9
+  }
+ },
+ {
+  "label": "charge",
+  "video_t": 877.4,
+  "game_t": 135.55,
+  "frame": 17548,
+  "info": {
+   "type": "charge",
+   "x": -68.8496181987941,
+   "z": 37.42516581778267,
+   "id": 2,
+   "t": 135.55
+  }
+ },
+ {
+  "label": "grab",
+  "video_t": 878.35,
+  "game_t": 136.5,
+  "frame": 17567,
+  "info": {
+   "type": "grab",
+   "x": -57.433502214646126,
+   "z": 32.421502804024165,
+   "id": 4,
+   "t": 136.5
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 878.75,
+  "game_t": 136.9,
+  "frame": 17575,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -22,
+   "z": 86,
+   "id": 3,
+   "tx": -52.08966545105161,
+   "tz": 63.48009997862544,
+   "t": 136.9
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 889.45,
+  "game_t": 147.6,
+  "frame": 17789,
+  "info": {
+   "type": "bark",
+   "x": -68.04988176570866,
+   "z": 27.046946789125116,
+   "t": 147.6
+  }
+ },
+ {
+  "label": "rescued",
+  "video_t": 889.45,
+  "game_t": 147.6,
+  "frame": 17789,
+  "info": {
+   "type": "rescued",
+   "x": -77.61330832357906,
+   "z": 31.367085384238408,
+   "id": 4,
+   "t": 147.6
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 889.45,
+  "game_t": 147.6,
+  "frame": 17789,
+  "info": {
+   "type": "wolfScared",
+   "x": -80.9560748706023,
+   "z": 31.193897803718773,
+   "id": 2,
+   "t": 147.6
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 893.85,
+  "game_t": 151.86,
+  "frame": 17877,
+  "info": {
+   "type": "bark",
+   "x": -52.88705456079716,
+   "z": 41.999346774714695,
+   "t": 151.86
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 893.85,
+  "game_t": 151.86,
+  "frame": 17877,
+  "info": {
+   "type": "wolfScared",
+   "x": -41.48325128844363,
+   "z": 49.791105405040476,
+   "id": 3,
+   "t": 151.86
+  }
+ },
+ {
+  "label": "thunder",
+  "video_t": 897.65,
+  "game_t": 155.61,
+  "frame": 17953,
+  "info": {
+   "type": "thunder",
+   "x": 50.374479855575515,
+   "z": 37.80446935420407,
+   "t": 155.61
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 909.5,
+  "game_t": 167.46,
+  "frame": 18190,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -22,
+   "z": 86,
+   "id": 4,
+   "tx": -51.895714342799685,
+   "tz": 60.71543664076982,
+   "t": 167.46
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 918,
+  "game_t": 175.96,
+  "frame": 18360,
+  "info": {
+   "type": "folded",
+   "x": 53.60290404885226,
+   "z": 41.37229800107714,
+   "id": 9,
+   "count": 4,
+   "t": 175.96
+  }
+ },
+ {
+  "label": "folded",
+  "video_t": 918.2,
+  "game_t": 176.16,
+  "frame": 18364,
+  "info": {
+   "type": "folded",
+   "x": 53.56332131891283,
+   "z": 43.202345700286735,
+   "id": 10,
+   "count": 5,
+   "t": 176.16
+  }
+ },
+ {
+  "label": "evening",
+  "video_t": 919.4,
+  "game_t": 176.36,
+  "frame": 18388,
+  "info": {
+   "id": "night-watch"
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 927.6,
+  "game_t": 9.2,
+  "frame": 18552,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -40,
+   "z": 104,
+   "id": 0,
+   "tx": 0.7697264953690822,
+   "tz": 43.31485941599695,
+   "t": 9.2
+  }
+ },
+ {
+  "label": "spook",
+  "video_t": 930.4,
+  "game_t": 12,
+  "frame": 18608,
+  "info": {
+   "type": "spook",
+   "x": 13.1048542436294,
+   "z": 48.66452967104124,
+   "t": 12
+  }
+ },
+ {
+  "label": "still:evening-5-night",
+  "video_t": 933.45,
+  "game_t": 15,
+  "frame": 18669,
+  "info": null
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 939.3,
+  "game_t": 20.9,
+  "frame": 18786,
+  "info": {
+   "type": "wolfSpawn",
+   "x": 40,
+   "z": -102,
+   "id": 1,
+   "tx": -2.15275513797097,
+   "tz": 29.37193741602532,
+   "t": 20.9
+  }
+ },
+ {
+  "label": "pack",
+  "video_t": 939.3,
+  "game_t": 20.9,
+  "frame": 18786,
+  "info": {
+   "type": "pack",
+   "x": -14.404694125509486,
+   "z": 57.9772060230285,
+   "id": 0,
+   "fx": 40,
+   "fz": -102,
+   "fid": 1,
+   "t": 20.9
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 939.55,
+  "game_t": 21.15,
+  "frame": 18791,
+  "info": {
+   "type": "bark",
+   "x": -7.9741355916346155,
+   "z": 46.842200225967545,
+   "t": 21.15
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 939.55,
+  "game_t": 21.15,
+  "frame": 18791,
+  "info": {
+   "type": "wolfScared",
+   "x": -13.941725055903028,
+   "z": 57.008855044720605,
+   "id": 0,
+   "t": 21.15
+  }
+ },
+ {
+  "label": "scatter",
+  "video_t": 944.45,
+  "game_t": 201.65,
+  "frame": 18889,
+  "info": {
+   "type": "scatter",
+   "x": 0.5753939374779057,
+   "z": 27.85841138756686,
+   "t": 201.65
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 947.25,
+  "game_t": 204.36,
+  "frame": 18945,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -40,
+   "z": 104,
+   "id": 2,
+   "tx": -7.647142829653683,
+   "tz": 7.111762695934119,
+   "t": 204.36
+  }
+ },
+ {
+  "label": "pack",
+  "video_t": 947.25,
+  "game_t": 204.36,
+  "frame": 18945,
+  "info": {
+   "type": "pack",
+   "x": 29.021205710849227,
+   "z": -68.6758949345162,
+   "id": 1,
+   "fx": -40,
+   "fz": 104,
+   "fid": 2,
+   "t": 204.36
+  }
+ },
+ {
+  "label": "spook",
+  "video_t": 949.4,
+  "game_t": 206.51,
+  "frame": 18988,
+  "info": {
+   "type": "spook",
+   "x": 28.589993932169115,
+   "z": 39.25205637389706,
+   "t": 206.51
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 952.5,
+  "game_t": 209.61,
+  "frame": 19050,
+  "info": {
+   "type": "wolfSpawn",
+   "x": -40,
+   "z": 104,
+   "id": 3,
+   "tx": 8.114920722492604,
+   "tz": 53.36550585054606,
+   "t": 209.61
+  }
+ },
+ {
+  "label": "bark",
+  "video_t": 957.7,
+  "game_t": 214.81,
+  "frame": 19154,
+  "info": {
+   "type": "bark",
+   "x": 10.45424135728159,
+   "z": -8.227900132958778,
+   "t": 214.81
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 957.7,
+  "game_t": 214.81,
+  "frame": 19154,
+  "info": {
+   "type": "wolfScared",
+   "x": 11.633869944173318,
+   "z": -23.95486193186705,
+   "id": 1,
+   "t": 214.81
+  }
+ },
+ {
+  "label": "wolfSpawn",
+  "video_t": 957.85,
+  "game_t": 214.91,
+  "frame": 19157,
+  "info": {
+   "type": "wolfSpawn",
+   "x": 40,
+   "z": -102,
+   "id": 4,
+   "tx": 10.387513596417463,
+   "tz": -2.5812091789238147,
+   "t": 214.91
+  }
+ },
+ {
+  "label": "pack",
+  "video_t": 957.85,
+  "game_t": 214.91,
+  "frame": 19157,
+  "info": {
+   "type": "pack",
+   "x": -16.728645104990775,
+   "z": 54.948242210608406,
+   "id": 2,
+   "fx": 40,
+   "fz": -102,
+   "fid": 4,
+   "t": 214.91
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 958.95,
+  "game_t": 216.01,
+  "frame": 19179,
+  "info": {
+   "type": "wolfScared",
+   "x": -16.373886597725836,
+   "z": 51.15419973250307,
+   "id": 2,
+   "t": 216.01
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 958.95,
+  "game_t": 216.01,
+  "frame": 19179,
+  "info": {
+   "type": "wolfScared",
+   "x": -20.57809548899043,
+   "z": 82.94227590043198,
+   "id": 3,
+   "t": 216.01
+  }
+ },
+ {
+  "label": "wolfScared",
+  "video_t": 958.95,
+  "game_t": 216.01,
+  "frame": 19179,
+  "info": {
+   "type": "wolfScared",
+   "x": 39.021260577432635,
+   "z": -97.29546007005258,
+   "id": 4,
+   "t": 216.01
+  }
+ },
+ {
+  "label": "dawn",
+  "video_t": 958.95,
+  "game_t": 216.01,
+  "frame": 19179,
+  "info": {
+   "type": "dawn",
+   "t": 216.01
+  }
+ },
+ {
+  "label": "still:evening-5-dawn",
+  "video_t": 971.05,
+  "game_t": 228.01,
+  "frame": 19421,
+  "info": null
+ },
+ {
+  "label": "still:evening-5-result",
+  "video_t": 986,
+  "game_t": 240.01,
+  "frame": 19720,
+  "info": null
+ }
+]

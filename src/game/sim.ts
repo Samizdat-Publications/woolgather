@@ -1574,7 +1574,7 @@ export class Sim {
     if (!s) return;
     // A pack: a lone wolf already stalking Pip's flock calls a second one, which goes for the far
     // side of the same flock while the first shows itself.
-    const bait = this.rules.pack && !first ? this.wolves.find((o) => o.state === 'stalk' && o.role === 'lone' && o.target && o.valleyT > 2 && Math.hypot(o.target.x - d.x, o.target.z - d.z) < 45) : undefined;
+    const bait = this.rules.pack && !first ? this.wolves.find((o) => o.state === 'stalk' && o.role === 'lone' && o.target && o.valleyT > 2 && Math.hypot(o.target.x - d.x, o.target.z - d.z) < 70) : undefined;
     let flock: { cx: number; cz: number } | null = null;
     if (bait?.target) {
       flock = this.flockAround(bait.target);

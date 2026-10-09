@@ -188,7 +188,8 @@ export class WeatherFx {
       this.rain.step(dt, wind, dfx, dfz, () => [0, 0]);
       const arr = (this.rainLines.geometry.getAttribute('position') as THREE.BufferAttribute).array as Float32Array;
       const p = this.rain.pos;
-      const n = Math.floor(this.rain.n * Math.min(1, wx.rain));
+      // Fewer, finer, fainter streaks: a heavy field of white slashes hid the sheep (r05 critic).
+      const n = Math.floor(this.rain.n * 0.6 * Math.min(1, wx.rain));
       for (let i = 0; i < this.rain.n; i++) {
         const o = i * 6;
         if (i >= n) {
@@ -200,12 +201,12 @@ export class WeatherFx {
         arr[o] = p[i * 3];
         arr[o + 1] = p[i * 3 + 1];
         arr[o + 2] = p[i * 3 + 2];
-        arr[o + 3] = p[i * 3] - wind * 0.034;
-        arr[o + 4] = p[i * 3 + 1] - vy * 0.034;
+        arr[o + 3] = p[i * 3] - wind * 0.024;
+        arr[o + 4] = p[i * 3 + 1] - vy * 0.024;
         arr[o + 5] = p[i * 3 + 2];
       }
       this.rainLines.geometry.getAttribute('position').needsUpdate = true;
-      this.rainLines.material.opacity = 0.38 * Math.min(1, wx.rain) * (1 - 0.4 * night);
+      this.rainLines.material.opacity = 0.22 * Math.min(1, wx.rain) * (1 - 0.4 * night);
     }
 
     this.snowPts.visible = wx.snow > 0.02;

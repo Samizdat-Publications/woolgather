@@ -1,0 +1,72 @@
+{
+  "critic": "claude-video",
+  "mode": "contact sheets",
+  "model": "claude-opus (blind subagent)",
+  "first_impression": "This is a lot more game than a one-line itch page made me expect: a nine-evening season map, charms, a second dog, a ram, a trial, mist, a storm, snow and a night watch. The golden title shot and the low view by the bridge are genuinely lovely, but most of the time I am looking down from very high at tiny cotton balls on a field, and once the sun goes down the ground turns into a muddy purple-orange smear.",
+  "scores": {
+    "visual_appeal": 7,
+    "readability": 6,
+    "game_feel": 6,
+    "fun_factor": 7,
+    "variety": 8,
+    "sense_of_progression": 8,
+    "want_to_keep_playing": 7,
+    "would_wishlist": 7
+  },
+  "best_things": [
+    "The low tilted view at 00:50-01:02 (Pip in the foreground, the stream and wooden bridge behind, sheep crossing the stepping stones) is the screenshot that sells the game, and the sunset cutaways at 00:27 and 11:55 have real atmosphere.",
+    "Every evening adds a real twist I can see on screen: Fly the older dog at 03:00-04:20, Old Angus the horned ram leading the ewes at 05:40, mist with bleat icons at 07:35, the flooded ford in the storm at 10:42, the black sheep in the snow at 11:30, and a night watch that ends at dawn at 16:00.",
+    "The wolf threat is easy to read when it matters: the red toothed ring round the wolf, the red banner with distance and seconds to save the sheep, the little inset camera of the snatch (07:10, 10:30, 14:00) and the 'Sheep rescued!' payoff (07:22, 14:15) make a clear little drama."
+  ],
+  "worst_problems": [
+    {
+      "problem": "After sunset the ground stops looking like a place and becomes a smeared purple and orange gradient with big dark blotches over it; at Crannach Corrie the lake edge sits under a black smudge and the heather turns neon violet, so the evening I most want to admire looks like a bruise.",
+      "where": "06:27-07:30 (corrie), 04:40-05:27 (Loch Ailsa dusk), 07:15 (dark blotch over the lake during the snatch)",
+      "severity": "major",
+      "suggestion": "Keep the ground's own colours and let the sunset be in the light and the sky; lose the dark patches that look like dirt on the lens."
+    },
+    {
+      "problem": "The Glenbrae Trial is about 90 seconds of one flat mustard-green field with a few red hurdles, the camera straight down, five sheep shuffling slowly; nothing else moves or changes, and it is the second evening I would play.",
+      "where": "01:27-02:55",
+      "severity": "major",
+      "suggestion": "Give the show field life in the play camera (crowd, bunting, a judge, a sheepdog commentator line, the next gate called out) and a faster, tighter course so it feels like a competition, not a lawn."
+    },
+    {
+      "problem": "Mist on the Moor is a washed-out beige screen with a slightly less washed-out circle round Pip; sheep, bridge and wolves are all ghosts and for over a minute nothing much happens but Pip walking along a ditch.",
+      "where": "07:35-09:12 (especially 08:30-09:10)",
+      "severity": "major",
+      "suggestion": "Make the mist darker and moodier with more contrast inside the clear area, and put something to find in it more often (a lost sheep, a wolf shape, a landmark) so the blindness creates tension instead of boredom."
+    },
+    {
+      "problem": "The herding camera is so high and far out that Pip and the sheep are tiny and the movement has no weight; the running, the flock bunching and the bark all read as small icons sliding on a big field, and the beautiful close view is used only for a few seconds.",
+      "where": "01:30-02:55, 03:40-04:10, 09:20-10:30 (and most top-down play)",
+      "severity": "minor",
+      "suggestion": "Sit the default camera lower and closer, or let me play from the tilted view more of the time, and add a bit more squash, dust and reaction when the flock breaks and turns."
+    },
+    {
+      "problem": "The storm, and then the Wolf Moon replay of the same storm, are a long grey-violet blur under rain with near-identical far-bank snatches one after another, the same red banner each time, and a full white flash frame; the HUD (tiny counter text, chips, minimap, banners) piles up on top.",
+      "where": "09:47-11:15 and 13:15-15:17 (white flash at 10:12)",
+      "severity": "minor",
+      "suggestion": "Make the Wolf Moon replay look and play differently (a red moon, new routes), vary the wolf events, soften the lightning flash, and make the HUD text bigger and quieter."
+    }
+  ],
+  "boredom_points": [
+    "The Glenbrae Trial at 01:27-02:55: same yellow field, same slow push, minute after minute.",
+    "The mist at 08:30-09:12, walking along a ditch in a beige fog with nothing happening.",
+    "The Wolf Moon storm at 13:15-15:17 feels like replaying the storm I just saw, with the same far-bank snatch banners on a loop."
+  ],
+  "confusions": [
+    "The night watch jumps from a blue moonlit night (15:42, 'Dawn in 3:36') to a warm golden dusk (15:45, 'Dawn in 0:38'); I could not tell if time skipped or if dawn really looks like sunset.",
+    "The top-left counter is a row of tiny dots and stars that I could not read at a glance; I had to rely on the banners to know whether I was winning.",
+    "The second dog Fly is red-brown and from above looks a lot like a wolf or a fox at 03:15 and 04:50, especially next to a real wolf ring.",
+    "Small round icons at the screen edges (bleat speech bubbles, house markers, red wolf badges) all look alike at this size."
+  ],
+  "wish_list": [
+    "A camera option to play from the low tilted view, or a closer default.",
+    "More life in the world while herding: other farm animals, birds, the farmer at the gate, weather that changes mid-evening.",
+    "Commands to give Fly beyond 'lie down', so the two-dog evenings feel like real teamwork.",
+    "A proper trial scoreboard and replays, maybe a daily trial leaderboard.",
+    "A photo mode for the sunset and snow scenes."
+  ],
+  "one_line_review": "A cosy, surprisingly deep sheepdog season with real variety and a lovely golden hour, held back by a too-distant camera, a muddy purple dusk and a couple of dull evenings."
+}

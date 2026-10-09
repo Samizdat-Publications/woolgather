@@ -222,7 +222,7 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
       if (def.cover?.sand && level.lochs.length) {
         const q = level.lochQuery(x, z);
         if (q.d > 0 && q.d < 50) {
-          const sp = smoothstep(0.1, 0.45, fbm(x / 18 + 7, z / 18 - 3, 2, 5.1)) * (1 - smoothstep(14, 50, q.d));
+          const sp = smoothstep(0.0, 0.35, fbm(x / 22 + 7, z / 22 - 3, 2, 5.1)) * (1 - smoothstep(20, 60, q.d));
           c.lerp(C.sand, sp * def.cover.sand);
         }
       }

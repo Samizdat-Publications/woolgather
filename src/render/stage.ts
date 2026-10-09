@@ -12,7 +12,8 @@ const MOON_GLOW = new THREE.Color(0.62, 0.68, 0.95);
 const HAZE = new THREE.Vector3();
 const GREY = new THREE.Color('#9aa0aa');
 const FLASH = new THREE.Color('#e8eeff');
-const MIST = new THREE.Color('#aeb6c2');
+// A cool blue-grey: lerped from the warm evening fog it came out beige, and sheep went ghostly in it.
+const MIST = new THREE.Color('#9eabbd');
 const SNOW_KEY = new THREE.Color('#f4f2ff');
 const SNOW_SKY = new THREE.Color('#9fb6e0');
 const SNOW_GROUND = new THREE.Color('#e4ecff');
@@ -171,7 +172,7 @@ export class Stage {
     }
     // Mist colour: pearly grey that takes the evening's own light (gold, then rose, then lilac), so
     // it reads as lit air; dimmer under the moon.
-    this.mistColor.copy(m.fog).lerp(MIST, 0.72).multiplyScalar(0.86 - 0.5 * m.night).convertLinearToSRGB();
+    this.mistColor.copy(m.fog).lerp(MIST, 0.88).multiplyScalar(0.86 - 0.5 * m.night).convertLinearToSRGB();
     this.grade.setFlash(W.flash);
     this.key.color.copy(m.keyColor);
     this.key.intensity = m.keyIntensity;

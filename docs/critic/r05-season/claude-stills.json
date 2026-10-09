@@ -1,0 +1,71 @@
+{
+  "critic": "claude-stills",
+  "mode": "images",
+  "model": "claude-opus (blind subagent)",
+  "first_impression": "This looks like a real, finished cosy game: a gorgeous storybook title screen, a proper season map with nine named evenings, and a low-poly collie that reads instantly as a border collie. The herding itself looks calm and a bit sparse from the high camera, but the season structure, the weather evenings and the low riverside view in e1-low-view sold me more than I expected.",
+  "scores": {
+    "visual_appeal": 8,
+    "readability": 7,
+    "game_feel": 6,
+    "fun_factor": 7,
+    "variety": 7,
+    "sense_of_progression": 8,
+    "want_to_keep_playing": 7,
+    "would_wishlist": 7
+  },
+  "best_things": [
+    "The presentation is lovely and consistent: the Woolgather logo on the golden sky (title.jpg), the stitched dark felt cards, the evening cards with a little story and one 'New tonight' rule each feel like a well-made indie, not a prototype.",
+    "The season map (season-map.jpg) gives a real sense of a year: midsummer to winter, five places, stars, ribbons, charms to earn, a daily 'Friday's Evening', and after evening 1 a Wolf Moon hard mode appears (season-map-after-1.jpg); that is a reason to come back.",
+    "The low view by the stream (e1-low-view.jpg) and the snow crossing (evening-8-snow.jpg) are genuinely screenshot-worthy: pink sunset haze over the bridge, a black sheep against white snow, stepping stones over teal water."
+  ],
+  "worst_problems": [
+    {
+      "problem": "The night watch is the hardest screen to read in the game. The three round white boulders look exactly like sheep, the flock itself is jammed up under the timer and the faded 'A wolf is stalking your flock!' banner, and the wolf is half hidden behind the bottom control bar with only its red marker poking out.",
+      "where": "evening-5-night.jpg",
+      "severity": "major",
+      "suggestion": "Make night rocks dark or mossy so only sheep are white, and pull the camera so the flock and the wolf sit in the open middle of the screen, not under the HUD."
+    },
+    {
+      "problem": "From the play camera the places blur together. Hollow Valley, Loch Ailsa's lambing field and Crannach Corrie are all the same mustard-olive lawn with purple heather dots; the Old Angus card promises a high corrie under the crags but in play it is flat yellow grass, and the storm is Hollow Valley's same fold again.",
+      "where": "e1-herding.jpg, evening-3-lambing.jpg, evening-4-angus.jpg, evening-7-storm.jpg",
+      "severity": "major",
+      "suggestion": "Give each place something you see in every frame: crag shadows and scree in the corrie, the loch shore and lambs' pens at Loch Ailsa, a swollen brown flood in the storm."
+    },
+    {
+      "problem": "A lot of frames are just Pip alone on an empty field with markers at the edges, and the trial field is a flat green rectangle with two gate posts. From this height there is nothing to look at between drives.",
+      "where": "e1-herding.jpg, evening-5-trial.jpg",
+      "severity": "minor",
+      "suggestion": "Dress the show field (crowd, tents, a judge's car, a course you can see) and let the camera drop lower or lead further ahead when no sheep are near."
+    },
+    {
+      "problem": "Big flat see-through shapes cover the bottom of the screen: a pale yellow blob in the bottom right of the storm and grey triangular ghosts along the bottom of the wolf shot. They look like rendering glitches, not trees.",
+      "where": "evening-7-storm.jpg, e1-wolf.jpg, evening-5-night.jpg",
+      "severity": "minor",
+      "suggestion": "Hide trees between the camera and the dog completely, or fade them to a soft outline, rather than leaving flat coloured cut-outs."
+    },
+    {
+      "problem": "UI rough edges: on the season map the evening 1 tile's stars and Wolf Moon crescent print on top of its ribbon icon, and the Wolf Moon evening card is so tall its Begin and The season buttons are cut off by the bottom of the screen.",
+      "where": "season-map-after-1.jpg, wolf-moon-card.jpg",
+      "severity": "minor",
+      "suggestion": "Give the tile's stars their own row and make the evening card scroll or fold the charm list so the buttons always fit."
+    }
+  ],
+  "boredom_points": [
+    "Long walks across empty grass to reach the next flock (e1-herding.jpg): Pip alone in a field with a house marker off to the right is not much to watch.",
+    "The night watch dawn (evening-5-dawn.jpg) ends with a few sheep idling by a stream; after a whole night guarding, the finish looks like any other daytime frame.",
+    "Every evening card repeats the same six charm descriptions in full, so after a few evenings I would be skipping a wall of text each time."
+  ],
+  "confusions": [
+    "Charms: after evening 1 I had 3 stars and only Swift Paws, but the trial card already lets me wear two of all six charms and says 'Your best: two stars' on evenings I had not played.",
+    "Night watch result says 'every sheep is still with you' and the counter reads 12 safe, yet the dawn shot shows the sheep scattered on both banks of the stream, one alone at the water's edge.",
+    "The season map numbers the night watch as evening 6, but the file I saw it in calls it evening 5; minor, but the numbering on cards and map is the only way I track the season.",
+    "In the Old Angus shot the bright orange curled horns read like UI rings or a selection marker rather than horns."
+  ],
+  "wish_list": [
+    "A camera option between the high herding view and the low view, so I can see the sky and ridges while still steering.",
+    "Lambs that are visibly smaller and paired with their mothers, and a pen or croft you can see at Loch Ailsa.",
+    "A photo mode for the sunset and snow evenings.",
+    "More between-evening flavour: the farmer, the farmhouse, a little scene at the show when you win the trial."
+  ],
+  "one_line_review": "A beautiful, gentle sheepdog game with a real season to work through; the herding view can look samey and empty, but the sunsets, snow and storm evenings had me wanting just one more night on the hill."
+}

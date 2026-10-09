@@ -137,6 +137,8 @@ export class GameAudio {
           break;
         case 'folded':
           this.sfx.chime(e.count - 1);
+          // At the show the crowd claps each ewe into the pen, and cheers the last.
+          if (sim?.trial) this.sfx.applause(sim.folded === sim.total);
           break;
         case 'targetMet':
           this.sfx.chime(0, true);
@@ -161,6 +163,9 @@ export class GameAudio {
           if (!this.rec('growl', w, 0.75, false, 0.8)) this.sfx.growl(w);
           break;
         }
+        case 'gate':
+          if (e.passed) this.sfx.applause();
+          break;
         case 'bell':
           if (this.where(e.x, e.z).level > 0.12) this.sfx.bell(this.where(e.x, e.z, 0.35));
           break;

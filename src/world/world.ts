@@ -33,6 +33,8 @@ const LAVENDER = new THREE.Color('#c8b4e8');
 const INDIGO = new THREE.Color('#3a3c8a');
 
 /** Snow on every upward face of the props (0 = none), and the world's up in view space. */
+const HEATHER_DUSK = new THREE.Color('#4a3c40');
+
 export const SNOW = { value: 0 };
 const UP_VIEW = { value: new THREE.Vector3(0, 1, 0) };
 /** Wetness: rain darkens and cools the props and ground a little (0 = dry). */
@@ -435,6 +437,8 @@ export interface WorldHandles {
   glowMaterials: THREE.MeshLambertMaterial[];
   /** Rock and wall stone: a faint warm self-light at night keeps grey stone from going indigo. */
   stoneMaterials: THREE.MeshLambertMaterial[];
+  /** Heather blooms: their purple fades towards dusk-brown as the light goes (it glowed neon at night). */
+  heatherMaterials: THREE.MeshLambertMaterial[];
   fadeables: { meshes: THREE.InstancedMesh[]; spots: Placement[]; canopy: number; height: number }[];
   lanternLights: THREE.PointLight[];
   /** The forest ring round the valley (hidden in the wolf-cam close-up, which would sit in it). */
@@ -663,8 +667,10 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
   const drift = cov.flowers > 2 ? 0.05 : 0.42;
   const meadow = (x: number, z: number) => grassTest(x, z) && level.boundaryDistance(x, z) > 18 && Math.sin(x * 0.11) * Math.cos(z * 0.13) > drift;
   const flowers = (season === 'winter' ? 0 : season === 'autumn' ? 50 : 190) * cov.flowers;
-  add('flower_white', scatter(flowers, meadow, [0.9, 1.3]));
-  add('flower_yellow', scatter(season === 'heather' ? flowers * 0.6 : flowers, meadow, [0.9, 1.3]));
+  // Machair flowers are bigger clumps, so the drifts read from the herding camera.
+  const fs: [number, number] = cov.flowers > 2 ? [1.5, 2.2] : [0.9, 1.3];
+  add('flower_white', scatter(flowers, meadow, fs));
+  add('flower_yellow', scatter(season === 'heather' ? flowers * 0.6 : flowers, meadow, fs));
   const slope = (x: number, z: number) => Math.hypot(g(x + 1, z) - g(x - 1, z), g(x, z + 1) - g(x, z - 1)) / 2;
   const patch2 = (x: number, z: number) => Math.sin(x * 0.07 + 2.1) * Math.cos(z * 0.061 + 0.3) + Math.sin((x + z) * 0.05) * 0.4;
   const scree = (x: number, z: number) => (cov.stones > 1.5 || (level.boundaryDistance(x, z) < 24 && slope(x, z) > 0.2)) && grassTest(x, z) && patch2(x, z) > (cov.stones > 1.5 ? -0.2 : 0.2);
@@ -910,10 +916,12 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
   // and snow and rain on everything static.
   const glowMaterials: THREE.MeshLambertMaterial[] = [];
   const stoneMaterials: THREE.MeshLambertMaterial[] = [];
+  const heatherMaterials: THREE.MeshLambertMaterial[] = [];
   root.traverse((o) => {
     const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | THREE.MeshLambertMaterial[] | undefined;
     for (const mm of Array.isArray(m) ? m : m ? [m] : []) {
       if (!mm.isMeshLambertMaterial) continue;
+      if ((mm.name === 'heather' || mm.name === 'heather_b') && !heatherMaterials.includes(mm)) heatherMaterials.push(mm);
       if (mm !== groundMat && mm !== pathMat && !/^(plank_|post_wood|beam)/.test(mm.name)) weatherize(mm);
       if (!mm.emissive) continue;
       if (mm.emissive.getHex() !== 0 && !stoneMaterials.includes(mm)) {
@@ -934,6 +942,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
     gates,
     glowMaterials,
     stoneMaterials,
+    heatherMaterials,
     fadeables,
     lanternLights,
     forest,
@@ -1009,7 +1018,12 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   for (const m of w.stoneMaterials) {
     m.emissiveIntensity = 0.12 * mood.night;
     if (m.userData.base === undefined) m.userData.base = m.color.getHex();
-    m.color.setHex(m.userData.base).multiplyScalar(1 - 0.45 * mood.night);
+    m.color.setHex(m.userData.base).multiplyScalar(1 - 0.68 * mood.night);
+  }
+  const dusk = Math.max(mood.night, Math.min(1, Math.max(0, (mood.t - 0.45) / 0.3)) * 0.6);
+  for (const m of w.heatherMaterials) {
+    if (m.userData.base === undefined) m.userData.base = m.color.getHex();
+    m.color.setHex(m.userData.base).lerp(HEATHER_DUSK, 0.6 * dusk);
   }
   for (const l of w.lanternLights) l.intensity = 46 * (l.userData.gain ?? 1) * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
 
