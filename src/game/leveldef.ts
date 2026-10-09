@@ -87,6 +87,8 @@ export interface LevelDef {
   relief: ReliefDef;
   /** Where heather grows: 'rim' (along every slope near the edge) plus optional x/z bands. */
   heather?: { minX?: number; maxX?: number; minZ?: number; maxZ?: number }[];
+  /** A sheepdog trial course: gates to drive the flock through in order, and the handler's post. */
+  trial?: { gates: { name: string; a: XZ; b: XZ }[]; post: XZ };
   /** The title shot's camera focus and swing for this level. */
   titleShot?: { x: number; z: number; angle: number };
 }

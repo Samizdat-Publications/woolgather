@@ -35,7 +35,7 @@ const q = QUALITY ? `&quality=${QUALITY}` : '';
 await page.goto(`${BASE}?test=1&seed=11&diff=standard${q}`, { waitUntil: 'load' });
 await page.waitForFunction(() => !!window.__WG, null, { timeout: 60000 });
 await page.waitForTimeout(1500);
-await page.keyboard.press('Enter');
+await page.evaluate(() => window.__WG.classic('standard'));
 await page.waitForTimeout(1500);
 
 /** Record requestAnimationFrame deltas for `ms` milliseconds in the page. */

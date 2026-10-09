@@ -123,6 +123,12 @@ export class Pen {
     return this.toWorld(-this.halfW + 4 * this.scale, 0);
   }
 
+  /** In the guide-fence funnel past the mouth (or already in the gateway): head straight in. */
+  inFunnel(x: number, z: number) {
+    const l = this.toLocal(x, z);
+    return l.x > -this.halfW - 6 * this.scale + 1 && l.x < this.halfW && Math.abs(l.z) < this.gateHalf + 5 * this.scale;
+  }
+
   contains(x: number, z: number, margin = 0) {
     const l = this.toLocal(x, z);
     return l.x > -this.halfW + margin && l.x < this.halfW - margin && l.z > -this.halfD + margin && l.z < this.halfD - margin;
@@ -150,6 +156,9 @@ export class Level {
   readonly bridges: { x: number; z: number; len: number; w: number; ux: number; uz: number }[];
   /** Fords; `open` goes false when the stream floods. */
   readonly fords: { x: number; z: number; r: number; open: boolean }[];
+  /** A trial course's gates (in order) and the handler's post, if this level has one. */
+  readonly gates: { name: string; ax: number; az: number; bx: number; bz: number; x: number; z: number }[];
+  readonly post: { x: number; z: number } | null;
 
   /**
    * Every way over water as an oriented box: (ux, uz) runs across the water, `len` along that
@@ -170,6 +179,13 @@ export class Level {
       return { x: b.center[0], z: b.center[1], len: b.length, w: b.width, ux: Math.cos(a), uz: Math.sin(a) };
     });
     this.fords = def.fords.map((f) => ({ x: f.center[0], z: f.center[1], r: f.radius, open: true }));
+    this.gates = (def.trial?.gates ?? []).map((g) => ({ name: g.name, ax: g.a[0], az: g.a[1], bx: g.b[0], bz: g.b[1], x: (g.a[0] + g.b[0]) / 2, z: (g.a[1] + g.b[1]) / 2 }));
+    this.post = def.trial ? { x: def.trial.post[0], z: def.trial.post[1] } : null;
+    // Gate posts and the handler's post are solid.
+    for (const g of this.gates) {
+      this.circles.push({ x: g.ax, z: g.az, r: 0.35 }, { x: g.bx, z: g.bz, r: 0.35 });
+    }
+    if (this.post) this.circles.push({ x: this.post.x, z: this.post.z, r: 0.3 });
 
     const wall = (ax: number, az: number, bx: number, bz: number, r = 0.45, tag: SegCol['tag'] = 'wall') => this.segs.push({ ax, az, bx, bz, r, tag });
     const localWall = (p: Pen, ax: number, az: number, bx: number, bz: number, r = 0.45, tag: SegCol['tag'] = 'wall') => {

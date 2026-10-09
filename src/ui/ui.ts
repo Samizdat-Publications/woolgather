@@ -242,8 +242,10 @@ export class Ui {
   /** The HUD's words for the evening's goal: nightfall or dawn, home or safe. */
   setRules(r: Rules) {
     const watch = r.objective === 'watch';
-    $('.t-word', this.root).textContent = watch ? 'Dawn in' : 'Nightfall in';
-    $('.of-word', this.root).textContent = watch ? 'safe' : 'home';
+    const trial = r.objective === 'trial';
+    $('.t-word', this.root).textContent = watch ? 'Dawn in' : trial ? 'Time left' : 'Nightfall in';
+    $('.of-word', this.root).textContent = watch ? 'safe' : trial ? 'points' : 'home';
+    $('.count-home .of', this.root).innerHTML = trial ? '<span class="of-word">points</span> <span class="n-need" hidden></span>' : `<span class="of-word">${watch ? 'safe' : 'home'}</span> · need <span class="n-need">0</span>`;
     this.root.querySelector('.hud-counts')!.classList.toggle('watch', watch);
     $('.pips', this.root).dataset.key = '';
   }
@@ -370,7 +372,9 @@ export class Ui {
     const rec = p.evenings[e.id];
     const two = Math.ceil((r.target + total) / 2);
     const goals =
-      r.objective === 'watch'
+      r.objective === 'trial'
+        ? '<span>★ 50 points</span><span>★★ 70</span><span>★★★ 85</span>'
+        : r.objective === 'watch'
         ? `<span>★ lose no more than ${total - r.target}</span><span>★★ lose ${Math.floor((total - r.target) / 2)} or fewer</span><span>★★★ lose none</span>`
         : `<span>★ ${r.target} of ${total} home</span><span>★★ ${two}</span><span>★★★ all ${total}</span>`;
     $('.intro-goals', this.root).innerHTML = `<div class="goal-row">${goals}</div><div class="ribbon-row">${RIBBON(!!rec?.ribbon)}<span>${escapeHtml(e.ribbon.title)}</span></div>${rec?.stars ? `<div class="best">Your best: ${stars(rec.stars)}</div>` : ''}`;
@@ -544,13 +548,16 @@ export class Ui {
   }
 
   update(sim: Sim, dt: number, time: number) {
+    if (sim.trial) this.updateTrial(sim);
     const watch = sim.watch;
-    $('.n-home', this.root).textContent = String(watch ? sim.total - sim.lost : sim.folded);
-    $('.n-need', this.root).textContent = watch ? `${sim.target} to dawn` : String(sim.target);
+    if (!sim.trial) {
+      $('.n-home', this.root).textContent = String(watch ? sim.total - sim.lost : sim.folded);
+      $('.n-need', this.root).textContent = watch ? `${sim.target} to dawn` : String(sim.target);
+    }
     $('.count-home .of', this.root).classList.toggle('met', sim.targetMet);
     const pips = $('.pips', this.root);
     const pipKey = `${sim.folded}|${sim.lost}|${sim.total}|${sim.target}|${watch}`;
-    if (pips.dataset.key !== pipKey) {
+    if (!sim.trial && pips.dataset.key !== pipKey) {
       pips.dataset.key = pipKey;
       const two = sim.twoStar;
       let html = '';
@@ -573,11 +580,15 @@ export class Ui {
     const spare = sim.spare;
     const need = Math.max(0, sim.target - sim.folded);
     const spareEl = $('.count-spare', this.root);
+    if (sim.trial) {
+      spareEl.textContent = '';
+    } else {
     const hurry = !watch && !sim.targetMet && sim.timeLeft < 90;
     const spareTxt = spare > 0 ? `can lose ${spare} more` : "can't lose any more!";
     spareEl.textContent = sim.targetMet ? 'target met' : hurry ? `hurry: ${need} more to go before dark` : spareTxt;
     spareEl.classList.toggle('danger', (!sim.targetMet && spare <= 0) || hurry);
     spareEl.classList.toggle('met', sim.targetMet);
+    }
     const r = sim.rules;
     const ws = r.wolfStart ?? 2;
     const wolvesOut = sim.t >= ws;
@@ -626,6 +637,26 @@ export class Ui {
     this.renderToast();
   }
 
+  /** Trial HUD: the judges' points and the course (each gate taken or missed, then the pen). */
+  private updateTrial(sim: Sim) {
+    $('.n-home', this.root).textContent = String(sim.trialScore());
+    $('.of-word', this.root).textContent = 'points';
+    const key = `${sim.gateIdx}|${sim.gateResults.join(',')}|${sim.folded}`;
+    const pips = $('.pips', this.root);
+    if (pips.dataset.key === key) return;
+    pips.dataset.key = key;
+    const gates = this.level.gates;
+    pips.innerHTML = gates
+      .map((g, i) => {
+        const r = sim.gateResults[i];
+        const cls = r === 'passed' ? 'got' : r === 'missed' ? 'gone' : i === sim.gateIdx ? 'now' : '';
+        return `<span class="course ${cls}">${r === 'passed' ? '✓ ' : r === 'missed' ? '✗ ' : ''}${escapeHtml(g.name.replace(' gates', ''))}</span>`;
+      })
+      .concat(`<span class="course ${sim.gateIdx >= gates.length ? 'now' : ''}">Pen ${sim.folded}/${sim.total}</span>`)
+      .join('');
+    $('.goals', this.root).innerHTML = '<span>★ 50</span><span>★★ 70</span><span>★★★ 85 points</span>';
+  }
+
   clearToasts() {
     this.toastQueue.length = 0;
     this.toastT = 0;
@@ -642,10 +673,16 @@ export class Ui {
     screen.classList.toggle('win', win);
     screen.classList.toggle('lose', !win);
     const ev = ctx.evening;
-    const kicker = win ? (sim.watch ? 'Dawn' : "Day's end") : o.reason === 'wolves' ? 'Too many lost' : 'Nightfall';
+    const kicker = sim.trial ? 'The judges' : win ? (sim.watch ? 'Dawn' : "Day's end") : o.reason === 'wolves' ? 'Too many lost' : 'Nightfall';
     $('.end-kicker', this.root).textContent = ev ? `${kicker} · Evening ${ev.num}: ${ev.title}` : `${kicker} · ${DIFFICULTIES[this.difficulty].label}`;
     let tip = '';
-    if (o.kind === 'win') {
+    if (sim.trial) {
+      const sc = sim.trialScore();
+      const missed = sim.gateResults.filter((g) => g !== 'passed').length;
+      title.textContent = sc >= 90 ? 'A clean round!' : win ? `${sc} points` : 'The judges were not impressed';
+      sub.textContent = `${sc} points out of 100: ${missed === 0 ? 'every gate taken' : `${missed} gate${missed > 1 ? 's' : ''} missed`}, ${sim.folded} of ${sim.total} penned.`;
+      if (!win) tip = 'Take each gate in order: get the ewes lined up well before it, then walk them through.';
+    } else if (o.kind === 'win') {
       if (ctx.seasonDone) title.textContent = 'The season is done!';
       else if (sim.watch) title.textContent = sim.lost === 0 ? 'Not one lost!' : 'The flock made it to dawn';
       else title.textContent = o.stars === 3 ? 'Every sheep is home!' : sim.free > 0 ? 'Home before dark' : 'The flock is home';
@@ -686,7 +723,7 @@ export class Ui {
     const losses = [...byPlace].map(([p, n]) => (n > 1 ? `${p} ×${n}` : p)).join(', ');
     const two = sim.twoStar;
     const starHtml = win ? stars(o.stars) : '';
-    const legend = sim.watch ? `★ ${sim.total - sim.target} or fewer lost · ★★ ${Math.floor((sim.total - sim.target) / 2)} · ★★★ none` : `★ ${sim.target}+ home · ★★ ${two}+ · ★★★ all ${sim.total}`;
+    const legend = sim.trial ? '★ 50+ points · ★★ 70+ · ★★★ 85+' : sim.watch ? `★ ${sim.total - sim.target} or fewer lost · ★★ ${Math.floor((sim.total - sim.target) / 2)} · ★★★ none` : `★ ${sim.target}+ home · ★★ ${two}+ · ★★★ all ${sim.total}`;
     const row = (label: string, value: string) => `<div class="row"><span>${label}</span><b>${value}</b></div>`;
     const ribbon = ev ? `<div class="end-ribbon ${ctx.ribbon ? 'on' : ''}">${RIBBON(ctx.ribbon)}<span>${ctx.ribbon ? 'Ribbon won: ' : 'Ribbon: '}${escapeHtml(ev.ribbon.title)}</span></div>` : '';
     const unlock = ctx.unlocked.length ? `<div class="end-unlock">New charm${ctx.unlocked.length > 1 ? 's' : ''}: <b>${ctx.unlocked.map(escapeHtml).join(', ')}</b></div>` : '';

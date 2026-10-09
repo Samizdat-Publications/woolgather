@@ -4,7 +4,7 @@ import type { ScreenRect } from '../render/wolfcam';
 // Screen-edge arrows for things that matter but are off camera: the fold, sheep in a wolf's jaws,
 // hunting wolves and (when no sheep are on screen) the nearest loose sheep.
 
-export type MarkerKind = 'fold' | 'grab' | 'wolf' | 'sheep' | 'note';
+export type MarkerKind = 'fold' | 'grab' | 'wolf' | 'sheep' | 'note' | 'gate';
 
 export interface Marker {
   id: string;
@@ -33,6 +33,7 @@ export const MARKER_ICONS: Record<MarkerKind, string> = {
   sheep:
     '<svg viewBox="-12 -12 24 24"><path d="M-5.5 3v4.5M0.5 3v4.5" stroke="#231c2b" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="-2.5" cy="0" rx="7" ry="4.6" fill="#fff" stroke="#231c2b" stroke-width="1.4"/><ellipse cx="6" cy="-2.2" rx="3.4" ry="2.7" fill="#231c2b"/><path d="M4.6 -4.4l-1.9-1.6" stroke="#231c2b" stroke-width="1.8" stroke-linecap="round"/></svg>',
   note: '',
+  gate: '<svg viewBox="-12 -12 24 24"><path d="M-4 8 V-8" stroke="#231c2b" stroke-width="2.4" stroke-linecap="round"/><path d="M-3 -8 L7 -5 L-3 -1 Z" fill="#c0402e" stroke="#231c2b" stroke-width="1.2" stroke-linejoin="round"/></svg>',
 };
 
 /** Set while the wolf-cam inset is up, and where it is; and where the minimap panel is. */

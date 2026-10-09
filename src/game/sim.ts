@@ -104,11 +104,13 @@ export type SimEvent =
   | { type: 'ramYield'; x: number; z: number }
   | { type: 'lambFound'; x: number; z: number; id: number }
   | { type: 'thunder'; x: number; z: number }
-  | { type: 'flood' };
+  | { type: 'flood' }
+  /** A trial gate passed or missed. */
+  | { type: 'gate'; index: number; name: string; passed: boolean; x: number; z: number };
 
 export type Outcome =
-  | { kind: 'win'; reason: 'all-home' | 'nightfall' | 'latched' | 'dawn'; stars: number }
-  | { kind: 'lose'; reason: 'nightfall' | 'wolves' };
+  | { kind: 'win'; reason: 'all-home' | 'nightfall' | 'latched' | 'dawn' | 'trial'; stars: number }
+  | { kind: 'lose'; reason: 'nightfall' | 'wolves' | 'judges' };
 
 const RAM_EYE_RANGE = 10;
 const RAM_BUTT_RANGE = 4.4;
@@ -136,6 +138,11 @@ export class Sim {
   /** Where and when each sheep was snatched (shown on the end card). */
   readonly lostLog: { t: number; x: number; z: number; kind: SheepKind }[] = [];
   flooded = false;
+  /** Trial: the gate the flock should go through next, and each gate's result. */
+  gateIdx = 0;
+  readonly gateResults: ('passed' | 'missed' | null)[] = [];
+  private gateCrossed = new Set<number>();
+  private nextCrossed = new Set<number>();
   private duskAnnounced = false;
   private dawnAnnounced = false;
   private targetAnnounced = false;
@@ -259,6 +266,66 @@ export class Sim {
     for (const s of this.sheep) if (s.state !== 'hidden' && Math.hypot(s.x - dx, s.z - dz) < Math.hypot(near.x - dx, near.z - dz)) near = s;
     if (near) this.dog.facing = Math.atan2(near.x - dx, near.z - dz);
     this.thunderT = rules.thunder ? this.rng.range(...rules.thunder) * 0.6 : Infinity;
+    for (let i = 0; i < level.gates.length; i++) this.gateResults.push(null);
+  }
+
+  get trial() {
+    return this.rules.objective === 'trial';
+  }
+
+  /**
+   * The judges' points: 100, less 15 for each gate missed, 12 for each ewe not penned, and up to
+   * 10 for a slow round (anything past 60% of the time allowed).
+   */
+  trialScore() {
+    const missed = this.gateResults.filter((g) => g === 'missed').length + (this.outcome ? this.gateResults.filter((g) => g === null).length : 0);
+    const out = this.outcome ? this.total - this.folded : 0;
+    const slow = Math.max(0, (this.elapsed - 0.6 * this.rules.dayLength) / (0.4 * this.rules.dayLength)) * 10;
+    return Math.max(0, Math.round(100 - 15 * missed - 12 * out - slow));
+  }
+
+  /** Did the step from (px, pz) to (x, z) go between the posts of trial gate i? */
+  private throughGate(i: number, px: number, pz: number, x: number, z: number) {
+    const g = this.level.gates[i];
+    if (!g) return false;
+    const o = (ax: number, az: number, bx: number, bz: number, cx: number, cz: number) => (bx - ax) * (cz - az) - (bz - az) * (cx - ax);
+    const d1 = o(g.ax, g.az, g.bx, g.bz, px, pz);
+    const d2 = o(g.ax, g.az, g.bx, g.bz, x, z);
+    const d3 = o(px, pz, x, z, g.ax, g.az);
+    const d4 = o(px, pz, x, z, g.bx, g.bz);
+    return d1 * d2 < 0 && d3 * d4 < 0;
+  }
+
+  /** Trial: count sheep through the next gate (and the one after, to call a gate missed). */
+  private trialGates(s: Sheep, px: number, pz: number) {
+    const i = this.gateIdx;
+    if (i >= this.level.gates.length) return;
+    const need = Math.ceil(this.total * 0.6);
+    if (this.throughGate(i, px, pz, s.x, s.z)) this.gateCrossed.add(s.id);
+    if (this.throughGate(i + 1, px, pz, s.x, s.z)) this.nextCrossed.add(s.id);
+    const g = this.level.gates[i];
+    if (this.gateCrossed.size >= need) {
+      this.gateResults[i] = 'passed';
+      this.events.push({ type: 'gate', index: i, name: g.name, passed: true, x: g.x, z: g.z });
+      this.advanceGate(false);
+    } else if (this.nextCrossed.size >= need) {
+      // The flock went on to the next gate without this one: missed, and the next one counts.
+      this.gateResults[i] = 'missed';
+      this.events.push({ type: 'gate', index: i, name: g.name, passed: false, x: g.x, z: g.z });
+      this.advanceGate(true);
+      const n = this.level.gates[this.gateIdx];
+      if (n) {
+        this.gateResults[this.gateIdx] = 'passed';
+        this.events.push({ type: 'gate', index: this.gateIdx, name: n.name, passed: true, x: n.x, z: n.z });
+        this.advanceGate(false);
+      }
+    }
+  }
+
+  private advanceGate(keepNext: boolean) {
+    this.gateIdx++;
+    this.gateCrossed = keepNext ? this.nextCrossed : new Set();
+    this.nextCrossed = new Set();
   }
 
   /** 0 at the start, 1 at nightfall (or dawn). */
@@ -272,7 +339,7 @@ export class Sim {
     return Math.max(0, this.rules.dayLength - this.elapsed);
   }
   get targetMet() {
-    return this.rules.objective === 'watch' ? false : this.folded >= this.target;
+    return this.rules.objective !== 'gather' ? false : this.folded >= this.target;
   }
   get watch() {
     return this.rules.objective === 'watch';
@@ -369,7 +436,7 @@ export class Sim {
       const dd = Math.hypot(dx, dz);
       if (s.kind === 'ram' && dd < R * 0.85) {
         // A bark knocks the fight out of the ram.
-        s.stubborn = Math.max(0, s.stubborn - 0.55);
+        s.stubborn = Math.max(0, s.stubborn - 0.42);
         if (s.stubborn <= 0.15 && s.yieldT <= 0) this.ramYields(s);
         continue;
       }
@@ -479,9 +546,9 @@ export class Sim {
             this.events.push({ type: 'stamp', x: s.x, z: s.z });
             s.buttCd = Math.max(s.buttCd, 1.2);
           }
-        } else if (s.yieldT <= 0 && dd > 16) {
-          // Left alone he gets his nerve back.
-          s.stubborn = Math.min(1, s.stubborn + dt * 0.05);
+        } else if (s.yieldT <= 0 && dd > RAM_EYE_RANGE + 1) {
+          // Out of Pip's stare he soon gets his nerve back and stops to face him again.
+          s.stubborn = Math.min(1, s.stubborn + dt * 0.03);
         }
       }
 
@@ -630,7 +697,8 @@ export class Sim {
       } else if (mother && mother.state === 'folded') {
         // Mum is home: the lamb heads for the gate if it is anywhere near.
         const p = L.pens.find((q) => q.id === mother.penId) ?? L.fold;
-        const m = Math.hypot(p.mouth.x - s.x, p.mouth.z - s.z) > 4 ? p.mouth : p.inside;
+        // Past the mouth (along the pen's own axis), head straight in; before it, for the mouth.
+        const m = p.inFunnel(s.x, s.z) ? p.inside : p.mouth;
         const gx = m.x - s.x;
         const gz = m.z - s.z;
         const gd = Math.hypot(gx, gz);
@@ -653,10 +721,11 @@ export class Sim {
         // ...and runs in to the flock in the fold once it sees the gate.
         const p = L.fold;
         const gd = Math.hypot(p.mouth.x - s.x, p.mouth.z - s.z);
-        if (gd < 14) {
-          const tgt = gd > 4 ? p.mouth : p.inside;
-          vx += ((tgt.x - s.x) / (gd || 1)) * 3;
-          vz += ((tgt.z - s.z) / (gd || 1)) * 3;
+        if (gd < 14 || p.contains(s.x, s.z, -3)) {
+          const tgt = p.inFunnel(s.x, s.z) ? p.inside : p.mouth;
+          const td = Math.hypot(tgt.x - s.x, tgt.z - s.z) || 1;
+          vx += ((tgt.x - s.x) / td) * 3.4;
+          vz += ((tgt.z - s.z) / td) * 3.4;
         }
       }
       if (!lamb) {
@@ -784,10 +853,13 @@ export class Sim {
         s.vz += (dvz / dl) * step;
       }
       s.fear = lerp(s.fear, fear, 1 - Math.exp(-6 * dt));
+      const px = s.x;
+      const pz = s.z;
       s.x += s.vx * dt;
       s.z += s.vz * dt;
       collideStatic(L, s, { boundary: true, gate: false });
       this.keepDry(s);
+      if (this.trial) this.trialGates(s, px, pz);
 
       s.speed = Math.hypot(s.vx, s.vz);
       if (stubborn && dd < 22) s.facing = dampAngle(s.facing, Math.atan2(d.x - s.x, d.z - s.z), 4, dt);
@@ -1074,6 +1146,7 @@ export class Sim {
       s.panicX = dx / dl;
       s.panicZ = dz / dl;
       s.alertT = 3;
+      if (!this.level.insideValley(s.x, s.z)) this.backInside(s);
       s.prevDry = !this.level.inWater(s.x, s.z);
       this.rescues++;
       this.snatchCd = Math.max(this.snatchCd, 8);
@@ -1083,6 +1156,34 @@ export class Sim {
     w.stateT = 0;
     w.target = null;
     this.events.push({ type: 'wolfScared', x: w.x, z: w.z, id: w.id });
+  }
+
+  /** Put a sheep dropped beyond the valley edge back just inside it (edges block both ways). */
+  private backInside(s: Sheep) {
+    const poly = this.level.boundary;
+    let bx = s.x;
+    let bz = s.z;
+    let bd = Infinity;
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i];
+      const b = poly[(i + 1) % poly.length];
+      const c = closestOnSegment(s.x, s.z, a[0], a[1], b[0], b[1]);
+      const d = (c.x - s.x) ** 2 + (c.z - s.z) ** 2;
+      if (d < bd) {
+        bd = d;
+        bx = c.x;
+        bz = c.z;
+      }
+    }
+    // A step past the edge point, towards the middle of the valley.
+    const L = this.level;
+    const mx = L.fold.cx - bx;
+    const mz = L.fold.cz - bz;
+    const ml = Math.hypot(mx, mz) || 1;
+    s.x = bx + (mx / ml) * 2.5;
+    s.z = bz + (mz / ml) * 2.5;
+    s.panicX = mx / ml;
+    s.panicZ = mz / ml;
   }
 
   private wolfGone(w: Wolf) {
@@ -1334,6 +1435,18 @@ export class Sim {
       this.dawnAnnounced = true;
       this.events.push({ type: 'dawn' });
     }
+    if (this.trial) {
+      // Penning ends the round; any gates not yet taken count as missed.
+      if (this.free === 0 || this.t >= 1) {
+        const pen = this.free === 0;
+        this.outcome = { kind: 'win', reason: 'trial', stars: 0 };
+        const score = this.trialScore();
+        const stars = score >= 85 ? 3 : score >= 70 ? 2 : score >= 50 ? 1 : 0;
+        this.outcome = null;
+        this.finish(stars > 0 ? { kind: 'win', reason: pen ? 'trial' : 'nightfall', stars } : { kind: 'lose', reason: 'judges' });
+      }
+      return;
+    }
     if (this.watch) {
       if (this.total - this.lost < this.target) this.finish({ kind: 'lose', reason: 'wolves' });
       else if (this.t >= 1 && !this.sheep.some((s) => s.state === 'grabbed')) this.finish({ kind: 'win', reason: 'dawn', stars: this.stars() });
@@ -1362,6 +1475,10 @@ export class Sim {
   }
 
   stars() {
+    if (this.trial) {
+      const sc = this.trialScore();
+      return sc >= 85 ? 3 : sc >= 70 ? 2 : 1;
+    }
     if (this.watch) {
       if (this.lost === 0) return 3;
       return this.lost <= Math.floor((this.total - this.target) / 2) ? 2 : 1;

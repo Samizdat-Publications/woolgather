@@ -4,8 +4,11 @@ import { DIFFICULTIES, type Difficulty } from './config';
 // What one evening asks of the player: the place, the flock, the wolves, the weather, the goal.
 // The season's evenings and the classic free-play evening are both written as rules.
 
-/** gather: bring the flock into the fold before nightfall. watch: keep the flock alive until dawn. */
-export type Objective = 'gather' | 'watch';
+/**
+ * gather: bring the flock into the fold before nightfall. watch: keep the flock alive until dawn.
+ * trial: a sheepdog trial: drive the flock through each gate in order, then pen it; judged on points.
+ */
+export type Objective = 'gather' | 'watch' | 'trial';
 export type Weather = 'clear' | 'fog' | 'storm' | 'snow';
 
 export interface FlockSpec {

@@ -1,0 +1,46 @@
+{
+  "id": "show",
+  "name": "Glenbrae Show Field",
+  "world": { "minX": -130, "maxX": 130, "minZ": -110, "maxZ": 110 },
+  "boundary": [
+    [-80, -58], [-60, -66], [0, -68], [60, -66], [80, -58], [88, -30], [88, 30], [80, 56],
+    [60, 64], [0, 66], [-60, 64], [-80, 56], [-88, 30], [-88, -30]
+  ],
+  "dogStart": [0, 44],
+  "pens": [{ "id": "fold", "center": [-30, 36], "angleDeg": 180, "role": "fold", "scale": 0.62 }],
+  "streams": [],
+  "lochs": [],
+  "bridges": [],
+  "fords": [],
+  "paths": [[[-70, 52], [-40, 50], [0, 50], [40, 50], [70, 52]]],
+  "rocks": [[-70, -40, 1.6], [72, -44, 1.4], [76, 40, 1.5]],
+  "trees": [
+    ["oak", -70, 30, 1.2], ["oak", 72, 20, 1.1], ["birch", -66, -30, 1.0], ["birch", 70, -30, 1.0],
+    ["oak", 50, -56, 1.0], ["oak", -50, -56, 1.05]
+  ],
+  "bushes": [[-76, 0, 1.0], [78, -2, 1.0], [-30, -60, 0.9], [32, -60, 0.9]],
+  "hay": [[-58, 54, 0], [-54.5, 55, 30], [58, 54, 10], [54, 55.5, 40], [-12, 56, 0], [12, 56, 20]],
+  "signposts": [[8, 46, 0.2]],
+  "fieldWalls": [],
+  "sheepGroups": [{ "id": "lift", "center": [0, -46], "radius": 4 }],
+  "wolfDens": [[-110, 0], [110, 0]],
+  "places": [
+    { "name": "THE LIFT", "phrase": "at the top of the field", "x": 0, "z": -50 },
+    { "name": "FETCH GATES", "phrase": "by the fetch gates", "x": 0, "z": -16 },
+    { "name": "DRIVE GATES", "phrase": "by the drive gates", "x": 46, "z": 4 },
+    { "name": "CROSS GATES", "phrase": "by the cross gates", "x": -46, "z": 4 },
+    { "name": "THE PEN", "phrase": "by the pen", "x": -30, "z": 44 },
+    { "name": "THE POST", "phrase": "by the post", "x": 0, "z": 40 }
+  ],
+  "relief": { "floor": 0.6, "rim": 5, "knolls": [], "slopes": [{ "axis": "z", "from": -20, "to": -66, "height": 2.2 }], "noiseSeed": 3 },
+  "heather": [],
+  "trial": {
+    "gates": [
+      { "name": "Fetch gates", "a": [-4.5, -16], "b": [4.5, -16] },
+      { "name": "Drive gates", "a": [46, 0], "b": [46, 9] },
+      { "name": "Cross gates", "a": [-46, 0], "b": [-46, 9] }
+    ],
+    "post": [0, 40]
+  },
+  "titleShot": { "x": 0, "z": 0, "angle": 0.15 }
+}

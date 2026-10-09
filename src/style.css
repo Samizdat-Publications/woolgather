@@ -334,7 +334,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .tally { display: flex; align-items: baseline; gap: 6px; }
 .tally-n { font-family: var(--display); font-variation-settings: 'SOFT' 100; font-size: 34px; font-weight: 800; color: var(--gold); line-height: 1; }
 .tally-of { font-size: 14px; font-weight: 800; color: var(--wool-2); }
-.season-grid { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.season-grid { width: 100%; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
 .ev { pointer-events: auto; position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 136px; padding: 12px 14px 12px; border-radius: 12px; border: 2px solid rgba(251, 243, 228, 0.22); background: rgba(251, 243, 228, 0.05); color: var(--wool); font: inherit; text-align: left; cursor: pointer; overflow: hidden; transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease; }
 /* A strip of the evening's season along the top of each card. */
 .ev::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--season, #8eae5c); }
@@ -397,3 +397,12 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
   .season-grid { grid-template-columns: repeat(2, 1fr); }
   .ev { min-height: 112px; }
 }
+
+/* Trial HUD: the course, gate by gate. */
+.course { margin-right: 8px; padding: 1px 7px; border-radius: 8px; border: 1.5px solid rgba(251, 243, 228, 0.25); font-size: 12.5px; font-weight: 800; color: var(--wool-2); white-space: nowrap; }
+.course.now { border-color: var(--gold); color: var(--gold-hi); }
+.course.got { border-color: rgba(166, 224, 126, 0.6); color: var(--leaf); }
+.course.gone { border-color: rgba(255, 138, 106, 0.5); color: #ff9a78; }
+.ind-gate .ind-icon { background: var(--wool); }
+.ind-gate { color: var(--wool); }
+.ind-gate.on-screen .ind-label { padding: 2px 10px; border-radius: 999px; background: rgba(20, 16, 26, 0.6); color: #ffd0c4; text-shadow: none; font-size: 14px; }

@@ -702,6 +702,96 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
     root.add(stones);
   }
 
+  // A trial course: white gate posts with red flags, the handler's post with a crook, bunting
+  // strung along the field's edge near the post, and the show marquee.
+  if (level.gates.length || level.post) {
+    const white = new THREE.MeshLambertMaterial({ name: 'post_white', color: '#ece6d8', flatShading: true });
+    const red = new THREE.MeshLambertMaterial({ name: 'flag_red', color: '#c8402e', flatShading: true, side: THREE.DoubleSide });
+    const blue = new THREE.MeshLambertMaterial({ name: 'flag_blue', color: '#3a5c9a', flatShading: true, side: THREE.DoubleSide });
+    const yellow = new THREE.MeshLambertMaterial({ name: 'flag_yellow', color: '#e8b440', flatShading: true, side: THREE.DoubleSide });
+    const wood = a.structures.get('signpost') ? undefined : undefined;
+    void wood;
+    const postGeo = new THREE.CylinderGeometry(0.16, 0.2, 2.4, 6);
+    postGeo.translate(0, 1.2, 0);
+    const flagGeo = new THREE.BufferGeometry();
+    flagGeo.setAttribute('position', new THREE.Float32BufferAttribute([0, 2.35, 0, 1.1, 2.0, 0, 0, 1.6, 0], 3));
+    flagGeo.computeVertexNormals();
+    const course = new THREE.Group();
+    for (const gt of level.gates) {
+      for (const [x, z] of [
+        [gt.ax, gt.az],
+        [gt.bx, gt.bz],
+      ]) {
+        const y = g(x, z);
+        const p = new THREE.Mesh(postGeo, white);
+        p.position.set(x, y - 0.05, z);
+        p.castShadow = true;
+        const f = new THREE.Mesh(flagGeo, red);
+        f.position.set(x, y, z);
+        // Flags point away from the gate's middle.
+        f.rotation.y = Math.atan2(-(x - gt.x), -(z - gt.z)) + Math.PI / 2;
+        f.castShadow = true;
+        course.add(p, f);
+      }
+      // A low hurdle wing outside each post, so the gate reads as a gateway.
+      const dx = gt.bx - gt.ax;
+      const dz = gt.bz - gt.az;
+      const l = Math.hypot(dx, dz);
+      for (const [ox, oz, sgn] of [
+        [gt.ax, gt.az, -1],
+        [gt.bx, gt.bz, 1],
+      ] as const) {
+        const hx = ox + (dx / l) * 1.6 * sgn;
+        const hz = oz + (dz / l) * 1.6 * sgn;
+        const hurdle = new THREE.Mesh(new THREE.BoxGeometry(3, 0.12, 0.12), white);
+        hurdle.geometry.userData.disposable = true;
+        hurdle.position.set(hx, g(hx, hz) + 0.7, hz);
+        hurdle.rotation.y = -Math.atan2(dz, dx);
+        hurdle.castShadow = true;
+        course.add(hurdle);
+      }
+    }
+    if (level.post) {
+      const { x, z } = level.post;
+      const y = g(x, z);
+      const p = new THREE.Mesh(postGeo, white);
+      p.position.set(x, y, z);
+      p.scale.set(0.8, 0.75, 0.8);
+      const crook = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.06, 5, 10, Math.PI * 1.3), new THREE.MeshLambertMaterial({ name: 'crook', color: '#7a5636', flatShading: true }));
+      crook.geometry.userData.disposable = true;
+      crook.position.set(x, y + 1.95, z + 0.1);
+      course.add(p, crook);
+      // The marquee: a striped tent beside the post, and bunting along the fence line.
+      const tent = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.BoxGeometry(9, 2.6, 6), white);
+      body.geometry.userData.disposable = true;
+      body.position.y = 1.3;
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(6.4, 3, 4, 1), red);
+      roof.geometry.userData.disposable = true;
+      roof.rotation.y = Math.PI / 4;
+      roof.scale.set(1.05, 1, 0.72);
+      roof.position.y = 4.1;
+      body.castShadow = roof.castShadow = true;
+      body.receiveShadow = true;
+      tent.add(body, roof);
+      tent.position.set(x + 34, g(x + 34, z + 14), z + 14);
+      course.add(tent);
+      level.circles.push({ x: x + 34, z: z + 14, r: 5.2 });
+      const flagMats = [red, blue, yellow, white];
+      const pennant = new THREE.BufferGeometry();
+      pennant.setAttribute('position', new THREE.Float32BufferAttribute([-0.35, 0, 0, 0.35, 0, 0, 0, -0.7, 0], 3));
+      pennant.computeVertexNormals();
+      for (let i = 0; i < 46; i++) {
+        const bx = x - 46 + i * 2;
+        const bz = z + 15 + Math.sin(i * 0.5) * 0.4;
+        const m = new THREE.Mesh(pennant, flagMats[i % 4]);
+        m.position.set(bx, g(bx, bz) + 3.2 - Math.abs(Math.sin((i % 8) * (Math.PI / 8))) * 0.6, bz);
+        course.add(m);
+      }
+    }
+    root.add(course);
+  }
+
   // Warm light from the lanterns at each gate once dusk falls, and a soft glow over the fold.
   const lanternLights = lamps.map((l) => {
     const light = new THREE.PointLight(0xffa24a, 0, 20, 2);

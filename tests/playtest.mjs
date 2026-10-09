@@ -84,6 +84,7 @@ log(`renderer: ${gl}`);
 await shot('title', 'title screen');
 
 report.assertions = [];
+const startClassic = () => page.evaluate((d) => window.__WG.classic(d), DIFF);
 const check = (name, ok, detail = '') => {
   report.assertions.push({ name, ok, detail });
   if (!ok) log(`ASSERTION FAILED: ${name} ${detail}`);
@@ -106,8 +107,8 @@ if (!flag('skip-menus')) {
 }
 
 if (flag('smoke')) {
-  // Quick check: title renders, Enter starts a day, a few seconds of play without errors.
-  await page.keyboard.press('Enter');
+  // Quick check: title renders, a classic day starts, a few seconds of play without errors.
+  await startClassic();
   await sleep(3000);
   const st = await state();
   check('smoke: playing', st.mode === 'playing', st.mode);
@@ -122,7 +123,7 @@ if (flag('smoke')) {
 async function playToEnd(runName, { botOn, scale, shotsAt }) {
   const run = { name: runName, events: [], outcome: null };
   report.runs.push(run);
-  await page.keyboard.press('Enter');
+  await startClassic();
   await sleep(1200);
   await page.evaluate((k) => window.__WG.setTimeScale(k), scale);
   const bot = new HerdBot(page);
@@ -238,7 +239,7 @@ if (!flag('skip-lose')) {
 
 // Latch scenario: meet the target, check the prompt, press Enter, expect a "latched" win.
 if (!flag('skip-latch')) {
-  await page.keyboard.press('Enter');
+  await startClassic();
   await page.evaluate(() => window.__WG.setTimeScale(1));
   await sleep(1000);
   const s0 = await state();
@@ -265,7 +266,7 @@ if (!flag('skip-latch')) {
 
 // Late-day look: a fresh day with the clock jumped to dusk and to the edge of night, bot herding.
 if (!flag('skip-late')) {
-  await page.keyboard.press('Enter');
+  await startClassic();
   await page.evaluate(() => window.__WG.setTimeScale(1));
   await sleep(1000);
   const bot = new HerdBot(page);
@@ -295,9 +296,54 @@ if (!flag('skip-late')) {
     await page.locator('.end-screen [data-act="title"]').click();
   }
   await sleep(400);
-  await page.locator('[data-act="play"]').click();
+  await page.locator('.title-screen [data-act="classic"]').click();
   await sleep(600);
   // End this day quickly so the title-button check below starts from an end screen.
+  await page.evaluate(() => window.__WG.setTimeScale(60));
+  await page.waitForFunction(() => window.__WG.state().mode === 'ended', null, { timeout: 60000 });
+  await page.evaluate(() => window.__WG.setTimeScale(1));
+}
+
+// The season: Enter on the title opens the map; every evening loads and plays a few seconds.
+if (!flag('skip-season')) {
+  const toTitle = page.locator('.end-screen [data-act="title"]');
+  // The results card follows the gate a moment after the day ends.
+  if ((await state()).mode === 'ended') await toTitle.waitFor({ state: 'visible', timeout: 6000 }).catch(() => {});
+  if (await toTitle.isVisible()) await toTitle.click();
+  await sleep(500);
+  await page.evaluate(() => window.__WG.progress('reset'));
+  await page.keyboard.press('Enter');
+  await sleep(700);
+  check('season: Enter on the title opens the season map', (await state()).screen === 'season', (await state()).screen);
+  check('season: evening 2 is locked at first', await page.locator('.ev.locked[data-arg="far-bank"]').isVisible());
+  await shot('season-map', 'the season map, fresh');
+  await page.evaluate(() => window.__WG.progress('all'));
+  await page.locator('.title-screen [data-act="season"]').isVisible();
+  await page.evaluate(() => window.__WG.evening('angus', false));
+  await sleep(800);
+  check('season: evening card opens', (await state()).screen === 'intro');
+  const charm = page.locator('.intro-card .charm.pick').first();
+  if (await charm.isVisible()) {
+    await charm.click();
+    await sleep(200);
+    check('season: a charm can be worn', await page.locator('.intro-card .charm.pick.on').isVisible());
+  } else check('season: charms offered with stars', false);
+  await shot('evening-card', 'an evening card with charms');
+  for (const id of ['long-light', 'far-bank', 'lambing', 'angus', 'night-watch', 'mist', 'storm', 'first-snow']) {
+    await page.evaluate((e) => window.__WG.evening(e, true), id);
+    await page.evaluate(() => window.__WG.setTimeScale(4));
+    await sleep(2500);
+    const st = await state();
+    check(`season: ${id} plays`, st.mode === 'playing' && st.evening === id && st.total > 0, `${st.mode} ${st.evening} ${st.total}`);
+    await shot(`evening-${id}`, `evening ${id} in play`);
+  }
+  await page.evaluate(() => window.__WG.setTimeScale(1));
+  await page.keyboard.press('Escape');
+  await sleep(300);
+  await page.locator('.pause-screen [data-act="title"]').click();
+  await sleep(400);
+  // End a classic day quickly so the title-button check below starts from an end screen.
+  await startClassic();
   await page.evaluate(() => window.__WG.setTimeScale(60));
   await page.waitForFunction(() => window.__WG.state().mode === 'ended', null, { timeout: 60000 });
   await page.evaluate(() => window.__WG.setTimeScale(1));

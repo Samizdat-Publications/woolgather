@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import hollowDef from '../../level/hollow.json';
 import lochDef from '../../level/loch.json';
 import passDef from '../../level/pass.json';
+import showDef from '../../level/show.json';
 import { GameAudio } from '../audio/audio';
 import { dawnTime, moodTime } from '../render/daycycle';
 import { QUALITY_TIERS, Stage, type Quality } from '../render/stage';
@@ -35,6 +36,7 @@ export const LEVELS: Record<string, LevelDef> = {
   hollow: hollowDef as unknown as LevelDef,
   loch: lochDef as unknown as LevelDef,
   pass: passDef as unknown as LevelDef,
+  show: showDef as unknown as LevelDef,
 };
 
 export interface GameOptions {
@@ -795,6 +797,11 @@ export class Game {
         let best: { x: number; z: number }[] | null = null;
         let bd = 42 * 42;
         const marks: { x: number; z: number }[][] = sim.watch ? [] : [[L.fold.mouth, L.fold.inside]];
+        if (sim.trial && sim.gateIdx < L.gates.length) {
+          const g = L.gates[sim.gateIdx];
+          marks.length = 0;
+          marks.push([{ x: g.ax, z: g.az }, { x: g.bx, z: g.bz }]);
+        }
         for (const b of L.bridges) marks.push([b]);
         for (const f of L.fords) if (f.open) marks.push([f]);
         for (const pts of marks) {
@@ -885,7 +892,12 @@ export class Game {
     const h = (x: number, z: number) => this.terrain.height(x, z);
     const f = this.level.fold;
     const out: Marker[] = [];
-    if (!sim.watch) {
+    const L = this.level;
+    if (sim.trial && sim.gateIdx < L.gates.length) {
+      const g = L.gates[sim.gateIdx];
+      out.push({ id: 'gate', kind: 'gate', x: g.x, y: h(g.x, g.z) + 2.6, z: g.z, labelOnScreen: g.name });
+    }
+    if (!sim.watch && !(sim.trial && sim.gateIdx < L.gates.length)) {
       const post = f.toWorld(-f.halfW - 0.6, -f.halfD * 0.5);
       const ins = f.toWorld(-f.halfW + 2, 0);
       out.push({
@@ -995,6 +1007,12 @@ export class Game {
           this.flashT = 0;
           this.stage.addShake(0.5);
           break;
+        case 'gate':
+          if (e.passed) {
+            p.ripple(e.x, e.z, 1, 6, 0.6);
+            p.heart(e.x, e.z);
+          }
+          break;
       }
     }
     for (const f of this.actors.footfalls) p.dust(f.x, f.z, f.dx, f.dz, f.size * (this.wx.snow > 0.5 ? 1.2 : 1));
@@ -1072,6 +1090,12 @@ export class Game {
           this.ui.toast('The stream has flooded: the ford is gone! Use the bridge', 'danger');
           this.ui.minimap.refresh();
           break;
+        case 'gate': {
+          const next = this.level.gates[e.index + 1];
+          if (e.passed) this.ui.toast(`Through the ${e.name.toLowerCase()}!${next ? ` Now the ${next.name.toLowerCase()}` : ' Now pen them'}`, 'good');
+          else this.ui.toast(`Missed the ${e.name.toLowerCase()}: -15 points`, 'warn');
+          break;
+        }
         default:
           break;
       }
