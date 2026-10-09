@@ -227,7 +227,8 @@ export class Ui {
       b.className = 'btn diff';
       b.dataset.diff = d.id;
       b.innerHTML = `<b>${d.label}</b><small>${d.blurb}</small>`;
-      b.addEventListener('click', () => this.setDifficulty(d.id));
+      // A second click on the chosen evening starts it.
+      b.addEventListener('click', () => (this.difficulty === d.id ? this.onAction('classic') : this.setDifficulty(d.id)));
       row.appendChild(b);
     }
     this.setDifficulty(this.difficulty);

@@ -218,9 +218,12 @@ export class Stage {
     this.zoom = this.zoomGoal = zoom;
   }
 
+  /** The player's own zoom (mouse wheel), on top of the automatic framing. */
+  userZoom = 1;
+
   setFocusGoal(x: number, y: number, z: number, zoom = 1) {
     this.focusGoal.set(x, y, z);
-    this.zoomGoal = zoom;
+    this.zoomGoal = zoom * this.userZoom;
     this.titleShot = false;
   }
 

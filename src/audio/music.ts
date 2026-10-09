@@ -1,9 +1,15 @@
 import { mtof, type AudioEngine } from './engine';
+import { Score, type ScoreScene } from './score';
 
 // Procedural folk score in 3/4: a tin-whistle melody over a plucked oom-pah-pah and a bagpipe-like
 // drone. Tunes are composed on the fly (AABA phrases from a pentatonic random walk that lands on
 // chord tones). The palette follows the evening: bright D major by day, D dorian at sunset, sparse
 // D minor by night. A heartbeat and tremolo strings rise with the wolves' threat.
+//
+// When the recorded score (score.ts, public/audio/music/) has loaded, it plays the music and this
+// keeps only its tension layer on top: the tune and the plucks fall silent, the drone only rises with
+// the wolves, and the strings swap their minor third for a second (D E A D) so they sit in both the
+// D major and the D minor beds. Without the recordings everything here plays exactly as before.
 
 export interface MusicState {
   /** Mood progress, 0 golden hour .. 1 night. */
@@ -12,7 +18,19 @@ export interface MusicState {
   tension: number;
   /** Playing, or under a menu (quieter, no tension layer). */
   playing: boolean;
+  /** For the recorded score: menus, play, pause or the results card. Without it, `playing` decides. */
+  mode?: ScoreScene;
+  /** The night watch (night to dawn): the recorded score stays on its dusk bed. */
+  watch?: boolean;
 }
+
+/** Tremolo strings (the tension chord) and the drone, as written for the synthesised score. */
+const STRINGS = [62, 65, 69, 74];
+/** The strings over the recorded score: the minor third becomes a second, fitting major and minor. */
+const STRINGS_SCORED = [62, 64, 69, 74];
+const DRONE = [38, 45, 50];
+/** Seconds the tune waits at start-up for the recordings before it plays anyway. */
+const SCORE_WAIT = 3;
 
 type Chord = number[];
 interface Palette {
@@ -89,8 +107,21 @@ export class Music {
   private leadOn = true;
   private state: MusicState = { mood: 0, tension: 0, playing: false };
   private seed = 1;
+  /** The recorded beds; once ready they replace the tune and the plucks. */
+  readonly score: Score;
+  /** Faders for the tune and the plucks (dry, and the whistle's reverb send). */
+  private melodyDry: GainNode | null = null;
+  private melodyWet: GainNode | null = null;
+  /** Context time the recorded score took over (the synth tune stops being scheduled soon after). */
+  private scoredAt = -1;
+  private startedAt = 0;
+  private strings: { osc: OscillatorNode; i: number }[] = [];
+  private drones: { osc: OscillatorNode; i: number }[] = [];
+  /** The voicing and shift the strings and drone are tuned to ('' until the first update). */
+  private tuning = '';
 
   constructor(private e: AudioEngine) {
+    this.score = new Score(e);
     e.onReady(() => this.start());
   }
 
@@ -102,6 +133,11 @@ export class Music {
 
   private start() {
     const ctx = this.e.ctx!;
+    this.startedAt = ctx.currentTime;
+    this.melodyDry = ctx.createGain();
+    this.melodyDry.connect(this.e.music);
+    this.melodyWet = ctx.createGain();
+    this.melodyWet.connect(this.e.reverb);
     // Drone: open fifth D2 + A2 on two detuned saws, very soft, through a dark filter.
     this.droneFilter = ctx.createBiquadFilter();
     this.droneFilter.type = 'lowpass';
@@ -110,18 +146,15 @@ export class Music {
     this.droneGain.gain.value = 0;
     this.droneFilter.connect(this.droneGain);
     this.droneGain.connect(this.e.music);
-    for (const [m, det] of [
-      [38, -4],
-      [45, 3],
-      [50, 5],
-    ] as const) {
+    DRONE.forEach((m, i) => {
       const o = ctx.createOscillator();
       o.type = 'sawtooth';
       o.frequency.value = mtof(m);
-      o.detune.value = det;
-      o.connect(this.droneFilter);
+      o.detune.value = [-4, 3, 5][i];
+      o.connect(this.droneFilter!);
       o.start();
-    }
+      this.drones.push({ osc: o, i });
+    });
     // Tension: tremolo strings (D minor triad) and a heartbeat scheduled with the beat.
     this.stringsGain = ctx.createGain();
     this.stringsGain.gain.value = 0;
@@ -140,7 +173,7 @@ export class Music {
     trem.connect(lp);
     lp.connect(this.stringsGain);
     this.stringsGain.connect(this.e.music);
-    for (const m of [62, 65, 69, 74]) {
+    STRINGS.forEach((m, i) => {
       for (const det of [-6, 6]) {
         const o = ctx.createOscillator();
         o.type = 'sawtooth';
@@ -148,8 +181,9 @@ export class Music {
         o.detune.value = det;
         o.connect(trem);
         o.start();
+        this.strings.push({ osc: o, i });
       }
-    }
+    });
     this.tensionGain = ctx.createGain();
     this.tensionGain.gain.value = 0;
     this.tensionGain.connect(this.e.music);
@@ -165,18 +199,54 @@ export class Music {
     this.compose();
     this.beat = 0;
     this.beatTime = (this.e.ctx?.currentTime ?? 0) + 0.3;
+    this.score.newDay();
+  }
+
+  /** The evening's result, for the recorded score. True if a recorded win phrase will play. */
+  outcome(win: boolean): boolean {
+    return this.score.outcome(win);
   }
 
   update(s: MusicState) {
     this.state = s;
+    this.score.update({ scene: s.mode ?? (s.playing ? 'playing' : 'title'), mood: s.mood, tension: s.playing ? s.tension : 0, watch: !!s.watch });
     const ctx = this.e.ctx;
-    if (!ctx || !this.droneGain || !this.droneFilter || !this.stringsGain || !this.tensionGain) return;
+    if (!ctx || !this.droneGain || !this.droneFilter || !this.stringsGain || !this.tensionGain || !this.melodyDry || !this.melodyWet) return;
     const t = ctx.currentTime;
     const tension = s.playing ? s.tension : 0;
-    this.droneGain.gain.setTargetAtTime(0.02 + 0.012 * s.mood, t, 0.8);
+    const scored = this.score.ready;
+    if (scored && this.scoredAt < 0) {
+      // The recordings take over: the tune and the plucks fade out under the incoming bed.
+      this.scoredAt = t;
+      for (const g of [this.melodyDry, this.melodyWet]) g.gain.setTargetAtTime(0, t, 0.6);
+    }
+    this.retune(t, scored);
+    // Over the recordings the drone belongs to the tension layer: it only rises with the wolves.
+    this.droneGain.gain.setTargetAtTime(scored ? 0.03 * tension : 0.02 + 0.012 * s.mood, t, 0.8);
     this.droneFilter.frequency.setTargetAtTime(340 - 140 * s.mood, t, 1);
     this.stringsGain.gain.setTargetAtTime(0.022 * tension, t, 0.4);
     this.tensionGain.gain.setTargetAtTime(0.9 * tension, t, 0.3);
+  }
+
+  /** Tune the strings and drone for the synthesised score, or into the key of the recorded beds. */
+  private retune(t: number, scored: boolean) {
+    const shift = scored ? this.score.tensionShift : 0;
+    const key = `${scored ? 's' : 'p'}${shift}`;
+    if (key === this.tuning) return;
+    // The first tuning is the one the oscillators were built with; later ones glide.
+    const glide = this.tuning !== '';
+    this.tuning = key;
+    if (!glide && !scored) return;
+    const chord = scored ? STRINGS_SCORED : STRINGS;
+    for (const { osc, i } of this.strings) osc.frequency.setTargetAtTime(mtof(chord[i] + shift), t, 0.4);
+    for (const { osc, i } of this.drones) osc.frequency.setTargetAtTime(mtof(DRONE[i] + shift), t, 0.4);
+  }
+
+  /** The synthesised tune and plucks: off once the recordings have taken over, and briefly at
+   * start-up while they load (so the two never overlap for a moment). */
+  private tuneOn(t: number) {
+    if (this.scoredAt >= 0) return t < this.scoredAt + 2.5;
+    return this.score.settled || t > this.startedAt + SCORE_WAIT;
   }
 
   dispose() {
@@ -257,8 +327,11 @@ export class Music {
     const chord = p.chords[barInTune % p.chords.length];
     const beatLen = 60 / p.tempo;
 
+    const tune = this.tuneOn(t);
     // Accompaniment: bass on the downbeat, the upper chord tones on beats 2 and 3.
-    if (beatInBar === 0) {
+    if (!tune) {
+      // The recorded score is playing (or loading): no tune, only the heartbeat below.
+    } else if (beatInBar === 0) {
       this.pluck(chord[0], t, 0.09, beatLen * 2.5);
     } else {
       this.pluck(chord[2], t, 0.045, beatLen * 1.2);
@@ -266,7 +339,7 @@ export class Music {
     }
 
     // Melody: AABA over 16 bars.
-    if (this.leadOn) {
+    if (this.leadOn && tune) {
       const section = Math.floor(barInTune / 4);
       const phrase = section === 2 ? this.phraseB : this.phraseA;
       const local = beat % 12;
@@ -293,7 +366,7 @@ export class Music {
     f.frequency.setValueAtTime(2600, t);
     f.frequency.exponentialRampToValueAtTime(420, t + 0.3);
     f.connect(g);
-    g.connect(this.e.music);
+    g.connect(this.melodyDry!);
     const o = ctx.createOscillator();
     o.type = 'triangle';
     o.frequency.value = mtof(midi);
@@ -310,11 +383,11 @@ export class Music {
     g.gain.linearRampToValueAtTime(level, t + 0.04);
     g.gain.setValueAtTime(level * 0.85, t + Math.max(0.05, dur - 0.08));
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.1);
-    g.connect(this.e.music);
+    g.connect(this.melodyDry!);
     const send = ctx.createGain();
     send.gain.value = 0.35;
     g.connect(send);
-    send.connect(this.e.reverb);
+    send.connect(this.melodyWet!);
     // Vibrato blooms after the attack, as a player would lean into a held note.
     const vib = ctx.createGain();
     vib.gain.setValueAtTime(0, t);
@@ -351,7 +424,7 @@ export class Music {
     ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
     n.connect(nb);
     nb.connect(ng);
-    ng.connect(this.e.music);
+    ng.connect(this.melodyDry!);
     n.start(t, Math.random(), 0.2);
   }
 

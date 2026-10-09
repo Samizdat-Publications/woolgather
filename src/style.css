@@ -287,8 +287,8 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .ind { position: absolute; left: 0; top: 0; width: 0; height: 0; }
 .ind-arrow { position: absolute; left: -30px; top: -30px; width: 60px; height: 60px; }
 .ind-arrow svg { width: 100%; height: 100%; overflow: visible; }
-.ind-icon { position: absolute; left: -15px; top: -15px; width: 30px; height: 30px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px rgba(20, 16, 26, 0.55); display: grid; place-items: center; }
-.ind-icon svg { width: 22px; height: 22px; }
+.ind-icon { position: absolute; left: -18px; top: -18px; width: 36px; height: 36px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px rgba(20, 16, 26, 0.55); display: grid; place-items: center; }
+.ind-icon svg { width: 26px; height: 26px; }
 .ind-wolf .ind-icon, .ind-grab .ind-icon { border-radius: 8px; transform: rotate(45deg); }
 .ind-wolf .ind-icon svg, .ind-grab .ind-icon svg { transform: rotate(-45deg); }
 .ind-label { position: absolute; left: 50%; top: -44px; transform: translateX(-50%); white-space: nowrap; font-weight: 800; text-shadow: 0 1px 3px #000; }

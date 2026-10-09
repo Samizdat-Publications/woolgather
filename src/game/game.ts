@@ -124,6 +124,15 @@ export class Game {
     if (opts.difficulty) this.ui.setDifficulty(opts.difficulty);
     this.ui.onAction = (a, arg) => this.onUi(a, arg);
     this.ui.bindSound(this.audio.engine.settings, () => this.audio.engine.apply());
+    // The mouse wheel pulls the herding camera in or out a little.
+    window.addEventListener(
+      'wheel',
+      (e) => {
+        if (this.mode !== 'playing') return;
+        this.stage.userZoom = Math.max(0.7, Math.min(1.35, this.stage.userZoom * (e.deltaY > 0 ? 1.06 : 1 / 1.06)));
+      },
+      { passive: true },
+    );
     this.qualityMode = opts.quality ?? loadQuality();
     this.stage.setQuality(this.qualityMode === 'auto' ? 'high' : this.qualityMode);
     this.ui.bindQuality(
