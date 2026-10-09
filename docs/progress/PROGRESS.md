@@ -541,3 +541,42 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Final: every sheep home, Pip at the fold](m5-close-win-end.png)
 *Final: every sheep home, Pip at the fold*
 
+
+## season-day1 (2026-10-09)
+
+![The season map: nine evenings and today's evening in the spare slot](season-day1-d1-map.png)
+*The season map: nine evenings and today's evening in the spare slot*
+
+![Today's evening: a new one every day, made from the date](season-day1-d2-intro.png)
+*Today's evening: a new one every day, made from the date*
+
+![Flanking (hold X): Pip runs round the flock without pushing it](season-day1-f2-flank.png)
+*Flanking (hold X): Pip runs round the flock without pushing it*
+
+![The low view: the mouse wheel all the way in](season-day1-t6-tilt-full.png)
+*The low view: the mouse wheel all the way in*
+
+![The low view near the forest edge, trees cut away](season-day1-d3-lowview-forest.png)
+*The low view near the forest edge, trees cut away*
+
+![Old Angus the ram, named on his first appearance](season-day1-r4-angus.png)
+*Old Angus the ram, named on his first appearance*
+
+![The Glenbrae Trial: a mown show field and a gold line across the next gate](season-day1-t5-show-mid.png)
+*The Glenbrae Trial: a mown show field and a gold line across the next gate*
+
+![Loch Ailsa's greener machair](season-day1-g1-loch.png)
+*Loch Ailsa's greener machair*
+
+![Mist on the Moor: banks of mist with a clear area round Pip](season-day1-m2-mist-dusk.png)
+*Mist on the Moor: banks of mist with a clear area round Pip*
+
+![The Storm: the flooded burn runs peat-brown](season-day1-t4-storm.png)
+*The Storm: the flooded burn runs peat-brown*
+
+![First Snow at the High Pass](season-day1-pass-fold.png)
+*First Snow at the High Pass*
+
+![Night Watch: the flock bedded down by the loch](season-day1-n1-watch.png)
+*Night Watch: the flock bedded down by the loch*
+
