@@ -76,5 +76,5 @@
     {"kind": "crag_b", "at": [90, -6], "angle": -10, "scale": 0.85},
     {"kind": "standing_stone", "at": [-46, 12], "angle": 0, "scale": 1.1}
   ],
-  "cover": {"heather": 2.2, "bracken": 1.4, "flowers": 0.4, "stones": 1.6}
+  "cover": {"heather": 1.6, "bracken": 0.5, "flowers": 0.4, "stones": 1.6}
 }

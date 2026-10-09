@@ -87,5 +87,5 @@
     {"kind": "cairn", "at": [62, -30]},
     {"kind": "stell", "at": [-48, 74], "angle": 90}
   ],
-  "cover": {"flowers": 3.2, "heather": 0.12, "bracken": 0.15, "stones": 0.4, "sand": 0.85}
+  "cover": {"flowers": 2.2, "heather": 0.12, "bracken": 0.15, "stones": 0.4, "sand": 0.85}
 }

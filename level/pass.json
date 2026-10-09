@@ -92,6 +92,6 @@
     {"kind": "standing_stone", "at": [44, 30], "angle": 15, "scale": 1.2},
     {"kind": "peat_hag", "at": [98, -44], "angle": 10}
   ],
-  "cover": {"stones": 4, "heather": 0.6, "flowers": 0.5},
+  "cover": {"stones": 2.5, "heather": 0.6, "flowers": 0.5},
   "ground": {"grassA": "#8a9a5e", "grassB": "#98a468", "dry": "#a8a888", "lush": "#77895a"}
 }

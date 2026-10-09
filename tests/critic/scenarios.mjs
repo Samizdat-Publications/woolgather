@@ -139,6 +139,7 @@ export const scenarios = {
       ['angus', 100, 'evening-4-angus', (s) => s.sheep?.some((q) => q.kind === 'ram' && dist(q, s.dog) < 18)],
       ['mist', 80, 'evening-6-mist', (s) => s.elapsed > 40],
       ['storm', 100, 'evening-7-storm', (s) => s.elapsed > 45],
+      ['gather', 70, 'evening-9-gather', (s) => s.elapsed > 35],
       ['first-snow', 90, 'evening-8-snow', (s) => s.elapsed > 40],
     ];
     // Lambing Time is played with Old Fly along: the player sends her to hold a spot, then calls her back.

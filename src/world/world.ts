@@ -682,8 +682,8 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
   const patch = (x: number, z: number, k: number) => Math.sin(x * 0.083 + k) * Math.cos(z * 0.097 - k * 0.7) + Math.sin((x + z) * 0.041 + k * 2.1) * 0.5;
   const band = (x: number, z: number) =>
     (L.heather ?? []).some((b) => (b.maxX === undefined || x < b.maxX) && (b.minX === undefined || x > b.minX) && (b.maxZ === undefined || z < b.maxZ) && (b.minZ === undefined || z > b.minZ));
-  // A heather moor (cover.heather 2 or more) has heather all over, not only up the hillsides.
-  const upland = (x: number, z: number) => cov.heather >= 2 || band(x, z) || level.boundaryDistance(x, z) < 18;
+  // A heather moor (cover.heather 1.5 or more) has heather all over, not only up the hillsides.
+  const upland = (x: number, z: number) => cov.heather >= 1.5 || band(x, z) || level.boundaryDistance(x, z) < 18;
   const hill = (x: number, z: number) => upland(x, z) && grassTest(x, z) && patch(x, z, 0.3) > 0.1;
   add('heather', scatter((season === 'heather' ? 640 : 460) * cov.heather, hill, [0.9, 1.6]));
   const fern = (x: number, z: number) => upland(x, z) && grassTest(x, z) && patch(x, z, 2.2) > 0.35;
