@@ -91,4 +91,9 @@ export interface LevelDef {
   trial?: { gates: { name: string; a: XZ; b: XZ }[]; post: XZ };
   /** The title shot's camera focus and swing for this level. */
   titleShot?: { x: number; z: number; angle: number };
+  /**
+   * The place's own ground colours over the season's (not in snow), so places differ: a lush
+   * machair by the loch, a brown heather moor in the corrie.
+   */
+  ground?: { grassA?: string; grassB?: string; dry?: string; lush?: string; heatherAmt?: number };
 }

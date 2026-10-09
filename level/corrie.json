@@ -61,5 +61,6 @@
     "noiseSeed": 57
   },
   "heather": [{ "maxZ": -36 }, { "maxX": -70 }, { "minX": 76 }],
+  "ground": { "grassA": "#909c56", "grassB": "#a2a05e", "dry": "#b49a66", "lush": "#78884a", "heatherAmt": 1 },
   "titleShot": { "x": 0, "z": -6, "angle": 1.35 }
 }

@@ -165,7 +165,7 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
   const at = (ix: number, iz: number) => data[clamp(iz, 0, nz - 1) * nx + clamp(ix, 0, nx - 1)];
 
   // ---------------------------------------------------------------- colours
-  const P = PALETTES[season];
+  const P: Palette = season === 'winter' ? PALETTES[season] : { ...PALETTES[season], ...def.ground };
   const C = {
     a: col(P.grassA), b: col(P.grassB), dry: col(P.dry), lush: col(P.lush), worn: col(P.worn), mud: col(P.mud), straw: col(P.straw),
     heather: col(P.heather), bed: col(P.bed), foldFloor: col(P.foldFloor), yard: col(P.yard), forest: col(P.forest), forestDeep: col(P.forestDeep),
