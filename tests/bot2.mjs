@@ -672,6 +672,33 @@ export class HerdBot2 {
   route(dog, target, opts = {}) {
     const nav = this.nav;
     const allowFold = !!opts.allowFold;
+    // A target inside a wall or a rock (a drive point just behind a flock pressed against a field
+    // wall) has no path: Pip would push at it from the wrong side forever. Use the nearest open cell.
+    if (nav.cells[nav.cellOf(target.x, target.z)] === 2) {
+      const ti = nav.cellOf(target.x, target.z);
+      const tx = ti % nav.nx;
+      const tz = (ti / nav.nx) | 0;
+      let best = null;
+      let bd = Infinity;
+      for (let r = 1; r <= 6 && !best; r++) {
+        for (let dz = -r; dz <= r; dz++) {
+          for (let dx = -r; dx <= r; dx++) {
+            const x = tx + dx;
+            const z = tz + dz;
+            if (x < 0 || z < 0 || x >= nav.nx || z >= nav.nz) continue;
+            const i = z * nav.nx + x;
+            if (nav.cells[i] === 2) continue;
+            const p = nav.pos(i);
+            const d = Math.hypot(p.x - target.x, p.z - target.z) + 0.3 * Math.hypot(p.x - dog.x, p.z - dog.z);
+            if (d < bd) {
+              bd = d;
+              best = p;
+            }
+          }
+        }
+      }
+      if (best) target = best;
+    }
     if (nav.dogLine(dog, target, allowFold)) {
       this.dogPath = null;
       return { p: target, via: 'line' };

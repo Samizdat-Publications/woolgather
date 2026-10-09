@@ -222,6 +222,7 @@ export class Ui {
             <span class="lg">${legendIcon('grab')}sheep in a wolf's jaws</span>
           </div>
         </div>
+        <p class="howto-credits">Sound effects and music made with ElevenLabs. Fonts: Fraunces and Nunito (SIL Open Font License).</p>
         <button class="btn primary" data-act="close-howto">Got it <kbd>Enter</kbd></button>
       </div></div>
     `;

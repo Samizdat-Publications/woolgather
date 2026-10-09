@@ -34,7 +34,7 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'hollow',
       objective: 'gather',
-      dayLength: 140,
+      dayLength: 110,
       target: 7,
       wolfStart: 0.12,
       maxWolves: 1,
@@ -62,7 +62,7 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'hollow',
       objective: 'gather',
-      dayLength: 205,
+      dayLength: 140,
       target: 9,
       wolfStart: 0.2,
       maxWolves: 2,
@@ -90,7 +90,7 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'loch',
       objective: 'gather',
-      dayLength: 235,
+      dayLength: 160,
       target: 13,
       wolfStart: 0.2,
       maxWolves: 2,
@@ -119,7 +119,7 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'corrie',
       objective: 'gather',
-      dayLength: 230,
+      dayLength: 185,
       target: 10,
       wolfStart: 0.18,
       maxWolves: 2,
@@ -152,7 +152,7 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'show',
       objective: 'trial',
-      dayLength: 160,
+      dayLength: 120,
       target: 5,
       wolfStart: null,
       maxWolves: 0,
@@ -179,10 +179,10 @@ export const SEASON: Evening[] = [
       dayLength: 240,
       target: 11,
       wolfStart: 0.03,
-      maxWolves: 6,
+      maxWolves: 7,
       pack: 'full',
       wolfRespawn: [4, 7],
-      wolfSpeedScale: 1,
+      wolfSpeedScale: 1.12,
       flock: [{ at: 'promontory', ewes: 9, lambs: 3 }],
       dogStart: [-8, 36],
       weather: 'clear',
@@ -202,7 +202,7 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'pass',
       objective: 'gather',
-      dayLength: 370,
+      dayLength: 330,
       target: 11,
       wolfStart: 0.2,
       maxWolves: 2,
@@ -230,7 +230,7 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'hollow',
       objective: 'gather',
-      dayLength: 300,
+      dayLength: 240,
       target: 11,
       wolfStart: 0.2,
       maxWolves: 3,
@@ -262,7 +262,7 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'pass',
       objective: 'gather',
-      dayLength: 520,
+      dayLength: 480,
       target: 18,
       wolfStart: 0.2,
       maxWolves: 3,

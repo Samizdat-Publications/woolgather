@@ -46,7 +46,7 @@ await page.waitForFunction(() => !!window.__WG, null, { timeout: 120000 });
 await page.waitForTimeout(1500);
 await page.evaluate(() => window.__WG.progress('all'));
 const rows = [];
-for (const id of ['long-light', 'far-bank', 'lambing', 'angus', 'show', 'night-watch', 'mist', 'storm', 'first-snow']) {
+for (const id of ['long-light', 'far-bank', 'lambing', 'angus', 'show', 'night-watch', 'mist', 'storm', 'gather', 'first-snow']) {
   await page.evaluate((e) => window.__WG.evening(e, true), id);
   await page.waitForTimeout(3500);
   // Walk Pip towards the nearest flock for a moment so the camera moves.

@@ -91,3 +91,17 @@ the intro card's charm descriptions moved to a tooltip, the moon badge no longer
 Wolf Moon gate: the expert won all ten, so the tier was made harder (now 7 of 10 for the expert,
 target never the whole flock). Packs now pair with any lone wolf stalking within 70 m of Pip (only
 three formed in the whole r05 capture).
+
+## Balance passes 4-6 (20:00-21:00)
+
+- Pass 4 (after the stall fixes: sheep follow through gates, slide round short hurdles): the
+  average bot won 18 of 20, so the fixes that made herding less frustrating also took the slack
+  out of the difficulty. Pass 5 set each evening's length near the average bot's finishing time:
+  average 14 of 20, expert 9 of 10. Pass 6 trims Lambing Time and the trial and lets night-watch
+  wolves strike again sooner (the average bot never lost the watch).
+- Bot fix: a drive point inside a wall's blocked band (a flock pressed against a field wall) had
+  no path, and the expert pushed at it from the wrong side of the wall until nightfall; it now
+  steers to the nearest open cell. That was the expert's Long Light loss in passes 4 and 5.
+- Landing page: a "season on the hill" section (ten evening cards with stills from
+  `tests/season-stills.mjs`, Wolf Moon, charms, today's evening); ElevenLabs credit on the site and
+  on the in-game how-to card.

@@ -1498,3 +1498,79 @@ kbd {
     padding: 14px 16px 16px;
   }
 }
+
+/* ------------------------------------------------------------------ the season */
+
+.season {
+  padding: clamp(90px, 14vh, 150px) 0 40px;
+  border-bottom: 1px solid var(--line);
+}
+.season-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 18px;
+}
+.sc {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.sc img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 14px 14px 0 0;
+}
+.sc-text {
+  padding: 14px 18px 20px;
+}
+.sc-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  color: var(--wool-3);
+  font-size: 14px;
+  font-weight: 700;
+}
+.sc-num {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--wool-3);
+  font-size: 12px;
+}
+.sc h3 {
+  font-size: 23px;
+  margin: 0 0 6px;
+}
+.sc p:last-child {
+  margin: 0;
+  color: var(--wool-2);
+  font-size: 16px;
+}
+.season-extras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+.sx {
+  padding: 22px 24px;
+}
+.sx h3 {
+  font-size: 22px;
+  margin: 0 0 8px;
+  color: var(--gold-hi);
+}
+.sx p {
+  margin: 0;
+  color: var(--wool-2);
+}

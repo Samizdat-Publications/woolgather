@@ -1311,6 +1311,22 @@ export class Sim {
       const str = g.tag === 'boundary' ? 3 : g.tag === 'rail' ? 0.8 : 2;
       x += (dx / dd) * k * str;
       z += (dz / dd) * k * str;
+      if (g.tag !== 'boundary' && g.tag !== 'rail' && g.tag !== 'field' && (g.bx - g.ax) ** 2 + (g.bz - g.az) ** 2 < 12 * 12) {
+        // Slide along a short wall, fence or hurdle towards its nearer end (the way the sheep is already
+        // heading along it, else the shorter way round): pressed straight into it, a driven flock
+        // ground against the fence instead of flowing round it.
+        const lx = g.bx - g.ax;
+        const lz = g.bz - g.az;
+        const ll = Math.hypot(lx, lz) || 1;
+        const tx = lx / ll;
+        const tz = lz / ll;
+        const along = s.vx * tx + s.vz * tz;
+        const toB = Math.hypot(g.bx - s.x, g.bz - s.z);
+        const toA = Math.hypot(g.ax - s.x, g.az - s.z);
+        const side = Math.abs(along) > 0.3 ? Math.sign(along) : toB < toA ? 1 : -1;
+        x += tx * side * k * str * 0.9;
+        z += tz * side * k * str * 0.9;
+      }
     }
     // Water: sheep refuse to step in except on a bridge or at an open ford.
     if (!L.crossingAt(s.x, s.z) && !approach) {
@@ -1916,7 +1932,7 @@ export class Sim {
         tz = sz / sd;
         speed = WOLF.chargeSpeed * spd;
         if (sd < WOLF.grabRange + s.r && !this.wolves.some((o) => o !== w && o.state === 'drag')) {
-          this.snatchCd = this.watch ? 7 : 12;
+          this.snatchCd = this.watch ? 4 : 12;
           w.state = 'drag';
           w.stateT = 0;
           s.state = 'grabbed';
