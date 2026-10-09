@@ -25,6 +25,11 @@ export class Input {
   creep = false;
   /** Lie down (held): Pip drops flat and the flock stops. */
   lie = false;
+  /**
+   * Flank (held): Pip runs round the nearest flock at the edge of its flight zone, clockwise
+   * ("come bye", 1) or anticlockwise ("away", -1) as seen on screen; 0 = steer by hand.
+   */
+  flank = 0;
   /** Last input device, so prompts can show the right glyphs. */
   device: 'keyboard' | 'gamepad' = 'keyboard';
 
@@ -86,6 +91,7 @@ export class Input {
     let sprint = this.held.has('ShiftLeft') || this.held.has('ShiftRight');
     let creep = this.held.has('KeyC');
     let lie = this.held.has('KeyQ');
+    let flank = (this.held.has('KeyX') ? 1 : 0) - (this.held.has('KeyZ') ? 1 : 0);
 
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (const pad of pads) {
@@ -106,6 +112,8 @@ export class Input {
       if (pressed(7) || pressed(5)) sprint = true;
       if (pressed(6) || pressed(4)) creep = true;
       if (pressed(1)) lie = true;
+      if (pressed(15)) flank = 1;
+      if (pressed(14)) flank = -1;
       if (edge(0) || edge(2)) this.edges.add('bark');
       if (edge(9)) this.edges.add('pause');
       if (edge(3)) this.edges.add('latch');
@@ -136,12 +144,14 @@ export class Input {
       sprint = false;
       creep = false;
       lie = false;
+      flank = 0;
     }
     this.moveX = mx;
     this.moveZ = mz;
     this.sprint = sprint;
     this.creep = creep;
     this.lie = lie;
+    this.flank = flank;
   }
 
   pressed(e: Edge) {

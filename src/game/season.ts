@@ -56,7 +56,7 @@ export const SEASON: Evening[] = [
     when: 'Midsummer',
     place: 'Hollow Valley',
     story: 'Half the flock has wandered over the stream. Sheep will not swim: bring them back over the bridge or through the shallow ford.',
-    newThing: { tip: 'Sheep will not swim: drive them straight at the bridge or the ford', title: 'Crossings', text: 'Drive the flock straight at the bridge or the ford and it files across. Pip can wade anywhere; the sheep cannot.' },
+    newThing: { tip: 'Sheep will not swim: drive them straight at the bridge or the ford · hold Z or X to run round a flock', title: 'Crossings', text: 'Drive the flock straight at the bridge or the ford and it files across. Pip can wade anywhere; the sheep cannot. To get behind a flock without pushing it, hold Z or X: Pip runs round it.' },
     ribbon: { title: 'Daylight to spare: win with a minute left', check: (s) => s.timeLeft >= 60 },
     rules: {
       levelId: 'hollow',

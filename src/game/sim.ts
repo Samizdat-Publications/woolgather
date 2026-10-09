@@ -26,6 +26,8 @@ export interface Dog extends Body {
   loping: boolean;
   /** Lying down: flat and still; the flock stops and settles. */
   lying: boolean;
+  /** Flanking round a flock: 1 clockwise ("come bye"), -1 anticlockwise ("away"), 0 not. */
+  flanking: number;
 }
 
 export type SheepState = 'graze' | 'walk' | 'alert' | 'flee' | 'panic' | 'grabbed' | 'folded' | 'lost' | 'hidden';
@@ -202,6 +204,7 @@ export class Sim {
       stunT: 0,
       loping: false,
       lying: false,
+      flanking: 0,
     };
 
     // The flock is placed from its own seed, so an evening starts the same way every time.
@@ -383,14 +386,69 @@ export class Sim {
 
   // ---------------------------------------------------------------- dog
 
+  /**
+   * The way to run to flank the nearest flock: round its middle (clockwise on screen for "come
+   * bye", anticlockwise for "away"), easing out to just beyond the distance at which the sheep
+   * would move, so the run turns them without pushing them. Null if no flock is near.
+   */
+  private flankDir(dir: number) {
+    const d = this.dog;
+    let near: Sheep | null = null;
+    let nd = 60 * 60;
+    for (const s of this.sheep) {
+      if (!this.isFree(s)) continue;
+      const dd = (s.x - d.x) ** 2 + (s.z - d.z) ** 2;
+      if (dd < nd) {
+        nd = dd;
+        near = s;
+      }
+    }
+    if (!near) return null;
+    let cx = 0;
+    let cz = 0;
+    let n = 0;
+    for (const s of this.sheep) {
+      if (!this.isFree(s) || (s.x - near.x) ** 2 + (s.z - near.z) ** 2 > 14 * 14) continue;
+      cx += s.x;
+      cz += s.z;
+      n++;
+    }
+    cx /= n;
+    cz /= n;
+    const rx = d.x - cx;
+    const rz = d.z - cz;
+    const r = Math.hypot(rx, rz) || 1;
+    const ux = rx / r;
+    const uz = rz / r;
+    // The flock's own spread plus the moving dog's reach, and a little to spare.
+    let spread = 0;
+    for (const s of this.sheep) if (this.isFree(s) && (s.x - near.x) ** 2 + (s.z - near.z) ** 2 <= 14 * 14) spread = Math.max(spread, Math.hypot(s.x - cx, s.z - cz));
+    const want = spread + (d.sprinting ? SHEEP.threatRadiusSprint : SHEEP.threatRadius) + 2;
+    const radial = clamp((want - r) / 4, -1, 1);
+    // Clockwise on screen (x right, z down the screen) is (-uz, ux).
+    const tx = -uz * dir + ux * radial * 1.3;
+    const tz = ux * dir + uz * radial * 1.3;
+    const tl = Math.hypot(tx, tz) || 1;
+    return { x: tx / tl, z: tz / tl };
+  }
+
   private updateDog(dt: number, input: Input | null) {
     const d = this.dog;
     const P = this.perks;
     const stunned = d.stunT > 0;
     d.stunT = Math.max(0, d.stunT - dt);
     d.lying = !stunned && !!input?.lie;
-    const mx = stunned || d.lying ? 0 : (input?.moveX ?? 0);
-    const mz = stunned || d.lying ? 0 : (input?.moveZ ?? 0);
+    let mx = stunned || d.lying ? 0 : (input?.moveX ?? 0);
+    let mz = stunned || d.lying ? 0 : (input?.moveZ ?? 0);
+    d.flanking = 0;
+    if (!stunned && !d.lying && input?.flank) {
+      const f = this.flankDir(input.flank);
+      if (f) {
+        mx = f.x;
+        mz = f.z;
+        d.flanking = input.flank;
+      }
+    }
     const mag = Math.hypot(mx, mz);
     d.creeping = !stunned && !d.lying && !!input?.creep;
     if (d.stamina <= 0) d.sprintLock = true;

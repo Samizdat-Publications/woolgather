@@ -84,6 +84,7 @@ export class Ui {
           <div class="meter"><span class="meter-label">Stamina <kbd>Shift</kbd></span><div class="stamina"><div class="stamina-fill"></div></div></div>
           <div class="creep-pip"><span>Creep <kbd>C</kbd></span></div>
           <div class="creep-pip lie-pip"><span>Lie down <kbd>Q</kbd></span></div>
+          <div class="creep-pip flank-pip"><span>Flank <kbd>Z</kbd><kbd>X</kbd></span></div>
           <div class="bark-pip"><div class="bark-fill"></div><span>Bark <kbd>Space</kbd></span></div>
         </div>
         <div class="hud-hint"></div>
@@ -186,13 +187,14 @@ export class Ui {
               <dt><kbd>Shift</kbd></dt><dd>sprint (uses stamina)</dd>
               <dt><kbd>C</kbd></dt><dd>hold to creep: sheep stay calm until you are close</dd>
               <dt><kbd>Q</kbd></dt><dd>hold to lie down: Pip drops flat and the flock stops</dd>
+              <dt><kbd>Z</kbd> <kbd>X</kbd></dt><dd>hold to flank: Pip runs round the nearest flock without pushing it ("away" anticlockwise, "come bye" clockwise)</dd>
               <dt><kbd>Space</kbd></dt><dd>bark: startles sheep, scares wolves off, moves a stubborn ram</dd>
               <dt><kbd>Enter</kbd></dt><dd>latch the gate once enough sheep are home</dd>
               <dt><kbd>Esc</kbd></dt><dd>pause</dd>
               <dt><kbd>M</kbd></dt><dd>sound on or off</dd>
               <dt><kbd>Wheel</kbd></dt><dd>zoom; all the way in, a low view across the valley</dd>
             </dl>
-            <div class="pad-line"><b>Gamepad:</b> left stick moves, RT sprints, LT creeps, B lies down, A barks, Y latches, Start pauses.</div>
+            <div class="pad-line"><b>Gamepad:</b> left stick moves, RT sprints, LT creeps, B lies down, d-pad left and right flank, A barks, Y latches, Start pauses.</div>
           </div>
           <div>
             <h3>Herding</h3>
@@ -625,6 +627,7 @@ export class Ui {
     st.classList.toggle('tired', d.sprintLock);
     $('.creep-pip', this.root).classList.toggle('on', d.creeping);
     $('.lie-pip', this.root).classList.toggle('on', d.lying);
+    $('.flank-pip', this.root).classList.toggle('on', d.flanking !== 0);
     const bark = $('.bark-pip', this.root);
     bark.classList.toggle('ready', d.barkCd <= 0);
     const reach = sim.barkRadius + 4;
