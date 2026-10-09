@@ -1063,3 +1063,8 @@ Newest at the bottom. Record every non-obvious choice.
   crowd two or three deep behind the trial's bunting (instanced bodies and heads, two draw calls),
   red and white hurdle wings on the trial gates, subtler mown stripes (read as smudges), and the
   corrie turned heather moor (heather bands over most of the hill, darker moor grass).
+- 2026-10-09: where a burn meets a loch, the loch's shore rule (ground within 12 m kept just above
+  the loch's level) lifted the burn's channel bed above its own lowered water: a dark slab across
+  the burn mouth at Loch Ailsa and an empty mud channel at the corrie lochan's outflow. Inside a
+  burn's channel the shore now carves down to below the loch instead; Loch Ailsa's burn ends just
+  inside the loch.

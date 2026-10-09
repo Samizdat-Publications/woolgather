@@ -102,8 +102,10 @@ Still open (worth the planning session):
   tier would answer it; a human playtest will say how hard the evenings really are.
 - **Sheep turn pink at sunset** (round 4): the 1.0 grade lets the fleece take the sunset's colour on
   purpose; two critics found it odd. A small change in the grade if wanted.
-- **A dark slab across the burn** in the night watch dawn shots (round 4): the loch level's bridge
-  seen at a low angle at the end card; worth a look.
+- **A dark slab across the burn** in the night watch dawn shots (round 4): fixed after round 4. The
+  loch's shore rule lifted the burn's channel bed above its own water where it runs into the loch
+  (and left an empty mud channel at the corrie lochan's outflow); burns now keep their channel
+  below the loch's level there.
 - **Stiff animal motion** (Gemini, both rounds): more squash, lean and fleece bounce in the
   procedural animation.
 - **Wolves come early** (Claude stills): the opposite of round 1's complaint, partly because the

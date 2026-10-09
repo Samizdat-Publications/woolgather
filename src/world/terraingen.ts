@@ -147,6 +147,9 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
       const q = level.lochQuery(x, z);
       if (q.d > 12) continue;
       if (q.d < 0) h = Math.min(h, l.level - 0.35 - 2.4 * smoothstep(0, 14, -q.d));
+      // A burn running in keeps its channel below the loch's level (the shore's floor lifted the
+      // channel bed through the water as a dark slab at the mouth).
+      else if (s.d < s.half + 1.2) h = Math.min(h, l.level - 0.35);
       else h = Math.max(l.level + 0.12, Math.min(h, l.level + 0.18 + q.d * 0.16 + 2 * smoothstep(4, 12, q.d)));
     }
     h -= 0.07 * (1 - smoothstep(0.8, 1.6, pathDist(x, z)));
