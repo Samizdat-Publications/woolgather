@@ -227,9 +227,10 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
       for (const pen of level.pens) {
         const l = pen.toLocal(x, z);
         if (Math.abs(l.x) < pen.halfW + 0.5 && Math.abs(l.z) < pen.halfD + 0.5) {
-          c.lerp(C.foldFloor, 0.8 + fbm(x / 3, z / 3, 1, 2) * 0.2);
-          c.lerp(C.mud, smoothstep(0.1, 0.45, fbm(x / 2.2, z / 2.2, 2, 12.1)) * 0.7);
-          c.lerp(C.straw, smoothstep(0.2, 0.55, fbm(x / 1.3, z / 1.3, 2, 31.7)) * 0.65);
+          // Noise no finer than the 2 m grid can carry (finer, it aliased into smeared blotches).
+          c.lerp(C.foldFloor, 0.8 + fbm(x / 6, z / 6, 1, 2) * 0.2);
+          c.lerp(C.mud, smoothstep(0.1, 0.45, fbm(x / 5.5, z / 5.5, 2, 12.1)) * 0.5);
+          c.lerp(C.straw, smoothstep(0.25, 0.55, fbm(x / 4.5, z / 4.5, 1, 31.7)) * 0.45);
           const track = (1 - smoothstep(1.2, 2.6, Math.abs(l.z))) * (1 - smoothstep(6, 10, l.x + pen.halfW));
           c.lerp(C.mud, track * 0.55);
         }
