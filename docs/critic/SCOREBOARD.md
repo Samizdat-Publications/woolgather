@@ -18,6 +18,10 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
 | r02-season | claude-video | 7 | 6 | 6 | 6 | 8 | 7 | 6 | 7 | 6.63 |
 | r02-season | gemini-stills | 7 | 8 | 7 | 7 | 8 | 6 | 6 | 7 | 7.00 |
 | r02-season | gemini | 7 | 8 | 7 | 7 | 8 | 7 | 7 | 8 | 7.38 |
+| r03-season | claude-stills | 7 | 7 | 6 | 7 | 7 | 7 | 7 | 7 | 6.88 |
+| r03-season | claude-video | 7 | 7 | 6 | 6 | 8 | 8 | 7 | 7 | 7.00 |
+| r03-season | gemini-stills | 6 | 8 | 6 | 7 | 8 | 7 | 7 | 7 | 7.00 |
+| r03-season | gemini | 8 | 8 | 7 | 8 | 9 | 8 | 8 | 9 | 8.13 |
 
 ## One-line reviews
 
@@ -55,3 +59,14 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
   - worst problem (major): The total campaign is only 9 short evenings, which looks like it would take less than 45 minutes to finish completely.
 - **gemini**: A surprisingly atmospheric and cozy sheepdog sim that captures the grit and calm of hill farming, though slow walking speeds and tedious waiting timers occasionally test your patience.
   - worst problem (major): The Night Watch level devolves into four minutes of standing around waiting for the timer to tick down while occasionally barking at a wolf.
+
+### r03-season
+
+- **claude-stills**: A beautiful, cosy sheepdog season with a real herding brain under it, held back by too many evenings that look like the same yellow lawn and wolves that turn up before you've had time to enjoy the sunset.
+  - worst problem (major): The low camera view is a mess: giant tree trunks fill most of the screen, Pip is half hidden behind one on the left, the wolf at the bottom is cropped, and there is a translucent grey band cutting across the lower third. I could not tell where anything was.
+- **claude-video**: A gorgeous, cosy sheepdog season with real wolf panic and a new twist every evening, but bring patience: a lot of it is nudging a white blob across a big lawn.
+  - worst problem (major): Long dead stretches where almost nothing changes on screen: the dog stands or creeps behind a small clump of sheep that inches along, and frame after frame looks the same. The camera is far out, so the 'action' is a tiny white blob moving slowly across a big lawn.
+- **gemini-stills**: A surprisingly smart and authentic sheepdog sim wrapped in a lovely UI, held back only by slightly stiff low-poly visuals.
+  - worst problem (major): The camera angle in e1-low-view.jpg completely obscures the dog and sheep behind huge clunky low-poly pine tree foliage, ruining visibility.
+- **gemini**: A surprisingly smart, authentic, and cozy sheepdog sim that nails the tension of highland herding despite stiff animations.
+  - worst problem (major): The ground-level zoomed-in camera cuts through tree geometry and feels terrible to navigate compared to the top-down view.

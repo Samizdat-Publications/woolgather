@@ -922,8 +922,13 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   su.uCloud.value = weather.cloud;
   w.sky.position.copy(camera.position);
   for (const m of w.glowMaterials) m.emissiveIntensity = 0.2 + 3.2 * mood.night;
-  // A trace only: with more, the round boulders glowed pale by moonlight and read as sheep.
-  for (const m of w.stoneMaterials) m.emissiveIntensity = 0.12 * mood.night;
+  // A trace only, and the stone itself darkens with the night: pale boulders under the moon read
+  // as sheep lying down.
+  for (const m of w.stoneMaterials) {
+    m.emissiveIntensity = 0.12 * mood.night;
+    if (m.userData.base === undefined) m.userData.base = m.color.getHex();
+    m.color.setHex(m.userData.base).multiplyScalar(1 - 0.45 * mood.night);
+  }
   for (const l of w.lanternLights) l.intensity = 46 * (l.userData.gain ?? 1) * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
 
   // Trees standing between the camera and anything that matters open a window.

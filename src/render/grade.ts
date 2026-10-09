@@ -394,9 +394,15 @@ export class GradePass {
         uniform vec2 uTexel;
         uniform float uScale, uThresh;
         varying vec2 vUv;
+        // Each tap is clamped (and a NaN dropped): one stray pixel with a huge value otherwise
+        // bloomed into a glowing yellow ball that players took for a pickup.
+        vec3 tap(vec2 o) {
+          vec3 v = texture2D(tSrc, vUv + uTexel * o).rgb;
+          if (v.r != v.r || v.g != v.g || v.b != v.b) return vec3(0.0);
+          return min(v, vec3(6.0));
+        }
         void main() {
-          vec3 c = texture2D(tSrc, vUv + uTexel * vec2(-1.0, -1.0)).rgb + texture2D(tSrc, vUv + uTexel * vec2(1.0, -1.0)).rgb
-            + texture2D(tSrc, vUv + uTexel * vec2(-1.0, 1.0)).rgb + texture2D(tSrc, vUv + uTexel * vec2(1.0, 1.0)).rgb;
+          vec3 c = tap(vec2(-1.0, -1.0)) + tap(vec2(1.0, -1.0)) + tap(vec2(-1.0, 1.0)) + tap(vec2(1.0, 1.0));
           c *= 0.25 * uScale;
           float l = max(c.r, max(c.g, c.b));
           gl_FragColor = vec4(c * smoothstep(uThresh, uThresh * 1.7, l), 1.0);

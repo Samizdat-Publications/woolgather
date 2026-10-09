@@ -1,0 +1,76 @@
+{
+  "critic": "claude-stills",
+  "mode": "images",
+  "model": "claude-opus-5-5 (blind subagent)",
+  "first_impression": "Honestly this made me stop scrolling. The title screen, the felt-stitched menus and the snowy and moonlit evenings look like a small cosy indie that someone really cared about. Then I hit the actual herding shots and half of them are the same yellow-olive lawn seen from a drone, so the 'wow' doesn't last through every level.",
+  "scores": {
+    "visual_appeal": 7,
+    "readability": 7,
+    "game_feel": 6,
+    "fun_factor": 7,
+    "variety": 7,
+    "sense_of_progression": 7,
+    "want_to_keep_playing": 7,
+    "would_wishlist": 7
+  },
+  "best_things": [
+    "The look away from the summer lawn is gorgeous: the deep blue moonlit night watch (evening-5-night), the snow with the dark teal burn and stepping stones (evening-8-snow), the rain-soaked storm, and a title and menu style with a chunky serif and stitched panels that feels like a real brand.",
+    "Threats are easy to read: in e1-wolf the wolf sits in a red toothed ring with a dashed orange line running straight to the flock it wants, plus a 'A wolf is stalking your flock!' banner, and the dashed ring round Pip tells you exactly how close you can get before the sheep spook.",
+    "The season is laid out like a proper campaign: nine named evenings from midsummer to winter, each card says what is new tonight (lambs, a stubborn ram, a points-judged trial, a night watch to dawn, mist, thunder and flood, snow), with stars, a ribbon challenge per evening and charms to earn."
+  ],
+  "worst_problems": [
+    {
+      "problem": "The low camera view is a mess: giant tree trunks fill most of the screen, Pip is half hidden behind one on the left, the wolf at the bottom is cropped, and there is a translucent grey band cutting across the lower third. I could not tell where anything was.",
+      "where": "e1-low-view.jpg",
+      "severity": "major",
+      "suggestion": "Either make the trees between camera and dog disappear properly or don't let the camera drop into the forest edge at all. If this is a cinematic, keep the animals clearly in frame."
+    },
+    {
+      "problem": "Four different places look like the same flat yellow-green lawn from above. Hollow Valley (e1-herding), Loch Ailsa (evening-3-lambing), Crannach Corrie (evening-4-angus) and the Glenbrae show field (evening-5-trial) are all olive grass, a dirt track and a fold. The corrie is supposedly 'under the crags' but I see no crags, and at the trial 'the whole glen is watching' but the field is empty.",
+      "where": "e1-herding.jpg, evening-3-lambing.jpg, evening-4-angus.jpg, evening-5-trial.jpg",
+      "severity": "major",
+      "suggestion": "Give each place something you can see from the herding camera: rock outcrops and scree in the corrie, the loch shore in shot at Loch Ailsa, a crowd, flags, a judge's tent and a rope line at the show field."
+    },
+    {
+      "problem": "The wolves come out almost immediately in every evening I saw. The very first evening is pitched as 'the longest evening of the year' and is basically the tutorial, but the HUD reads 'Nightfall in 4:40 / wolves come out in 0:10' and a wolf is already stalking with 4:23 left. The lambing, Angus, mist, storm and snow shots all show the wolves 12 to 16 seconds away. The calm golden-hour herding the store page promises barely exists.",
+      "where": "e1-herding.jpg, e1-wolf.jpg, evening-3-lambing.jpg, evening-6-mist.jpg, evening-7-storm.jpg, evening-8-snow.jpg",
+      "severity": "major",
+      "suggestion": "Give me a real quiet stretch before the wolves, especially in the first evening, so I can learn to herd before I have to defend. Let the wolf timer get shorter as the season goes on."
+    },
+    {
+      "problem": "The special things in each evening don't stand out. Old Angus the ram, the star of evening 4, is the same size as the ewes and only shows a pair of tiny orange horns. The trial gates are two thin white sticks on a flat lawn, and the trial minimap is just floating text labels ('The lift', 'The post') with no gates drawn.",
+      "where": "evening-4-angus.jpg, evening-5-trial.jpg",
+      "severity": "minor",
+      "suggestion": "Make Angus big, dark and shaggy with huge curled horns so I spot him across the field. Give the trial gates proper hurdles or coloured flags and draw them on the minimap with the order numbered."
+    },
+    {
+      "problem": "The charms are contradictory and dull. The season map says 'wear one on any evening' but every evening card says 'WEAR TWO CHARMS', and the card shows all four charms looking the same, so I can't tell which ones I'm wearing or which I've earned. The charms themselves are plain stat bumps ('Pip runs 8% faster').",
+      "where": "season-map-after-1.jpg, evening-5-trial-card.jpg, evening-3-lambing-card.jpg",
+      "severity": "minor",
+      "suggestion": "Pick one rule and show it the same way everywhere. Mark worn charms with a check and locked ones greyed out. Add a couple of charms that change how you play, not just numbers."
+    }
+  ],
+  "boredom_points": [
+    "Long stretches of pushing white blobs across a flat yellow lawn from high above (e1-herding, evening-3-lambing, evening-4-angus) would start to blur together, because the places don't look different while you play.",
+    "The Glenbrae trial (evening-5-trial) is a precision mode on an empty field with no crowd and no wolves. Without atmosphere it would feel like a practice drill.",
+    "The night watch (evening-5-night, evening-5-dawn) has 12 sheep safe and a 3:45 countdown to dawn. If the wolves don't push hard, it could turn into standing around waiting for the clock.",
+    "Earning stars to unlock '+8% run speed' won't pull me back for long."
+  ],
+  "confusions": [
+    "Do I wear one charm or two, and which ones are on right now? (season-map vs every evening card)",
+    "The evening cards for 3, 4, 5, 7, 8 and 9 all say 'Your best: two stars' even though the season map right after evening 1 shows them locked.",
+    "In the dawn shots (evening-5-dawn, evening-5-result) a big dark slab crosses the stream and the right edge of the screen is a dark blue void. Is that a bridge, a cliff, or the edge of the world?",
+    "At the end of the night watch (evening-5-result) Pip stands alone by the stream and none of the 12 sheep 'still with you' are in shot.",
+    "In the storm (evening-7-storm) three sheep sit on top of the nightfall timer panel at the top of the screen, and in the night watch the flock is half behind the faded wolf warning banner, so I'm not sure whether the HUD or the sheep are meant to win there.",
+    "The night watch counter line ('lose up to 3 / up to 1 / lose none') wraps onto two lines and reads like a broken sentence."
+  ],
+  "wish_list": [
+    "A distinct landmark or two for every place, visible from the herding camera (crags, the loch, a crowd at the show).",
+    "A gentler opening to each evening, with real calm golden-hour time before the wolves.",
+    "A bigger, unmistakable Old Angus and proper trial gates.",
+    "Charms that change play, such as a whistle command, a lie-down that steadies the whole flock, or a bark that shapes the flock's direction.",
+    "A free-play or endless mode with random flocks and weather after the season is done.",
+    "Proper sheepdog whistle commands (come-bye, away to me) for the trial."
+  ],
+  "one_line_review": "A beautiful, cosy sheepdog season with a real herding brain under it, held back by too many evenings that look like the same yellow lawn and wolves that turn up before you've had time to enjoy the sunset."
+}
