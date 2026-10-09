@@ -1096,6 +1096,9 @@ export class Game {
     for (const [id, b] of this.bleats) if (b.until < sim.elapsed) this.bleats.delete(id);
     const recent = [...this.bleats].sort((a, b) => b[1].until - a[1].until).slice(0, 2);
     for (const [id, b] of recent) out.push({ id: `bleat${id}`, kind: 'sheep', x: b.x, y: h(b.x, b.z) + 1.2, z: b.z, iconOnScreen: true });
+    // Old Angus is named over his head for his evening's opening seconds.
+    const ram = sim.sheep.find((s) => s.kind === 'ram' && sim.isFree(s));
+    if (ram && sim.elapsed < 30) out.push({ id: 'angus', kind: 'note', x: ram.x, y: h(ram.x, ram.z) + 4.2, z: ram.z, labelOnScreen: 'Old Angus, the ram', onScreenOnly: true });
     if (this.runs === 1 && sim.elapsed < 20 && (sim.rules.tutorial || !this.evening)) {
       const r = sim.dogThreatRadius;
       out.push({ id: 'reach', kind: 'note', x: d.x, y: h(d.x, d.z - r), z: d.z - r, labelOnScreen: "Pip's reach: sheep inside it move away", onScreenOnly: true });

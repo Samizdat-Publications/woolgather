@@ -374,30 +374,31 @@ export class Actors {
     // prototypes, so every clone shares them.
     addOutline(a.sheep, 0x2a2230, 0.04, ['body', 'head']);
     addOutline(a.wolf, 0x3a120e, 0.045);
-    // Old Angus: a bigger, creamier fleece, curled horns; the black sheep: charcoal wool.
+    // Old Angus: a bigger, greyer fleece and big curled horns that read from above (a flat curl
+    // round each ear, darker than the wool); the black sheep: charcoal wool.
     const woolMat = this.charMats.find((m) => m.name === 'wool')!;
     const ramWool = woolMat.clone();
     ramWool.name = 'ram_wool';
-    ramWool.color.set('#b8a888');
-    ramWool.emissive.set(0x2a2418);
+    ramWool.color.set('#a39a8a');
+    ramWool.emissive.set(0x221e18);
     const blackWool = woolMat.clone();
     blackWool.name = 'black_wool';
     blackWool.color.set('#4a4248');
     blackWool.emissive.set(0x161214);
-    const horn = new THREE.MeshLambertMaterial({ name: 'ram_horn', color: '#efe0b8', emissive: new THREE.Color(0x3a3020), flatShading: true });
+    const horn = new THREE.MeshLambertMaterial({ name: 'ram_horn', color: '#c9a978', emissive: new THREE.Color(0x2a2010), flatShading: true });
     this.ramProto = withMaterials(a.sheep, { wool: ramWool });
     this.blackProto = withMaterials(a.sheep, { wool: blackWool });
     addOutline(this.blackProto, 0xe8dcc4, 0.075, ['body', 'head']);
     const head = this.ramProto.getObjectByName('head');
     if (head) {
       for (const sx of [1, -1]) {
-        // A curled horn: most of a thick ring standing beside the head, turning forwards and down.
-        const g = new THREE.TorusGeometry(0.16, 0.065, 6, 12, Math.PI * 1.6);
-        g.rotateY(Math.PI / 2);
-        g.rotateX(-0.4);
+        // A curled horn: most of a thick ring curling round the ear, tipped mostly flat so the
+        // camera above sees the whole curl (standing upright it was edge-on, a thin line).
+        const g = new THREE.TorusGeometry(0.21, 0.08, 6, 14, Math.PI * 1.65);
+        g.rotateX(-Math.PI / 2 + 0.45);
         const m = new THREE.Mesh(g, horn);
-        m.position.set(0.21 * sx, 0.1, -0.02);
-        m.rotation.y = 0.25 * sx;
+        m.position.set(0.3 * sx, 0.12, -0.06);
+        m.rotation.z = -0.35 * sx;
         m.castShadow = true;
         head.add(m);
       }
