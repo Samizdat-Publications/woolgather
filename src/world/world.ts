@@ -597,8 +597,9 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
   const grassTest = (x: number, z: number) => clear(x, z, 0.4) && !onPath(x, z);
   const clump = (x: number, z: number) => Math.sin(x * 0.21 + 1.3) * Math.cos(z * 0.17 - 0.4) + Math.sin((x - z) * 0.09) * 0.6;
   const tussock = (x: number, z: number) => grassTest(x, z) && clump(x, z) > -0.15 + rng.next() * 0.5;
-  add('grass_a', scatter(800, tussock, [0.8, 1.6]));
-  add('grass_b', scatter(800, tussock, [0.8, 1.6]));
+  // The grass field (grass.ts) is the sward; a few darker tussocks stay for texture.
+  add('grass_a', scatter(220, tussock, [0.9, 1.5]));
+  add('grass_b', scatter(220, tussock, [0.9, 1.5]));
   const meadow = (x: number, z: number) => grassTest(x, z) && level.boundaryDistance(x, z) > 18 && Math.sin(x * 0.11) * Math.cos(z * 0.13) > 0.42;
   const flowers = season === 'winter' ? 0 : season === 'autumn' ? 50 : 190;
   add('flower_white', scatter(flowers, meadow, [0.9, 1.3]));

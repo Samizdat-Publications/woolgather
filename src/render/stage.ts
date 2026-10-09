@@ -13,6 +13,9 @@ const HAZE = new THREE.Vector3();
 const GREY = new THREE.Color('#9aa0aa');
 const FLASH = new THREE.Color('#e8eeff');
 const MIST = new THREE.Color('#c9ced6');
+const SNOW_KEY = new THREE.Color('#f4f2ff');
+const SNOW_SKY = new THREE.Color('#9fb6e0');
+const SNOW_GROUND = new THREE.Color('#e4ecff');
 
 export type Quality = 'high' | 'medium' | 'low';
 
@@ -52,7 +55,7 @@ export class Stage {
   /** Metres the herding camera stands further back than the one the fog was set for. */
   private fogShift = 0;
   /** Weather on the light: overcast (0..1), mist (0..1) and a lightning flash (0..1). */
-  readonly weather = { cloud: 0, mist: 0, flash: 0 };
+  readonly weather = { cloud: 0, mist: 0, flash: 0, snow: 0 };
   /** The mist's colour this frame (display space), for the grade. */
   readonly mistColor = new THREE.Color();
 
@@ -149,6 +152,17 @@ export class Stage {
       m.sunGlow.multiplyScalar(1 - 0.85 * c);
       m.shadow *= 1 - 0.65 * c;
       m.exposure *= 1 - 0.08 * c;
+    }
+    if (W.snow > 0.001) {
+      // Snow light: the warm key goes cool white and the sky fill blue, so snow reads as snow
+      // (under the golden-hour key it turned peach and read as sand).
+      const k = W.snow;
+      m.keyColor.lerp(SNOW_KEY, 0.7 * k);
+      m.hemiSky.lerp(SNOW_SKY, 0.55 * k);
+      m.hemiGround.lerp(SNOW_SKY, 0.35 * k);
+      m.ground.lerp(SNOW_GROUND, 0.6 * k);
+      m.fog.lerp(SNOW_SKY, 0.4 * k);
+      m.exposure *= 1 - 0.06 * k;
     }
     if (W.flash > 0.001) {
       m.keyIntensity += 9 * W.flash;

@@ -14,6 +14,9 @@ export class Minimap {
   private oz = 0;
   private w = 200;
   private h = 160;
+  /** Long levels (the High Pass) scroll: the map is drawn at a readable scale and the panel shows a window round Pip. */
+  private fullW = 200;
+  private vx = 0;
   /**
    * In mist the map only knows what Pip has seen: each sheep's last seen place and time. Null when
    * the evening is clear (the map shows everything).
@@ -44,30 +47,43 @@ export class Minimap {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     this.w = w;
     this.h = h;
-    for (const c of [this.canvas, this.base, this.labels]) {
-      c.width = Math.round(w * dpr);
-      c.height = Math.round(h * dpr);
-    }
-    this.canvas.style.width = `${w}px`;
-    this.canvas.style.height = `${h}px`;
-    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const xs = this.level.boundary.map((p) => p[0]);
     const zs = this.level.boundary.map((p) => p[1]);
     const minX = Math.min(...xs) - 4;
     const maxX = Math.max(...xs) + 4;
     const minZ = Math.min(...zs) - 4;
     const maxZ = Math.max(...zs) + 4;
-    this.scale = Math.min(w / (maxX - minX), h / (maxZ - minZ));
-    this.ox = (w - (maxX - minX) * this.scale) / 2 - minX * this.scale;
+    const fit = Math.min(w / (maxX - minX), h / (maxZ - minZ));
+    // A level too long to fit at a readable scale scrolls with Pip instead.
+    const readable = Math.min(h / (maxZ - minZ), w / 230);
+    this.scale = fit < readable * 0.8 ? readable : fit;
+    this.fullW = Math.max(w, Math.ceil((maxX - minX) * this.scale));
+    this.canvas.width = Math.round(w * dpr);
+    this.canvas.height = Math.round(h * dpr);
+    for (const c of [this.base, this.labels]) {
+      c.width = Math.round(this.fullW * dpr);
+      c.height = Math.round(h * dpr);
+    }
+    this.canvas.style.width = `${w}px`;
+    this.canvas.style.height = `${h}px`;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.ox = (this.fullW - (maxX - minX) * this.scale) / 2 - minX * this.scale;
     this.oz = (h - (maxZ - minZ) * this.scale) / 2 - minZ * this.scale;
+    this.vx = 0;
     this.drawBase(dpr);
     this.drawLabelLayer(dpr);
+  }
+
+  /** Copy a layer (drawn at the full map width) into the panel through the current window. */
+  private blit(src: HTMLCanvasElement) {
+    const k = src.width / this.fullW;
+    this.ctx.drawImage(src, this.vx * k, 0, this.w * k, src.height, 0, 0, this.w, this.h);
   }
 
   private drawLabelLayer(dpr: number) {
     const c = this.labels.getContext('2d')!;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    c.clearRect(0, 0, this.w, this.h);
+    c.clearRect(0, 0, this.fullW, this.h);
     this.drawLabels(c);
   }
 
@@ -81,7 +97,7 @@ export class Minimap {
   private drawBase(dpr: number) {
     const c = this.base.getContext('2d')!;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    c.clearRect(0, 0, this.w, this.h);
+    c.clearRect(0, 0, this.fullW, this.h);
     const L = this.level;
     c.beginPath();
     L.boundary.forEach(([x, z], i) => (i ? c.lineTo(this.px(x), this.pz(z)) : c.moveTo(this.px(x), this.pz(z))));
@@ -193,8 +209,14 @@ export class Minimap {
   draw(sim: Sim | null, time: number) {
     const c = this.ctx;
     c.clearRect(0, 0, this.w, this.h);
-    c.drawImage(this.base, 0, 0, this.w, this.h);
+    if (sim && this.fullW > this.w) {
+      const want = Math.max(0, Math.min(this.fullW - this.w, this.px(sim.dog.x) - this.w / 2));
+      this.vx += (want - this.vx) * 0.2;
+    }
+    this.blit(this.base);
     if (!sim) return;
+    c.save();
+    c.translate(-this.vx, 0);
     const mem = this.memory;
     for (const s of sim.sheep) {
       if (s.state === 'lost' || s.state === 'hidden') continue;
@@ -287,7 +309,8 @@ export class Minimap {
     c.lineWidth = 1.3;
     c.stroke();
     c.restore();
-    c.drawImage(this.labels, 0, 0, this.w, this.h);
+    c.restore();
+    this.blit(this.labels);
   }
 
   /** Place names over everything else, so no dot ever hides a name a banner uses. */
@@ -300,6 +323,8 @@ export class Minimap {
     c.strokeStyle = 'rgba(30, 36, 26, 0.75)';
     c.fillStyle = 'rgba(255, 248, 228, 0.9)';
     for (const p of this.level.places) {
+      // Bridges and fords are drawn on the map; their names would crowd the place names.
+      if (p.kind === 'crossing') continue;
       const name = p.name.charAt(0) + p.name.slice(1).toLowerCase();
       c.strokeText(name, this.px(p.x), this.pz(p.z));
       c.fillText(name, this.px(p.x), this.pz(p.z));

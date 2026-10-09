@@ -11,6 +11,8 @@ export interface AmbienceState {
   streamPan: number;
   /** Quieter under menus. */
   active: boolean;
+  /** How much of the synthesised wind and stream to keep (recorded loops take over when loaded). */
+  synth?: number;
 }
 
 export class Ambience {
@@ -81,11 +83,12 @@ export class Ambience {
       this.gustT = 3 + Math.random() * 6;
       this.gust = Math.random();
     }
-    this.windGain.gain.setTargetAtTime((0.1 + 0.08 * this.gust + 0.05 * s.night) * menu, t, 1.2);
+    const synth = s.synth ?? 1;
+    this.windGain.gain.setTargetAtTime((0.1 + 0.08 * this.gust + 0.05 * s.night) * menu * synth, t, 1.2);
     this.windFilter.frequency.setTargetAtTime(320 + 420 * this.gust, t, 1.5);
 
     const near = Math.max(0, 1 - s.streamDist / 45);
-    this.streamGain.gain.setTargetAtTime(0.32 * near * near * menu, t, 0.3);
+    this.streamGain.gain.setTargetAtTime(0.32 * near * near * menu * synth, t, 0.3);
     this.streamPan.pan.setTargetAtTime(Math.max(-0.8, Math.min(0.8, s.streamPan)), t, 0.3);
 
     const day = Math.max(0, 1 - s.night * 1.6);

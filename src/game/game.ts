@@ -11,6 +11,7 @@ import { PerfOverlay } from '../ui/perf';
 import { Ui } from '../ui/ui';
 import { Actors } from '../world/actors';
 import { loadAssets, type Assets } from '../world/assets';
+import { GrassField } from '../world/grass';
 import { Life } from '../world/life';
 import { Particles } from '../world/particles';
 import { Terrain } from '../world/terrain';
@@ -58,6 +59,7 @@ export class Game {
   particles: Particles | null = null;
   weatherFx: WeatherFx | null = null;
   life: Life | null = null;
+  grass: GrassField | null = null;
   world: WorldHandles | null = null;
   mode: Mode = 'title';
   sim: Sim | null = null;
@@ -111,6 +113,7 @@ export class Game {
         saveQuality(m);
         this.frameWindow.length = 0;
         this.stage.setQuality(m === 'auto' ? 'high' : m);
+        this.grass?.setFraction(GRASS_TIER[this.stage.quality]);
       },
     );
     this.toTitle();
@@ -144,6 +147,7 @@ export class Game {
     if (this.world) disposeWorld(this.world);
     if (this.particles) this.particles.root.removeFromParent();
     if (this.life) this.life.dispose();
+    if (this.grass) this.grass.dispose();
     this.level = new Level(LEVELS[levelId] ?? LEVELS.hollow);
     const gen = generateTerrain(this.level, season);
     this.terrain.setLevel(this.level, gen);
@@ -170,6 +174,9 @@ export class Game {
     this.stage.scene.add(this.particles.root);
     this.life = new Life(L, this.terrain, season, this.world.chimney);
     this.stage.scene.add(this.life.root);
+    this.grass = new GrassField(L, this.terrain, gen, season, { density: 2.6 });
+    this.grass.setFraction(GRASS_TIER[this.stage.quality]);
+    this.stage.scene.add(this.grass.root);
     this.ui.setLevel(L);
     this.audio.setLevel(L);
     if (this.opts.test) console.info(`[woolgather] built ${levelId} (${season}) in ${Math.round(performance.now() - t0)} ms`);
@@ -356,6 +363,7 @@ export class Game {
     this.said.clear();
     this.seen.clear();
     this.ui.minimap.memory = rules.weather === 'fog' ? this.seen : null;
+    if (rules.weather === 'fog') for (const s of this.sim.sheep) if (s.state !== 'hidden') this.seen.set(s.id, { x: s.x, z: s.z, t: 0 });
     this.ui.minimap.refresh();
     this.stalkToast = null;
     this.dragFeasible = null;
@@ -382,6 +390,7 @@ export class Game {
     const sorted = this.frameWindow.splice(0).sort((a, b) => a - b);
     if (sorted[Math.floor(sorted.length / 2)] > 19) {
       this.stage.setQuality(this.stage.quality === 'high' ? 'medium' : 'low');
+      this.grass?.setFraction(GRASS_TIER[this.stage.quality]);
       this.ui.syncQuality();
     }
   }
@@ -452,6 +461,7 @@ export class Game {
     this.stage.weather.cloud = this.wx.cloud;
     this.stage.weather.mist = this.wx.mist;
     this.stage.weather.flash = this.flash;
+    this.stage.weather.snow = this.wx.snow;
   }
 
   private tick(dt: number, rawDt: number) {
@@ -528,6 +538,7 @@ export class Game {
     this.particles?.update(pdt, this.stage.camera, this.clock, mood.night, tgt.height);
     this.weatherFx?.update(pdt, this.stage.camera, this.stage.focus, this.wx, mood.night, tgt.height, this.clock);
     this.life?.update(pdt, this.clock, sim, mood, this.stage.focus);
+    this.updateGrass(sim);
     this.gateOpen += (this.gateTarget - this.gateOpen) * (1 - Math.exp(-3.5 * rawDt));
     const open = this.gateOpen * 1.65;
     for (const g of this.world.gates) {
@@ -560,6 +571,25 @@ export class Game {
       for (const f of forest) f.visible = true;
       treeHoles(true);
     });
+  }
+
+  /** Wind in the grass, and the animals parting it as they move (nearest the camera first). */
+  private updateGrass(sim: Sim | null) {
+    if (!this.grass) return;
+    const f = this.stage.focus;
+    const push: { x: number; z: number; r: number; k: number; d: number }[] = [];
+    if (sim) {
+      const add = (x: number, z: number, r: number, k: number) => {
+        const d = (x - f.x) ** 2 + (z - f.z) ** 2;
+        if (d < 60 * 60) push.push({ x, z, r, k, d });
+      };
+      add(sim.dog.x, sim.dog.z, 2.6, 0.95);
+      for (const s of sim.sheep) if (s.state !== 'lost' && s.state !== 'hidden') add(s.x, s.z, s.kind === 'lamb' ? 1.3 : s.kind === 'ram' ? 2.4 : 1.9, 0.75);
+      for (const w of sim.wolves) if (w.state !== 'gone') add(w.x, w.z, 2.2, 0.85);
+      push.sort((a, b) => a.d - b.d);
+    }
+    const wind = 1 + this.wx.rain * 1.3 - this.wx.mist * 0.6 - this.wx.snow * 0.3;
+    this.grass.update(this.clock, wind, push);
   }
 
   /** Mist: the veil centred on Pip, its banks drifting with the ground under the camera. */
@@ -1349,6 +1379,8 @@ export class Game {
 }
 
 const tmpV = new THREE.Vector3();
+/** Share of the grass field drawn at each graphics tier. */
+const GRASS_TIER: Record<Quality, number> = { high: 1, medium: 0.55, low: 0.2 };
 /** The herding camera's usual distance (1 = the configured offset). */
 const BASE_ZOOM = 0.98;
 const QUALITY_KEY = 'woolgather.quality';

@@ -43,7 +43,7 @@ for (const step of args) {
     await page.screenshot({ path: path.join(out, `${arg}.png`) });
     console.log('shot', arg);
   } else if (cmd === 'key') await page.keyboard.press(arg);
-  else if (cmd === 'eval') console.log('eval', arg.slice(0, 60), '=>', JSON.stringify(await page.evaluate(arg)).slice(0, 400));
+  else if (cmd === 'eval') console.log('eval', arg.slice(0, 60), '=>', String(JSON.stringify(await page.evaluate(arg))).slice(0, 400));
   else if (cmd === 'fast') await page.evaluate((k) => window.__WG.setTimeScale(k), Number(arg));
 }
 console.log('errors:', errors.length ? errors.slice(0, 12).join('\n  ') : 'none');

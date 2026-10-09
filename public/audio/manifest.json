@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "sounds": {
+    "bleat_ewe": [
+      "bleat_ewe_1.mp3",
+      "bleat_ewe_2.mp3",
+      "bleat_ewe_3.mp3",
+      "bleat_ewe_4.mp3"
+    ],
+    "bleat_lamb": [
+      "bleat_lamb_1.mp3",
+      "bleat_lamb_2.mp3",
+      "bleat_lamb_3.mp3"
+    ],
+    "bleat_ram": [
+      "bleat_ram_1.mp3",
+      "bleat_ram_2.mp3"
+    ],
+    "bark": [
+      "bark_1.mp3",
+      "bark_2.mp3",
+      "bark_3.mp3"
+    ],
+    "howl": [
+      "howl_1.mp3",
+      "howl_2.mp3"
+    ],
+    "growl": [
+      "growl_1.mp3",
+      "growl_2.mp3"
+    ],
+    "yelp": [
+      "yelp_1.mp3"
+    ],
+    "thunder": [
+      "thunder_1.mp3",
+      "thunder_2.mp3"
+    ],
+    "gate": [
+      "gate_1.mp3"
+    ],
+    "splash": [
+      "splash_1.mp3",
+      "splash_2.mp3"
+    ],
+    "stamp": [
+      "stamp_1.mp3"
+    ],
+    "butt": [
+      "butt_1.mp3"
+    ],
+    "whoosh_birds": [
+      "whoosh_birds_1.mp3"
+    ],
+    "flutter": [
+      "flutter_1.mp3"
+    ]
+  },
+  "loops": [
+    "wind",
+    "rain",
+    "stream",
+    "night",
+    "dawn",
+    "loch"
+  ],
+  "loopInfo": {
+    "wind": {
+      "file": "wind.mp3",
+      "seconds": 10.02474,
+      "pad": 0.3
+    },
+    "rain": {
+      "file": "rain.mp3",
+      "seconds": 10,
+      "pad": 0.3
+    },
+    "stream": {
+      "file": "stream.mp3",
+      "seconds": 10,
+      "pad": 0.3
+    },
+    "night": {
+      "file": "night.mp3",
+      "seconds": 10,
+      "pad": 0.3
+    },
+    "dawn": {
+      "file": "dawn.mp3",
+      "seconds": 9.95,
+      "pad": 0.3
+    },
+    "loch": {
+      "file": "loch.mp3",
+      "seconds": 10,
+      "pad": 0.3
+    }
+  },
+  "altPrompt": []
+}
