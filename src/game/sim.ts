@@ -854,12 +854,12 @@ export class Sim {
       for (const p of L.pens) {
         const l = p.toLocal(s.x, s.z);
         const depth = -p.halfW + 0.5 - l.x;
-        if (depth > 0 && depth < 8.5 * p.scale && Math.abs(l.z) < 3 * p.scale + depth * 1.05) {
+        if (depth > 0 && depth < Math.max(8.5 * p.scale, 7.5) && Math.abs(l.z) < 3 * p.scale + depth * 1.05) {
           const inside = p.inside;
           const gx = inside.x - s.x;
           const gz = inside.z - s.z;
           const gl = Math.hypot(gx, gz) || 1;
-          const k = alert || (lamb && mother?.state === 'folded') ? 2.2 : 0;
+          const k = alert || (lamb && mother?.state === 'folded') ? 2.2 + (1 - Math.min(1, p.scale)) * 6 : 0;
           vx += (gx / gl) * k;
           vz += (gz / gl) * k;
         }

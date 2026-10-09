@@ -36,7 +36,7 @@ export const SEASON: Evening[] = [
       objective: 'gather',
       dayLength: 300,
       target: 6,
-      wolfStart: 0.1,
+      wolfStart: 0.13,
       maxWolves: 1,
       wolfRespawn: [30, 40],
       wolfSpeedScale: 0.85,

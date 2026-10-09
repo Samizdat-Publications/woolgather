@@ -1041,3 +1041,14 @@ Newest at the bottom. Record every non-obvious choice.
   same olive lawn" in most daytime evenings. Old Angus has a greyer fleece and flat curled horns that
   show from above (upright, they were edge-on to the camera), and is named over his head for his
   evening's first 30 s.
+- 2026-10-09 (season, round r03): Gemini video 8.13 (from 7.38), Gemini stills 7.0, Claude video
+  7.0, Claude stills 6.88; mean 7.25 (1.0 was 5.22). Fixed after it: the low view dropped the camera
+  into the forest edge (trees within 0.72 of the camera-to-Pip distance now vanish while it is
+  tilted, `setNearCut` in world.ts); the glowing "orbs" had a second cause (any single over-bright
+  pixel bloomed into a soft ball: the bloom's bright pass now clamps each tap to 6 and drops NaN;
+  bot runs of 63 and 134 screenshots found none after, one or two before); stone darkens with the
+  night (moonlit boulders read as sheep); a small pen pulls driven sheep in harder (the trial's pen
+  stalled the flock again); the mist has a crisp clear area and banks with gaps in a cooler grey;
+  any key skips the sunset cutaway; evening 1's wolf comes at 13% (39 s); Old Angus is drawn at 3.05
+  (from 2.75) in a darker fleece. Final checks: self-test 32/32 with no console errors, the bot
+  wins all nine evenings with three stars, 124-141 fps at 1080p High, clean production build.

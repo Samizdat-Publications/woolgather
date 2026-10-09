@@ -570,7 +570,7 @@ export class Game {
     } else if (this.mode === 'playing' && sim) {
       if (this.cutaway) {
         this.cutaway.t -= rawDt;
-        if (this.cutaway.t <= 0 || input.pressed('confirm') || input.pressed('pause')) this.endCutaway(sim);
+        if (this.cutaway.t <= 0 || input.pressed('any')) this.endCutaway(sim);
       } else if (input.pressed('pause')) {
         this.setMode('paused');
       } else {
