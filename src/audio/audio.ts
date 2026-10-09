@@ -1,4 +1,5 @@
 import type { Level } from '../game/level';
+import type { Rules } from '../game/rules';
 import type { Sim, SimEvent } from '../game/sim';
 import { Ambience } from './ambience';
 import { AudioEngine } from './engine';
@@ -36,8 +37,13 @@ export class GameAudio {
     };
   }
 
-  newDay(seed: number) {
+  setLevel(level: Level) {
+    this.level = level;
+  }
+
+  newDay(seed: number, rules?: Rules) {
     this.music.restart(seed);
+    void rules;
   }
 
   toggleMute() {
@@ -113,7 +119,8 @@ export class GameAudio {
     }
   }
 
-  update(dt: number, sim: Sim | null, mood: number, night: number, mode: AudioMode, tension: number) {
+  update(dt: number, sim: Sim | null, mood: number, night: number, mode: AudioMode, tension: number, wx: { rain: number; mist: number; snow: number } = { rain: 0, mist: 0, snow: 0 }) {
+    void wx;
     const ctx = this.engine.ctx;
     if (!ctx) return;
     const playing = mode === 'playing';
@@ -132,10 +139,10 @@ export class GameAudio {
         }
       }
     }
-    const q = sim ? this.level.streamQuery(this.lx, this.lz) : { d: 60, cx: 0 };
+    const q = sim ? this.level.streamQuery(this.lx, this.lz) : { d: 60, cx: 0, half: 0 };
     this.amb.update(dt, {
       night,
-      streamDist: Math.max(0, q.d - this.level.streamHalf),
+      streamDist: Math.max(0, Math.min(200, q.d - q.half)),
       streamPan: (q.cx - this.lx) / 20,
       active: mode !== 'paused',
     });

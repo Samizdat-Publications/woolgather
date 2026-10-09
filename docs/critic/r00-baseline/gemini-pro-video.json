@@ -1,0 +1,91 @@
+{
+ "critic": "gemini-pro-video",
+ "mode": "video",
+ "model": "gemini-3.1-pro-preview",
+ "models_tried": [],
+ "video": "test-results/critic/r00-baseline/video.mp4",
+ "when": "2026-10-09T07:58:16.838Z",
+ "timing": {
+  "upload_s": 55.8,
+  "processing_s": 10.7,
+  "generate_s": 39.7,
+  "total_s": 106.2
+ },
+ "usage": {
+  "promptTokenCount": 18249,
+  "candidatesTokenCount": 864,
+  "totalTokenCount": 21466,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 693
+   },
+   {
+    "modality": "VIDEO",
+    "tokenCount": 17556
+   }
+  ],
+  "thoughtsTokenCount": 2353,
+  "serviceTier": "standard"
+ },
+ "first_impression": "It's a cute, very basic herding simulator with a nice low-poly aesthetic and clear UI. But it looks painfully slow, and without any real progression or variety, I'd probably put it down after one or two rounds.",
+ "scores": {
+  "visual_appeal": 7,
+  "readability": 9,
+  "game_feel": 4,
+  "fun_factor": 5,
+  "variety": 3,
+  "sense_of_progression": 2,
+  "want_to_keep_playing": 3,
+  "would_wishlist": 4
+ },
+ "best_things": [
+  "The lighting changes as the sun sets are actually really pretty and set a great mood.",
+  "The UI dashed circle showing exactly where my dog's influence radius is makes the mechanics super readable.",
+  "The minimap is clean, useful, and makes navigating the relatively large map easy."
+ ],
+ "worst_problems": [
+  {
+   "problem": "Walking across the map takes forever and is incredibly boring. I spent a minute and a half just holding 'W' with nothing happening.",
+   "where": "01:20",
+   "severity": "major",
+   "suggestion": "Give me a fast travel to known areas or make the dog way faster when not actively herding."
+  },
+  {
+   "problem": "There's no point to playing more than once. The end screen just says 'Play again' instead of moving to a new level.",
+   "where": "04:22",
+   "severity": "major",
+   "suggestion": "Add a map with different levels, or let me unlock upgrades or hats for my dog with the stars I earn."
+  },
+  {
+   "problem": "The dog looks like it's sliding on butter because the run animation doesn't match the movement speed at all.",
+   "where": "01:03",
+   "severity": "minor",
+   "suggestion": "Fix the animation blending and speed so it actually looks like the dog's feet are hitting the ground."
+  },
+  {
+   "problem": "The wolf alert UI is this massive, ugly box that pops up and covers a chunk of the screen.",
+   "where": "03:06",
+   "severity": "minor",
+   "suggestion": "Make it a smaller, sleeker notification, or just rely on the in-world red arrows which already do a good job."
+  },
+  {
+   "problem": "The sheep behave like a single gelatinous blob instead of individual animals when grouped up.",
+   "where": "02:30",
+   "severity": "cosmetic",
+   "suggestion": "Add some slight randomized offsets to their movement so they bump into each other and look like a real flock."
+  }
+ ],
+ "boredom_points": [
+  "The massive trek from the sheepfold at 00:45 all the way to the top left of the map at 02:24 is just holding a direction for almost two minutes with zero gameplay happening."
+ ],
+ "confusions": [
+  "What does the 'need 9' mean in the top left? Do I fail the day if I don't get 9? It wasn't entirely obvious until the end screen."
+ ],
+ "wish_list": [
+  "A campaign map with different farms to progress through.",
+  "More complex terrain puzzles, like gates I have to open or bridges I have to fix.",
+  "Different breeds of dogs with unique stats (like a faster sprint or a bigger bark radius)."
+ ],
+ "one_line_review": "A relaxing but ultimately shallow herding game that runs out of tricks after the first day."
+}

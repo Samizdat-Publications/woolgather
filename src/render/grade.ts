@@ -194,6 +194,12 @@ export class GradePass {
         tBloomA: { value: null },
         tBloomC: { value: null },
         uBloom: { value: 0 },
+        uMist: { value: 0 },
+        uMistCol: { value: new THREE.Vector3(0.8, 0.82, 0.85) },
+        uMistCenter: { value: new THREE.Vector2(0.5, 0.5) },
+        uMistOff: { value: new THREE.Vector2() },
+        uMistR: { value: 0.3 },
+        uFlash: { value: 0 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -210,7 +216,17 @@ export class GradePass {
         uniform float uSunAmt, uSkyAmt, uShaftAmt, uTime, uBloom, uInsetOn;
         uniform vec4 uInset;
         uniform sampler2D tBloomA, tBloomC;
+        uniform float uMist, uMistR, uFlash;
+        uniform vec3 uMistCol;
+        uniform vec2 uMistCenter, uMistOff;
         varying vec2 vUv;
+        float mhash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float mnoise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(mix(mhash(i), mhash(i + vec2(1.0, 0.0)), u.x), mix(mhash(i + vec2(0.0, 1.0)), mhash(i + vec2(1.0, 1.0)), u.x), u.y);
+        }
 
         // Khronos PBR Neutral tone mapping: keeps the painted hues.
         vec3 neutral(vec3 color) {
@@ -340,6 +356,18 @@ export class GradePass {
             // A soft glow on the side of the frame the sun (or moon) is on.
             c = 1.0 - (1.0 - c) * (1.0 - uSunGlow * uSunAmt * free * sunSide);
             c *= 1.0 - uVignette * free * smoothstep(0.4, 1.1, length(v) * 1.15);
+            // Mist: a soft veil that thickens away from Pip, in drifting banks anchored to the ground
+            // (the offset follows the camera over the world), thin everywhere, thick past the radius.
+            if (uMist > 0.001) {
+              vec2 mv = (vUv - uMistCenter) * vec2(uAspect, 1.0);
+              vec2 q = vec2(vUv.x * uAspect, vUv.y) * 2.2 + uMistOff;
+              float bank = mnoise(q + vec2(uTime * 0.035, uTime * 0.012)) * 0.6 + mnoise(q * 2.3 - vec2(uTime * 0.05, 0.0)) * 0.4;
+              float far = smoothstep(uMistR * 0.45, uMistR * 1.5, length(mv) + (bank - 0.5) * 0.22);
+              float mist = uMist * (0.18 + 0.82 * far) * (0.8 + 0.4 * bank);
+              c = mix(c, uMistCol, clamp(mist, 0.0, 0.94) * free);
+            }
+            // Lightning: the whole frame flashes cold white for an instant.
+            c = 1.0 - (1.0 - c) * (1.0 - vec3(0.86, 0.9, 1.0) * uFlash * 0.75);
           }
           // A little dither so smooth gradients never band.
           c += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
@@ -485,6 +513,21 @@ export class GradePass {
   }
 
   /** The close-up inset's rectangle in CSS pixels (null when it is not up). */
+  /** Mist over the frame: amount, its colour (display space), Pip's place on screen (uv), a world offset for the drifting banks, and the clear radius (uv, height = 1). */
+  setMist(amount: number, color: THREE.Color, cx: number, cy: number, ox: number, oy: number, radius: number) {
+    const u = this.material.uniforms;
+    u.uMist.value = this.enabled ? amount : 0;
+    u.uMistCol.value.set(color.r, color.g, color.b);
+    u.uMistCenter.value.set(cx, cy);
+    u.uMistOff.value.set(ox, oy);
+    u.uMistR.value = radius;
+  }
+
+  /** Lightning flash, 0..1. */
+  setFlash(v: number) {
+    this.material.uniforms.uFlash.value = v;
+  }
+
   setInset(r: { x: number; y: number; w: number; h: number } | null) {
     const u = this.material.uniforms;
     u.uInsetOn.value = r ? 1 : 0;

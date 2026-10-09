@@ -1,24 +1,40 @@
 import * as THREE from 'three';
+import hollowDef from '../../level/hollow.json';
+import lochDef from '../../level/loch.json';
+import passDef from '../../level/pass.json';
 import { GameAudio } from '../audio/audio';
-import { moodTime } from '../render/daycycle';
+import { dawnTime, moodTime } from '../render/daycycle';
 import { QUALITY_TIERS, Stage, type Quality } from '../render/stage';
 import { INSET, WolfCam } from '../render/wolfcam';
 import { hudState, Indicators, type Marker } from '../ui/indicators';
 import { PerfOverlay } from '../ui/perf';
-import { Ui, type UiAction } from '../ui/ui';
+import { Ui } from '../ui/ui';
 import { Actors } from '../world/actors';
+import { loadAssets, type Assets } from '../world/assets';
+import { Life } from '../world/life';
 import { Particles } from '../world/particles';
-import { loadAssets } from '../world/assets';
 import { Terrain } from '../world/terrain';
-import { buildWorld, treeHoles, updateWorld, type WorldHandles } from '../world/world';
-import { DOG, type Difficulty } from './config';
+import { generateTerrain, type Season } from '../world/terraingen';
+import { WeatherFx } from '../world/weatherfx';
+import { buildWorld, disposeWorld, treeHoles, updateWorld, type WorldHandles } from '../world/world';
+import type { Difficulty } from './config';
 import { Input } from './input';
 import { Level } from './level';
+import type { LevelDef } from './leveldef';
+import { classicRules, type Rules } from './rules';
+import { loadProgress, perksFor, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type Progress } from './season';
 import { Sim, type SimEvent } from './sim';
 
-// Top-level state machine: title -> playing <-> paused -> ended -> (restart | title).
+// Top-level state machine: title -> (season map -> evening card) or classic -> playing <-> paused
+// -> ended -> (next evening | again | season map | title).
 
-export type Mode = 'title' | 'playing' | 'paused' | 'ended';
+export type Mode = 'title' | 'menu' | 'playing' | 'paused' | 'ended';
+
+export const LEVELS: Record<string, LevelDef> = {
+  hollow: hollowDef as unknown as LevelDef,
+  loch: lochDef as unknown as LevelDef,
+  pass: passDef as unknown as LevelDef,
+};
 
 export interface GameOptions {
   seed: number;
@@ -29,7 +45,7 @@ export interface GameOptions {
 }
 
 export class Game {
-  readonly level = new Level();
+  level: Level = new Level(LEVELS.hollow);
   readonly terrain = new Terrain(this.level);
   readonly input = new Input();
   readonly stage: Stage;
@@ -37,19 +53,27 @@ export class Game {
   readonly indicators: Indicators;
   readonly wolfCam: WolfCam;
   readonly audio: GameAudio;
+  assets: Assets | null = null;
   actors: Actors | null = null;
   particles: Particles | null = null;
+  weatherFx: WeatherFx | null = null;
+  life: Life | null = null;
   world: WorldHandles | null = null;
   mode: Mode = 'title';
   sim: Sim | null = null;
+  /** The rules being played, and the season evening they come from (null: a classic evening). */
+  rules: Rules | null = null;
+  evening: Evening | null = null;
+  progress: Progress = loadProgress();
   timeScale = 1;
-  /** True once every Blender asset is loaded and the valley is built. */
+  /** True once every Blender asset is loaded and the first place is built. */
   ready = false;
+  private placeKey = '';
   private last = 0;
   private clock = 0;
   private titleAngle = 0;
   private runs = 0;
-  private howtoFrom: Mode | null = null;
+  private howtoFrom: string | null = null;
   /** Latching is available (the target is met and sheep are still out).  */
   private gateGlow = false;
   /** 1 = gate leaves wide open, 0 = shut (they swing shut when the day is won). */
@@ -57,6 +81,14 @@ export class Game {
   private gateTarget = 1;
   /** Seconds until the end card appears (lets the player see the gate close / night fall). */
   private endCardT = 0;
+  /** Weather now (eased towards the evening's): rain, overcast, mist, snowfall. */
+  private wx = { rain: 0, cloud: 0, mist: 0, snow: 0, leaves: 0 };
+  private flash = 0;
+  private flashT = -1;
+  /** In mist: where and when Pip last saw each sheep (the map only shows these). */
+  private seen = new Map<number, { x: number; z: number; t: number }>();
+  /** One-off messages already shown this evening (the ram's first butt, and so on). */
+  private said = new Set<string>();
 
   constructor(
     host: HTMLElement,
@@ -68,10 +100,8 @@ export class Game {
     this.wolfCam = new WolfCam(this.ui.root.querySelector('.hud') as HTMLElement);
     this.audio = new GameAudio(this.level);
     if (opts.difficulty) this.ui.setDifficulty(opts.difficulty);
-    this.ui.onAction = (a) => this.onUi(a);
+    this.ui.onAction = (a, arg) => this.onUi(a, arg);
     this.ui.bindSound(this.audio.engine.settings, () => this.audio.engine.apply());
-    // Graphics: the player's choice (remembered), or Auto, which starts high and steps down a
-    // tier whenever play runs slower than about 52 frames a second.
     this.qualityMode = opts.quality ?? loadQuality();
     this.stage.setQuality(this.qualityMode === 'auto' ? 'high' : this.qualityMode);
     this.ui.bindQuality(
@@ -86,34 +116,63 @@ export class Game {
     this.toTitle();
   }
 
-  /** Load the Blender assets and build the valley. */
+  /** Load the Blender assets and build the first place. */
   async init(onProgress: (done: number, total: number) => void) {
     const assets = await loadAssets(onProgress);
-    this.terrain.setData(assets.heightField, assets.meta);
-    this.world = buildWorld(this.level, this.terrain, assets);
-    this.stage.scene.add(this.world.root);
+    this.assets = assets;
     this.actors = new Actors(assets, this.terrain);
     this.stage.scene.add(this.actors.root);
-    // Fireflies drift near cover: bushes and the trees inside the valley.
-    const spots: { x: number; z: number }[] = [];
-    for (const [x, z] of this.level.data.bushes) for (let k = 0; k < 2; k++) spots.push({ x: x + (Math.random() - 0.5) * 6, z: z + (Math.random() - 0.5) * 6 });
-    for (const t of this.level.trees) spots.push({ x: t.x + (Math.random() - 0.5) * 5, z: t.z + (Math.random() - 0.5) * 5 });
-    // ...and over the meadows and round the fold, where the last minutes are played.
-    const fold = this.level.fold;
-    for (let k = 0; k < 18; k++) {
-      const a = Math.random() * Math.PI * 2;
-      const r = 10 + Math.random() * 22;
-      spots.push({ x: fold.cx + Math.cos(a) * r, z: fold.cz + Math.sin(a) * r });
-    }
-    for (let k = 0; k < 400 && spots.length < 220; k++) {
-      const x = (Math.random() - 0.5) * 220;
-      const z = (Math.random() - 0.5) * 220;
-      if (this.level.insideValley(x, z) && !this.level.inFold(x, z, -2)) spots.push({ x, z });
-    }
-    this.particles = new Particles(assets, this.terrain, spots);
-    this.stage.scene.add(this.particles.root);
+    this.weatherFx = new WeatherFx();
+    this.stage.scene.add(this.weatherFx.root);
+    this.loadPlace('hollow', 'summer');
     this.warmUp();
     this.ready = true;
+    this.ui.renderSeason(this.progress);
+  }
+
+  /**
+   * Build a place for a season (ground, water, props, the valley's life, fireflies), replacing the
+   * last one. Cheap when it is already the one showing.
+   */
+  loadPlace(levelId: string, season: Season) {
+    const key = `${levelId}|${season}`;
+    if (key === this.placeKey && this.world) return;
+    const a = this.assets;
+    if (!a) return;
+    const t0 = performance.now();
+    this.placeKey = key;
+    if (this.world) disposeWorld(this.world);
+    if (this.particles) this.particles.root.removeFromParent();
+    if (this.life) this.life.dispose();
+    this.level = new Level(LEVELS[levelId] ?? LEVELS.hollow);
+    const gen = generateTerrain(this.level, season);
+    this.terrain.setLevel(this.level, gen);
+    this.world = buildWorld(this.level, this.terrain, a, gen);
+    this.stage.scene.add(this.world.root);
+    // Fireflies drift near cover, over the meadows and round the fold.
+    const spots: { x: number; z: number }[] = [];
+    const L = this.level;
+    for (const [x, z] of L.def.bushes) for (let k = 0; k < 2; k++) spots.push({ x: x + (Math.random() - 0.5) * 6, z: z + (Math.random() - 0.5) * 6 });
+    for (const t of L.trees) spots.push({ x: t.x + (Math.random() - 0.5) * 5, z: t.z + (Math.random() - 0.5) * 5 });
+    const fold = L.fold;
+    for (let k = 0; k < 18; k++) {
+      const ang = Math.random() * Math.PI * 2;
+      const r = 10 + Math.random() * 22;
+      spots.push({ x: fold.cx + Math.cos(ang) * r, z: fold.cz + Math.sin(ang) * r });
+    }
+    const w = L.def.world;
+    for (let k = 0; k < 600 && spots.length < 220; k++) {
+      const x = w.minX + Math.random() * (w.maxX - w.minX);
+      const z = w.minZ + Math.random() * (w.maxZ - w.minZ);
+      if (L.insideValley(x, z) && !L.penAt(x, z, -2) && !L.inWater(x, z)) spots.push({ x, z });
+    }
+    this.particles = new Particles(a, this.terrain, season === 'winter' ? spots.slice(0, 40) : spots);
+    this.stage.scene.add(this.particles.root);
+    this.life = new Life(L, this.terrain, season, this.world.chimney);
+    this.stage.scene.add(this.life.root);
+    this.ui.setLevel(L);
+    this.audio.setLevel(L);
+    if (this.opts.test) console.info(`[woolgather] built ${levelId} (${season}) in ${Math.round(performance.now() - t0)} ms`);
   }
 
   start() {
@@ -126,7 +185,6 @@ export class Game {
   /**
    * Compile every shader the day will need now, behind the loading screen: a wolf's first
    * appearance and the fireflies at dusk each froze the game for a moment while theirs compiled.
-   * The scene renders into the grade pass's target, so that is where they are compiled for.
    */
   private warmUp() {
     if (!this.actors) return;
@@ -140,11 +198,35 @@ export class Game {
     scene.remove(...extra);
   }
 
-  private onUi(a: UiAction) {
+  private onUi(a: string, arg?: string) {
     switch (a) {
-      case 'play':
+      case 'season':
+        this.openSeason();
+        break;
+      case 'classic':
+        this.evening = null;
+        this.newDay(classicRules(this.ui.difficulty));
+        break;
+      case 'evening': {
+        const ev = SEASON.find((e) => e.id === arg);
+        if (ev) this.openEvening(ev);
+        break;
+      }
+      case 'begin':
+        if (this.evening) this.newDay(this.eveningRules(this.evening));
+        break;
+      case 'charm':
+        if (arg) this.toggleCharm(arg);
+        break;
+      case 'next': {
+        const i = this.evening ? SEASON.indexOf(this.evening) : -1;
+        const next = SEASON[i + 1];
+        if (next) this.openEvening(next);
+        else this.openSeason();
+        break;
+      }
       case 'restart':
-        this.newDay();
+        if (this.rules) this.newDay(this.evening ? this.eveningRules(this.evening) : this.rules);
         break;
       case 'resume':
         this.setMode('playing');
@@ -153,15 +235,61 @@ export class Game {
         this.toTitle();
         break;
       case 'howto':
-        this.howtoFrom = this.mode;
+        this.howtoFrom = this.ui.current;
         this.ui.show('howto');
         break;
       case 'close-howto':
-        this.ui.show(this.howtoFrom === 'paused' ? 'pause' : this.howtoFrom === 'title' ? 'title' : null);
+        this.ui.show((this.howtoFrom as Parameters<Ui['show']>[0]) ?? null);
         this.howtoFrom = null;
         break;
     }
   }
+
+  private eveningRules(ev: Evening): Rules {
+    return { ...ev.rules, id: ev.id, perks: perksFor(this.progress.charms) };
+  }
+
+  /** Wear or take off a charm (one slot, two once enough stars are earned). */
+  private toggleCharm(id: string) {
+    const p = this.progress;
+    const stars = totalStars(p);
+    const c = CHARMS.find((q) => q.id === id);
+    if (!c || stars < c.stars) return;
+    const slots = stars >= SECOND_CHARM_STARS ? 2 : 1;
+    if (p.charms.includes(id)) p.charms = p.charms.filter((q) => q !== id);
+    else {
+      p.charms.push(id);
+      while (p.charms.length > slots) p.charms.shift();
+    }
+    saveProgress(p);
+    if (this.evening) this.ui.renderIntro(this.evening, p);
+  }
+
+  private openSeason() {
+    this.sim = null;
+    this.rules = null;
+    this.ui.renderSeason(this.progress);
+    this.setMode('menu');
+    this.ui.show('season');
+    const last = SEASON.find((e) => e.id === this.progress.last) ?? SEASON[0];
+    this.loadPlace(last.rules.levelId, last.rules.season);
+    this.menuRules = last.rules as Rules;
+  }
+
+  /** The card for one evening, over an establishing shot of its place in its season. */
+  private openEvening(ev: Evening) {
+    this.sim = null;
+    this.evening = ev;
+    this.progress.last = ev.id;
+    saveProgress(this.progress);
+    this.loadPlace(ev.rules.levelId, ev.rules.season);
+    this.menuRules = ev.rules as Rules;
+    this.ui.renderIntro(ev, this.progress);
+    this.setMode('menu');
+    this.ui.show('intro');
+  }
+  /** Weather and light for the menu's establishing shot. */
+  private menuRules: Rules | null = null;
 
   /**
    * Enter (or the gamepad's A) on a menu: a focused button is the player's choice (Enter clicks
@@ -198,19 +326,26 @@ export class Game {
 
   toTitle() {
     this.sim = null;
+    this.rules = null;
+    this.evening = null;
+    this.menuRules = null;
+    if (this.ready) this.loadPlace('hollow', 'summer');
     this.setMode('title');
     this.ui.show('title');
     this.ui.clearToasts();
   }
 
-  newDay() {
+  newDay(rules: Rules) {
     if (!this.ready) return;
     this.runs++;
+    this.rules = rules;
+    this.loadPlace(rules.levelId, rules.season);
     this.gateOpen = this.gateTarget = 1;
     this.endCardT = 0;
     const seed = this.opts.seed + this.runs - 1;
-    this.sim = new Sim(this.level, this.ui.difficulty, seed);
-    this.audio.newDay(seed);
+    this.sim = new Sim(this.level, rules, seed);
+    this.ui.setRules(rules);
+    this.audio.newDay(seed, rules);
     const d = this.sim.dog;
     this.stage.snapTo(d.x, this.terrain.height(d.x, d.z), d.z, BASE_ZOOM);
     this.ui.clearToasts();
@@ -218,11 +353,17 @@ export class Game {
     this.warnedAt.clear();
     this.tipsShown.clear();
     this.stalkWarned.clear();
+    this.said.clear();
+    this.seen.clear();
+    this.ui.minimap.memory = rules.weather === 'fog' ? this.seen : null;
+    this.ui.minimap.refresh();
     this.stalkToast = null;
     this.dragFeasible = null;
+    this.flashT = -1;
     this.ui.prompt(null);
-    // The counter states the target; the first tip is about moving.
-    this.tip('move', 'WASD moves Pip · get behind the sheep · hold C to creep', 10, 0);
+    if (rules.objective === 'watch') this.tip('move', 'Keep the flock together · run at wolves or bark (Space) to drive them off', 10, 0);
+    else if (rules.tutorial || (!this.evening && this.runs === 1)) this.tip('move', 'WASD moves Pip · get behind the sheep · hold C to creep', 10, 0);
+    else if (this.evening?.newThing) this.tip('new', this.evening.newThing.text, 12, 0);
     this.setMode('playing');
   }
 
@@ -275,6 +416,44 @@ export class Game {
     requestAnimationFrame((t) => this.frame(t));
   }
 
+  /** The mood (0 golden hour .. 1 night) the light should show now. */
+  private moodNow(sim: Sim | null) {
+    if (sim) {
+      const r = sim.rules;
+      if (r.objective === 'watch') return dawnTime(sim.t);
+      return moodTime(sim.t, r.wolfStart ?? 0.7, r.dayLength);
+    }
+    if (this.titleMood !== null) return this.titleMood;
+    if (this.menuRules?.objective === 'watch') return 0.94;
+    return 0.28;
+  }
+
+  /** Ease the weather towards the evening's (or the menu shot's). */
+  private updateWeather(rawDt: number, sim: Sim | null) {
+    const r = sim?.rules ?? this.menuRules;
+    const w = r?.weather ?? 'clear';
+    const into = sim ? Math.min(1, sim.elapsed / 20) : 1;
+    const want = {
+      rain: w === 'storm' ? 0.35 + 0.65 * into : 0,
+      cloud: w === 'storm' ? 0.85 : w === 'fog' ? 0.35 : w === 'snow' ? 0.3 : 0,
+      mist: w === 'fog' ? (sim ? 0.95 : 0.6) : 0,
+      snow: w === 'snow' ? 1 : 0,
+      leaves: r?.season === 'autumn' ? 1 : 0,
+    };
+    const k = 1 - Math.exp(-1.5 * rawDt);
+    for (const key of Object.keys(want) as (keyof typeof want)[]) this.wx[key] += (want[key] - this.wx[key]) * k;
+    if (this.flashT >= 0) {
+      this.flashT += rawDt;
+      // A double flicker, then darkness.
+      const t = this.flashT;
+      this.flash = t < 0.08 ? 1 : t < 0.16 ? 0.25 : t < 0.26 ? 0.8 : Math.max(0, 0.8 - (t - 0.26) * 4);
+      if (t > 0.6) this.flashT = -1;
+    } else this.flash = 0;
+    this.stage.weather.cloud = this.wx.cloud;
+    this.stage.weather.mist = this.wx.mist;
+    this.stage.weather.flash = this.flash;
+  }
+
   private tick(dt: number, rawDt: number) {
     const input = this.input;
     const sim = this.sim;
@@ -286,26 +465,27 @@ export class Game {
     }
     if (this.mode !== 'playing') this.menuNav();
     if (this.mode === 'title') {
-      if (input.pressed('confirm')) this.confirm(() => this.howtoFrom === null && this.newDay());
+      if (input.pressed('confirm')) this.confirm(() => this.howtoFrom === null && this.openSeason());
+    } else if (this.mode === 'menu') {
+      if (input.pressed('pause')) this.ui.current === 'intro' ? this.openSeason() : this.toTitle();
+      else if (input.pressed('confirm')) this.confirm(() => this.ui.current === 'intro' && this.evening && this.newDay(this.eveningRules(this.evening)));
     } else if (this.mode === 'playing' && sim) {
       if (input.pressed('pause')) {
         this.setMode('paused');
       } else {
-        // Fixed-ish substeps keep the flocking stable at low frame rates.
         const steps = Math.max(1, Math.ceil(dt / (1 / 60)));
         for (let i = 0; i < steps; i++) sim.update(dt / steps, input);
         this.audio.onEvents(sim.events, sim);
         this.effects(sim, dt);
         this.handleEvents(sim.events);
-        // Test and film hooks keep a log of what happened, with the day clock (drained by __WG.drain).
         if (this.opts.test) for (const e of sim.events) if (e.type !== 'bleat' && e.type !== 'splash') this.eventLog.push({ ...e, t: +sim.elapsed.toFixed(2) });
         sim.events.length = 0;
         this.updateHints(sim, dt);
+        if (sim.rules.weather === 'fog') this.rememberSheep(sim);
         if (sim.outcome) {
           this.audio.outcome(sim.outcome.kind === 'win');
           this.setMode('ended');
-          // A win swings the gate shut; the card follows once the moment has landed.
-          if (sim.outcome.kind === 'win') this.gateTarget = 0;
+          if (sim.outcome.kind === 'win' && !sim.watch) this.gateTarget = 0;
           this.endCardT = 1.2;
         }
       }
@@ -315,8 +495,8 @@ export class Game {
     } else if (this.mode === 'ended') {
       if (this.endCardT > 0) {
         this.endCardT -= rawDt;
-        if (this.endCardT <= 0 && sim?.outcome) this.ui.showEnd(sim.outcome, sim);
-      } else if (input.pressed('confirm')) this.confirm(() => this.newDay());
+        if (this.endCardT <= 0 && sim?.outcome) this.finishEvening(sim);
+      } else if (input.pressed('confirm')) this.confirm(() => this.onUi(sim?.outcome?.kind === 'win' && this.evening ? 'next' : 'restart'));
     }
 
     if (!this.ready || !this.world || !this.actors) {
@@ -324,41 +504,45 @@ export class Game {
       return;
     }
     this.actors.root.visible = !!sim;
-    let mood;
+    this.updateWeather(rawDt, sim);
+    const mood = this.stage.applyMood(this.moodNow(sim));
     if (sim) {
-      mood = this.stage.applyMood(moodTime(sim.t, sim.preset.wolfStart, sim.preset.dayLength));
       this.actors.sync(sim, this.mode === 'paused' ? 0 : rawDt, mood, this.mode === 'playing');
-      // Messages and the close-up run on game time (the same as real time outside tests).
       this.ui.update(sim, this.mode === 'paused' ? 0 : dt, this.clock);
       this.ui.minimap.setMood(mood.t);
-      if (this.mode === 'ended' && sim.outcome?.kind === 'win') {
+      if (this.mode === 'ended' && sim.outcome?.kind === 'win' && !sim.watch) {
         this.pipHome(sim, rawDt);
         this.frameResults();
       } else {
         this.frameCamera(sim);
       }
     } else {
-      // Title: a low shot across the valley into the golden-hour sun, drifting slowly to and fro.
+      // Title and menus: a low shot across the place towards the evening sky, drifting to and fro.
       this.titleAngle += rawDt * 0.04;
-      this.stage.setTitleShot(-10, this.terrain.ground(-10, 4) + 1, 4, 0.1 + Math.sin(this.titleAngle) * 0.2);
-      mood = this.stage.applyMood(this.titleMood ?? 0.28);
+      const ts = this.level.def.titleShot ?? { x: 0, z: 0, angle: 0.1 };
+      this.stage.setTitleShot(ts.x, this.terrain.ground(ts.x, ts.z) + 1, ts.z, ts.angle + Math.sin(this.titleAngle) * 0.2);
     }
-    this.audio.update(rawDt, sim, mood.t, mood.night, this.mode, sim && this.mode === 'playing' ? this.tension(sim) : 0);
+    this.audio.update(rawDt, sim, mood.t, mood.night, this.mode === 'menu' ? 'title' : this.mode, sim && this.mode === 'playing' ? this.tension(sim) : 0, this.wx);
     const tgt = this.stage.grade.target;
-    this.particles?.update(this.mode === 'paused' ? 0 : dt, this.stage.camera, this.clock, mood.night, tgt.height);
+    const pdt = this.mode === 'paused' ? 0 : dt;
+    this.particles?.update(pdt, this.stage.camera, this.clock, mood.night, tgt.height);
+    this.weatherFx?.update(pdt, this.stage.camera, this.stage.focus, this.wx, mood.night, tgt.height, this.clock);
+    this.life?.update(pdt, this.clock, sim, mood, this.stage.focus);
     this.gateOpen += (this.gateTarget - this.gateOpen) * (1 - Math.exp(-3.5 * rawDt));
     const open = this.gateOpen * 1.65;
-    if (this.world.gateN) this.world.gateN.rotation.y = open;
-    if (this.world.gateS) this.world.gateS.rotation.y = -open;
+    for (const g of this.world.gates) {
+      if (g.n) g.n.rotation.y = open;
+      if (g.s) g.s.rotation.y = -open;
+    }
     this.stage.updateCamera(this.mode === 'paused' ? 0 : rawDt);
-    updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt, tgt.width, tgt.height);
+    this.updateMist(sim);
+    updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt, tgt.width, tgt.height, this.wx);
     if (sim && (this.mode === 'playing' || this.mode === 'paused')) {
       this.indicators.update(this.stage.camera, this.markers(sim));
       this.ui.fadeMap(this.behindMap(sim));
       this.ui.fadePanels(this.subjectsOnScreen(sim));
       this.ui.clearOf(this.threatsOnScreen(sim), rawDt);
-    }
-    else this.indicators.clear();
+    } else this.indicators.clear();
     if (sim && this.mode === 'playing') this.trackSnatch(sim, dt);
     if (this.mode === 'playing' || this.mode === 'paused') this.wolfCam.update(this.mode === 'paused' ? 0 : dt);
     else this.wolfCam.hide();
@@ -370,13 +554,66 @@ export class Game {
     hudState.bottomRects = this.ui.bottomRects();
     const forest = this.world.forest;
     this.stage.render((r, target) => {
-      // Tree cut-outs are placed for the main view only; the close-up follows a wolf into the
-      // pines, so the forest ring is left out of it (the camera would sit inside the trees).
       treeHoles(false);
       for (const f of forest) f.visible = false;
       this.wolfCam.render(r, this.stage.scene, target);
       for (const f of forest) f.visible = true;
       treeHoles(true);
+    });
+  }
+
+  /** Mist: the veil centred on Pip, its banks drifting with the ground under the camera. */
+  private updateMist(sim: Sim | null) {
+    const amount = this.wx.mist;
+    let cx = 0.5;
+    let cy = 0.5;
+    if (sim) {
+      const d = sim.dog;
+      tmpV.set(d.x, this.terrain.height(d.x, d.z) + 0.8, d.z).project(this.stage.camera);
+      cx = (tmpV.x + 1) / 2;
+      cy = (tmpV.y + 1) / 2;
+    }
+    const f = this.stage.focus;
+    // About 22 m of clear air round Pip (the herding view is about 42 m tall at zoom 1).
+    this.stage.grade.setMist(amount, this.stage.mistColor, cx, cy, f.x * 0.045, -f.z * 0.045, sim ? 0.36 : 0.9);
+  }
+
+  /** In mist, the map remembers where Pip last saw each sheep. */
+  private rememberSheep(sim: Sim) {
+    const d = sim.dog;
+    for (const s of sim.sheep) {
+      if (s.state === 'folded' || s.state === 'lost' || s.state === 'hidden') continue;
+      if ((s.x - d.x) ** 2 + (s.z - d.z) ** 2 < 26 * 26) this.seen.set(s.id, { x: s.x, z: s.z, t: sim.elapsed });
+    }
+  }
+
+  /** Results: stars, the ribbon, the season's progress, and what is next. */
+  private finishEvening(sim: Sim) {
+    const o = sim.outcome!;
+    const ev = this.evening;
+    let ribbon = false;
+    let firstWin = false;
+    let unlocked: string[] = [];
+    if (ev && o.kind === 'win') {
+      ribbon = ev.ribbon.check(sim);
+      const p = this.progress;
+      const before = totalStars(p);
+      const prev = p.evenings[ev.id];
+      firstWin = !prev || prev.stars === 0;
+      p.evenings[ev.id] = { stars: Math.max(prev?.stars ?? 0, o.stars), ribbon: (prev?.ribbon ?? false) || ribbon, best: Math.max(prev?.best ?? 0, sim.folded) };
+      saveProgress(p);
+      const after = totalStars(p);
+      unlocked = CHARMS.filter((c) => c.stars > before && c.stars <= after).map((c) => c.title);
+    }
+    const i = ev ? SEASON.indexOf(ev) : -1;
+    this.ui.showEnd(o, sim, {
+      evening: ev,
+      ribbon,
+      firstWin,
+      next: ev && o.kind === 'win' ? (SEASON[i + 1] ?? null) : null,
+      unlocked,
+      seasonDone: !!ev && o.kind === 'win' && i === SEASON.length - 1,
+      progress: this.progress,
     });
   }
 
@@ -387,21 +624,16 @@ export class Game {
   private trackSnatch(sim: Sim, dt: number) {
     const offScreen = (x: number, z: number) => {
       tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
-      // Anything even at the edge of the view counts as seen: the inset never repeats it.
       return !(tmpV.z < 1 && Math.abs(tmpV.x) < 0.98 && Math.abs(tmpV.y) < 0.96);
     };
     let best: { x: number; z: number; text: string; rank: number; id: number; heading: number } | null = null;
     for (const w of sim.wolves) {
       const s = w.target;
       if (!s || w.state === 'gone' || w.state === 'flee') continue;
-      // The inset is for hunts out of view; a wolf on screen is shown by the main camera.
       if (!offScreen(w.x, w.z)) continue;
-      // The top banner says where; the inset's own label only says what, and how long is left.
       let rank = 0;
       let text = '';
       if (w.state === 'drag') {
-        // The banner carries the countdown; the inset is the picture. Nothing to show if Pip
-        // cannot get there in time.
         if (this.dragFeasible === false) continue;
         rank = 3;
         text = 'Snatch!';
@@ -411,11 +643,8 @@ export class Game {
     if (best) {
       this.insetWolf = best.id;
       const dock = this.insetDock(sim, best.x, best.z);
-      // The banner carries the distance; the inset's label only says what it shows.
       this.wolfCam.track(best.x, this.terrain.height(best.x, best.z), best.z, best.heading, best.text, dock.x, dock.y, dock.point, dt);
     } else if (this.wolfCam.visible) {
-      // While the inset lingers, stay on the same wolf rather than on the spot it left; once that
-      // wolf is in the main view the close-up goes at once (it showed the same wolf twice).
       const w = sim.wolves.find((o) => o.id === this.insetWolf && o.state !== 'gone');
       if (w && !offScreen(w.x, w.z)) this.wolfCam.hide();
       else if (w) this.wolfCam.follow(w.x, this.terrain.height(w.x, w.z), w.z, w.facing, dt);
@@ -423,12 +652,6 @@ export class Game {
   }
   private insetWolf = -1;
 
-  /**
-   * Where the wolf-cam inset goes for a snatch at (x, z) off screen: always the same place, the
-   * left edge at mid-height, clear of the counter, so the eye knows where to look (its arrow points
-   * the way); it only slides along the edge while Pip or the sheep near him would be under it.
-   * Returns the frame's top-left and the threat's (off screen) position for the arrow.
-   */
   private insetDock(sim: Sim, x: number, z: number) {
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -451,7 +674,7 @@ export class Game {
     };
     add(d.x, d.z);
     for (const s of sim.sheep) {
-      if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed') continue;
+      if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed' || s.state === 'hidden') continue;
       if ((s.x - d.x) ** 2 + (s.z - d.z) ** 2 < 30 * 30) add(s.x, s.z);
     }
     const pad = 26;
@@ -474,8 +697,6 @@ export class Game {
     const d = sim.dog;
     let fx = d.x + d.vx * 0.35;
     let fz = d.z + d.vz * 0.35;
-    // Pip's safe band: the frame always keeps this much ground round him, so he never ends up
-    // under the timer and banners at the top or on the bottom edge (north is up the screen).
     const banner = this.ui.bannerUp;
     const SAFE = { side: 6, north: banner ? 9 : 6, south: 4 };
     const hunting = sim.wolves.some((w) => w.state === 'stalk' || w.state === 'charge' || w.state === 'drag');
@@ -493,20 +714,18 @@ export class Game {
       minZ = Math.min(minZ, z);
       maxZ = Math.max(maxZ, z);
     };
+    // In mist the camera frames only what Pip can see.
+    const reachSheep = this.wx.mist > 0.5 ? 18 : 26;
     for (const s of sim.sheep) {
-      if (s.state === 'lost' || s.state === 'folded') continue;
-      if ((s.x - d.x) ** 2 + (s.z - d.z) ** 2 > 26 * 26) continue;
+      if (s.state === 'lost' || s.state === 'folded' || s.state === 'hidden') continue;
+      if ((s.x - d.x) ** 2 + (s.z - d.z) ** 2 > reachSheep * reachSheep) continue;
       grow(s.x, s.z);
-      // Lead the frame the way the flock is moving, so the ground it is heading for is in view.
       grow(s.x + s.vx * 1.2, s.z + s.vz * 1.2);
       cx += s.x;
       cz += s.z;
       n++;
     }
     let framed = n > 0;
-    // Hunting wolves near Pip are framed; a wolf dragging a sheep is pulled into view from
-    // further out, so the alert and the picture agree. They (with their prey and Pip) are the
-    // must-haves: `ess` is their box.
     let dragFrame = false;
     const ess = { minX, maxX, minZ, maxZ, wolves: 0 };
     const growEss = (x: number, z: number) => {
@@ -523,20 +742,17 @@ export class Game {
       growEss(w.x, w.z);
       growEss(w.x - 5, w.z - 6);
       growEss(w.x + 5, w.z + 3);
-      // A stalking or charging wolf brings its prey into the frame too, so the player can see
-      // which sheep it is after and where to cut in.
       if (w.target && (w.state === 'stalk' || w.state === 'charge') && (w.target.x - w.x) ** 2 + (w.target.z - w.z) ** 2 < 30 * 30) growEss(w.target.x, w.target.z);
       framed = true;
       ess.wolves++;
       if (w.state === 'drag') dragFrame = true;
     }
-    // Once the target is met, the fold gate stays in shot while Pip is within reach of it, so the
-    // call to latch has the gate beside it.
+    const L = this.level;
     if (this.gateGlow) {
-      const m = this.level.fold.mouth;
+      const m = L.fold.mouth;
       if ((m.x - d.x) ** 2 + (m.z - d.z) ** 2 < 55 * 55) {
         grow(m.x, m.z);
-        grow(this.level.fold.minX + 4, this.level.fold.cz);
+        grow(L.fold.inside.x, L.fold.inside.z);
         framed = true;
       }
     }
@@ -545,12 +761,13 @@ export class Game {
       if (n > 0) {
         cx /= n;
         cz /= n;
-        // Bring the next landmark into shot (the fold gate, bridge or ford) when the flock is near it.
-        const L = this.level;
-        const inside = { x: L.fold.minX + 4, z: L.fold.cz };
+        // Bring the next landmark into shot (the fold gate, a bridge or a ford) when the flock is near it.
         let best: { x: number; z: number }[] | null = null;
         let bd = 42 * 42;
-        for (const pts of [[L.fold.mouth, inside], [L.bridge], [L.ford]]) {
+        const marks: { x: number; z: number }[][] = sim.watch ? [] : [[L.fold.mouth, L.fold.inside]];
+        for (const b of L.bridges) marks.push([b]);
+        for (const f of L.fords) if (f.open) marks.push([f]);
+        for (const pts of marks) {
           const p = pts[0];
           const dd = (p.x - cx) ** 2 + (p.z - cz) ** 2;
           if (dd < bd) {
@@ -560,29 +777,22 @@ export class Game {
         }
         for (const p of best ?? []) grow(p.x, p.z);
       }
-      // Frame the whole working group (Pip, flock, landmark), not Pip with the rest at the edges.
-      // At zoom 1 the view spans VIEW: about +-27 m across, 18 m towards the camera, 24 m away.
-      // Margins keep everything framed clear of the timer and banners at the top (9 m: the far
-      // side of the tilted view is squeezed) and of the meters, hints and edge markers at the
-      // bottom (8 m). Capped so Pip, with his outline, stays a readable size.
       const cap = dragFrame ? 1.75 : 1.6;
       const fit = (x0: number, x1: number, z0: number, z1: number) => {
-        // The tilted view sees further away from the camera than towards it, so the centre that
-        // needs the least zoom sits south of the box's middle: where both margins bind equally.
         const cx0 = fx + ((x0 + x1) / 2 - fx) * 0.85;
         const cz0 = fz + ((VIEW.north * (z1 + 8) + VIEW.south * (z0 - top)) / (VIEW.north + VIEW.south) - fz) * 0.85;
         const halfW = Math.max(x1 - cx0, cx0 - x0) + 5;
         return { x: cx0, z: cz0, zoom: Math.max(BASE_ZOOM, halfW / VIEW.half, (z1 - cz0 + 8) / VIEW.south, (cz0 - z0 + top) / VIEW.north) };
       };
       let f = fit(minX, maxX, minZ, maxZ);
-      // When everything will not fit, the hunt wins: the wolf, its prey and Pip stay in frame and
-      // the far side of the flock may go off the edge.
       if (f.zoom > cap && ess.wolves > 0) f = fit(ess.minX, ess.maxX, ess.minZ, ess.maxZ);
       fx = f.x;
       fz = f.z;
       zoom = Math.min(cap, f.zoom);
     }
     if (d.sprinting) zoom = Math.max(zoom, BASE_ZOOM * 1.08);
+    // Mist keeps the camera close: there is nothing to see further out.
+    if (this.wx.mist > 0.5) zoom = Math.min(zoom, 1.25);
     this.stage.setFocusGoal(fx, this.terrain.height(d.x, d.z), fz, zoom);
   }
 
@@ -598,16 +808,18 @@ export class Game {
     const frac = Math.min(0.7, cardRight / w);
     const zoom = 1.1;
     const halfW = VIEW.half * zoom * (aspect / (16 / 9));
-    const x0 = f.mouth.x - 3;
-    const x1 = f.maxX + 1;
+    const m = f.mouth;
     const freeCentre = ((frac + 1) / 2 - 0.5) * 2 * halfW;
-    this.stage.setFocusGoal((x0 + x1) / 2 - freeCentre, this.terrain.ground(f.cx, f.cz), f.cz + 2, zoom);
+    const cx = (m.x + f.cx) / 2;
+    const cz = (m.z + f.cz) / 2;
+    this.stage.setFocusGoal(cx - freeCentre, this.terrain.ground(f.cx, f.cz), cz + 2, zoom);
   }
 
   /** After a win Pip trots to the mouth of the fold and stands facing his flock, wagging. */
   private pipHome(sim: Sim, dt: number) {
     const d = sim.dog;
-    const m = this.level.fold.mouth;
+    const p = this.level.fold;
+    const m = p.mouth;
     const dx = m.x - d.x;
     const dz = m.z - d.z;
     const dist = Math.hypot(dx, dz);
@@ -627,11 +839,11 @@ export class Game {
       d.vx = 0;
       d.vz = 0;
       d.speed = 0;
-      let a = Math.PI / 2 - d.facing;
+      const inw = p.inward;
+      let a = Math.atan2(inw.x, inw.z) - d.facing;
       a = Math.atan2(Math.sin(a), Math.cos(a));
       d.facing += a * (1 - Math.exp(-6 * dt));
       if (!this.pipArrived) {
-        // A happy little bark-hop as he gets there.
         this.pipArrived = true;
         d.sinceBark = 0;
       }
@@ -642,49 +854,48 @@ export class Game {
   private markers(sim: Sim): Marker[] {
     const h = (x: number, z: number) => this.terrain.height(x, z);
     const f = this.level.fold;
-    const out: Marker[] = [
-      {
+    const out: Marker[] = [];
+    if (!sim.watch) {
+      const post = f.toWorld(-f.halfW - 0.6, -f.halfD * 0.5);
+      const ins = f.toWorld(-f.halfW + 2, 0);
+      out.push({
         id: 'fold',
         kind: 'fold',
-        // Once latching is open the marker moves to the gatepost and says how to shut it.
-        x: this.gateGlow ? f.minX - 0.6 : f.minX + 2,
-        y: h(f.minX, f.cz) + (this.gateGlow ? 3.4 : 3),
-        z: this.gateGlow ? f.cz - (f.maxZ - f.minZ) * 0.5 : f.cz,
+        x: this.gateGlow ? post.x : ins.x,
+        y: h(f.gate.x, f.gate.z) + (this.gateGlow ? 3.4 : 3),
+        z: this.gateGlow ? post.z : ins.z,
         labelOnScreen: this.gateGlow ? (this.ui.promptIsChip ? 'Enter: latch the gate' : undefined) : sim.elapsed < 45 ? 'Fold' : undefined,
-      },
-    ];
-    // The wolf-cam inset stands in for the edge marker of the hunt it is showing.
+      });
+    }
     const shown = this.wolfCam.visible ? sim.wolves.find((w) => w.id === this.insetWolf && w.state !== 'gone') : undefined;
     for (const s of sim.sheep) {
-      // Only off screen: in view the carrying wolf's rings and the banner already say it all.
       if (s.state === 'grabbed' && shown?.target !== s) out.push({ id: `g${s.id}`, kind: 'grab', x: s.x, y: h(s.x, s.z) + 1, z: s.z, muted: this.dragFeasible === false });
     }
-    // While a sheep is being dragged away, that is the only thing to point at: the other wolves'
-    // markers and the nearest-sheep marker wait.
     const snatch = sim.wolves.some((w) => w.state === 'drag');
+    const misty = this.wx.mist > 0.5;
     for (const w of sim.wolves) {
-      if ((w.state === 'stalk' || w.state === 'charge') && w !== shown && !snatch) out.push({ id: `w${w.id}`, kind: 'wolf', x: w.x, y: h(w.x, w.z) + 1, z: w.z });
+      if ((w.state === 'stalk' || w.state === 'charge') && w !== shown && !snatch && (!misty || Math.hypot(w.x - sim.dog.x, w.z - sim.dog.z) < 40)) out.push({ id: `w${w.id}`, kind: 'wolf', x: w.x, y: h(w.x, w.z) + 1, z: w.z });
     }
-    // If no loose sheep is in view, point at the nearest one.
+    // If no loose sheep is in view, point at the nearest one (in mist: the nearest Pip remembers).
     const cam = this.stage.camera;
     const d = sim.dog;
-    let nearest: (typeof sim.sheep)[number] | null = null;
+    let nearest: { x: number; z: number } | null = null;
     let nd = Infinity;
     let anyVisible = false;
     for (const s of sim.sheep) {
-      if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed') continue;
+      if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed' || s.state === 'hidden') continue;
       tmpV.set(s.x, h(s.x, s.z) + 0.8, s.z).project(cam);
-      // A sheep partly in view counts as visible.
-      if (tmpV.z < 1 && Math.abs(tmpV.x) < 1.03 && Math.abs(tmpV.y) < 1.03) anyVisible = true;
-      const dd = (s.x - d.x) ** 2 + (s.z - d.z) ** 2;
+      if (tmpV.z < 1 && Math.abs(tmpV.x) < 1.03 && Math.abs(tmpV.y) < 1.03 && (!misty || (s.x - d.x) ** 2 + (s.z - d.z) ** 2 < 26 * 26)) anyVisible = true;
+      const p = misty ? this.seen.get(s.id) : s;
+      if (!p) continue;
+      const dd = (p.x - d.x) ** 2 + (p.z - d.z) ** 2;
       if (dd < nd) {
         nd = dd;
-        nearest = s;
+        nearest = p;
       }
     }
     if (!anyVisible && nearest && !snatch) out.push({ id: 'stray', kind: 'sheep', x: nearest.x, y: h(nearest.x, nearest.z) + 1, z: nearest.z });
-    // The first seconds of the first day: name the dashed ring on the ring itself.
-    if (this.runs === 1 && sim.elapsed < 20) {
+    if (this.runs === 1 && sim.elapsed < 20 && (sim.rules.tutorial || !this.evening)) {
       const r = sim.dogThreatRadius;
       out.push({ id: 'reach', kind: 'note', x: d.x, y: h(d.x, d.z - r), z: d.z - r, labelOnScreen: "Pip's reach: sheep inside it move away", onScreenOnly: true });
     }
@@ -702,7 +913,7 @@ export class Game {
     for (const e of sim.events) {
       switch (e.type) {
         case 'bark':
-          p.ripple(d.x, d.z, 1.5, DOG.barkRadius, 0.55);
+          p.ripple(d.x, d.z, 1.5, sim.barkRadius, 0.55);
           break;
         case 'splash':
           p.splash(e.x, e.z, e.big);
@@ -721,7 +932,6 @@ export class Game {
           this.hitStop = Math.max(this.hitStop, 0.05);
           break;
         case 'folded': {
-          // Home: two hearts rise, a warm ring spreads at its feet and the sheep gives a hop.
           p.heart(e.x, e.z);
           p.ripple(e.x, e.z, 0.8, 4, 0.5);
           const i = sim.sheep.findIndex((s) => s.id === e.id);
@@ -736,13 +946,29 @@ export class Game {
           if (i >= 0) this.actors.bleat(i);
           break;
         }
+        case 'butt':
+          p.dust(e.x, e.z, 0, 0, 1.5);
+          p.ripple(e.x, e.z, 0.6, 3.5, 0.5);
+          this.stage.addShake(e.wolf ? 0.2 : 0.45);
+          this.hitStop = Math.max(this.hitStop, 0.08);
+          break;
+        case 'stamp':
+          p.dust(e.x, e.z, 0, 0, 0.9);
+          break;
+        case 'ramYield':
+          p.ripple(e.x, e.z, 1, 5, 0.4);
+          break;
+        case 'lambFound':
+          p.heart(e.x, e.z);
+          break;
+        case 'thunder':
+          this.flashT = 0;
+          this.stage.addShake(0.5);
+          break;
       }
     }
-    // A puff of dust for each footfall of anything running (Pip at a gallop, a bolting flock, a
-    // charging or fleeing wolf), taken from the gaits so the dust keeps time with the feet.
-    for (const f of this.actors.footfalls) p.dust(f.x, f.z, f.dx, f.dz, f.size);
+    for (const f of this.actors.footfalls) p.dust(f.x, f.z, f.dx, f.dz, f.size * (this.wx.snow > 0.5 ? 1.2 : 1));
     this.actors.footfalls.length = 0;
-    // A sheep dragged along the ground scuffs up dust and sheds wool.
     this.dustT += dt;
     if (this.dustT < 0.1) return;
     this.dustT = 0;
@@ -757,7 +983,7 @@ export class Game {
   /** 0..1: how close the danger is, for the music. */
   private tension(sim: Sim) {
     const d = sim.dog;
-    let t = sim.timeLeft < 60 ? 0.3 + 0.3 * (1 - sim.timeLeft / 60) : 0;
+    let t = sim.timeLeft < 60 && !sim.watch ? 0.3 + 0.3 * (1 - sim.timeLeft / 60) : 0;
     for (const w of sim.wolves) {
       if (w.state === 'drag') t = Math.max(t, this.dragFeasible === false ? 0.55 : 1);
       else if (w.state === 'charge') t = Math.max(t, 0.85);
@@ -769,23 +995,28 @@ export class Game {
     return Math.min(1, t);
   }
 
+  private once(id: string, fn: () => void) {
+    if (this.said.has(id)) return;
+    this.said.add(id);
+    fn();
+  }
+
   private handleEvents(events: SimEvent[]) {
     for (const e of events) {
       switch (e.type) {
         case 'dusk':
           this.ui.toast('The sun is setting. Wolves are stirring in the pines.', 'warn');
           break;
+        case 'dawn':
+          this.ui.toast('Dawn is breaking! The wolves slink back to the woods.', 'good');
+          break;
         case 'wolfSpawn': {
-          // Name the sheep it is after, by the place names on the minimap: that is where Pip has
-          // to be. (Compass words were read as "where the wolf is" and "where the sheep are".)
           const d = this.sim?.dog;
           if (!d) break;
-          // A wolf after Pip's own flock is announced when it comes into view (updateHints).
           if (Math.hypot(e.tx - d.x, e.tz - d.z) >= 26) this.ui.toast(`A wolf is after the sheep ${this.level.placeName(e.tx, e.tz)}!`, 'warn');
           break;
         }
         case 'grab':
-          // The sticky alert (updateHints) and the wolf cam carry the news until it is settled.
           this.stage.addShake(0.35);
           break;
         case 'lost':
@@ -794,11 +1025,22 @@ export class Game {
         case 'rescued':
           this.ui.toast('Sheep rescued!', 'good');
           break;
-        case 'targetMet':
-          // The latch prompt banner carries this; a toast would say the same thing twice.
-          break;
         case 'bark':
           this.stage.addShake(0.12);
+          break;
+        case 'butt':
+          if (!e.wolf) this.once('butt', () => this.ui.toast('Angus butts Pip away! Stand still near him, or bark, to stare him down', 'warn'));
+          else this.once('buttWolf', () => this.ui.toast('Angus sees the wolf off with his horns!', 'good'));
+          break;
+        case 'ramYield':
+          this.once('yield', () => this.ui.toast('Angus gives way: the ewes will follow him', 'good'));
+          break;
+        case 'lambFound':
+          this.ui.toast('You found the lost lamb! It follows Pip: lead it to the fold', 'good');
+          break;
+        case 'flood':
+          this.ui.toast('The stream has flooded: the ford is gone! Use the bridge', 'danger');
+          this.ui.minimap.refresh();
           break;
         default:
           break;
@@ -810,16 +1052,12 @@ export class Game {
   private tipsShown = new Set<string>();
   private tipUntil = 0;
   private farT = 0;
-  /** The hint bar is showing what to do about a snatch. */
   private dragHint = false;
-  /** Whether Pip can reach the current snatch in time (null when there is none). */
   private dragFeasible: boolean | null = null;
-  /** Wolves already announced as stalking. */
   private stalkWarned = new Set<number>();
-  /** The stalking warning on show, and whose it is. */
   private stalkToast: { id: number; text: string } | null = null;
 
-  /** Is the fold, Pip or a loose sheep under the minimap? Then it fades so they show through. */
+  /** Is Pip or a loose sheep (or the fold while sheep go in) under the minimap? Then it fades. */
   private behindMap(sim: Sim) {
     const r = this.ui.mapRect();
     if (!r) return false;
@@ -832,19 +1070,15 @@ export class Game {
       const py = ((1 - tmpV.y) / 2) * h;
       return px > r.left - 24 && px < r.right + 24 && py > r.top - 24 && py < r.bottom + 24;
     };
-    // Only an animal under the map makes it see-through: the fold and the farmhouse may sit under
-    // it (that is where the map gets read), people need to see Pip and the sheep.
     if (under(sim.dog.x, sim.dog.z)) return true;
-    if (sim.sheep.some((s) => s.state !== 'lost' && s.state !== 'folded' && under(s.x, s.z))) return true;
-    // The gate while sheep are going through it: the moment the map must not hide.
-    const m = this.level.fold.mouth;
-    const nearGate = sim.sheep.some((s) => s.state !== 'lost' && s.state !== 'folded' && (s.x - m.x) ** 2 + (s.z - m.z) ** 2 < 30 * 30);
+    if (sim.sheep.some((s) => s.state !== 'lost' && s.state !== 'folded' && s.state !== 'hidden' && under(s.x, s.z))) return true;
     const f = this.level.fold;
-    return nearGate && (under(f.minX, f.cz) || under(f.cx, f.cz) || under(f.maxX, f.minZ) || under(f.maxX, f.maxZ));
+    const m = f.mouth;
+    const nearGate = sim.sheep.some((s) => s.state !== 'lost' && s.state !== 'folded' && (s.x - m.x) ** 2 + (s.z - m.z) ** 2 < 30 * 30);
+    const corners = [f.toWorld(-f.halfW, 0), f.toWorld(0, 0), f.toWorld(f.halfW, -f.halfD), f.toWorld(f.halfW, f.halfD)];
+    return nearGate && corners.some((c) => under(c.x, c.z));
   }
 
-  /** Screen positions (CSS pixels) of Pip, the loose sheep and the hunting wolves in view. */
-  /** Screen points of the wolves in view and the sheep they carry (the banner keeps clear of them). */
   private threatsOnScreen(sim: Sim) {
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -872,7 +1106,7 @@ export class Game {
       out.push({ x: ((tmpV.x + 1) / 2) * w, y: ((1 - tmpV.y) / 2) * h });
     };
     add(sim.dog.x, sim.dog.z);
-    for (const s of sim.sheep) if (s.state !== 'folded' && s.state !== 'lost') add(s.x, s.z);
+    for (const s of sim.sheep) if (s.state !== 'folded' && s.state !== 'lost' && s.state !== 'hidden') add(s.x, s.z);
     for (const wf of sim.wolves) if (wf.state !== 'gone') add(wf.x, wf.z);
     return out;
   }
@@ -887,7 +1121,6 @@ export class Game {
     return ['→', '↗', '↑', '↖', '←', '↙', '↓', '↘'][((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8];
   }
 
-  /** Is (x, z) inside the main view (with a margin)? */
   private onScreen(x: number, z: number) {
     tmpV.set(x, this.terrain.height(x, z) + 0.8, z).project(this.stage.camera);
     return tmpV.z < 1 && Math.abs(tmpV.x) < 0.9 && Math.abs(tmpV.y) < 0.85;
@@ -895,7 +1128,6 @@ export class Game {
 
   /** Show a tutorial tip once, for `seconds` of play. */
   private tip(id: string, text: string, seconds: number, now: number) {
-    // Never over the snatch instructions; the tip can come up later.
     if (this.tipsShown.has(id) || this.dragHint) return;
     this.tipsShown.add(id);
     this.ui.hint(text);
@@ -908,20 +1140,20 @@ export class Game {
   private updateHints(sim: Sim, dt: number) {
     const t = sim.elapsed;
     const d = sim.dog;
-    // Nightfall warnings.
     for (const s of [60, 30]) {
       if (sim.timeLeft <= s && !this.warnedAt.has(s)) {
         this.warnedAt.add(s);
         if (sim.timeLeft < s - 4) continue;
+        if (sim.watch) {
+          this.ui.toast(s === 60 ? 'One minute until dawn: hold on!' : 'Dawn in 30 seconds!', 'warn');
+          continue;
+        }
         const what = sim.targetMet ? 'latch the gate or bring the rest in!' : `${Math.max(0, sim.target - sim.folded)} more sheep needed!`;
         this.ui.toast(s === 60 ? `One minute until nightfall: ${what}` : `Night falls in 30 seconds: ${what}`, 'danger');
       }
     }
 
     const grabbed = sim.sheep.some((s) => s.state === 'grabbed');
-    // A snatch in progress holds the message slot until it is settled: the news at the top with
-    // one number (seconds until the sheep is lost, the same as the inset), what to do in the hint
-    // bar. If Pip cannot get there in time the hint says so instead of asking the impossible.
     const dragger = sim.wolves.find((w) => w.state === 'drag' && w.target);
     if (dragger?.target) {
       const s = dragger.target;
@@ -929,23 +1161,21 @@ export class Game {
       const eta = sim.dragEta(dragger);
       const secs = Math.max(1, Math.ceil(eta));
       const margin = eta - sim.rescueEta(dragger.x, dragger.z);
-      // Hysteresis so the advice does not flicker as the numbers move.
       if (this.dragFeasible === null) this.dragFeasible = margin > 0.5;
       else if (this.dragFeasible && margin < -1) this.dragFeasible = false;
       else if (!this.dragFeasible && margin > 1.5) this.dragFeasible = true;
       const place = this.level.placeName(s.x, s.z);
-      const inRange = Math.hypot(dragger.x - d.x, dragger.z - d.z) < DOG.barkWolfRadius - 1;
+      const what = s.kind === 'lamb' ? 'lamb' : 'sheep';
+      const inRange = Math.hypot(dragger.x - d.x, dragger.z - d.z) < sim.barkWolfRadius - 1;
       if (inRange || far < 16) {
-        this.ui.alert(`A wolf has one of your sheep! ${secs} s to save it`, inRange ? 'Bark (Space) now: it drops the sheep!' : 'Run at it or bark (Space) near it: it drops the sheep');
+        this.ui.alert(`A wolf has one of your ${what === 'lamb' ? 'lambs' : 'sheep'}! ${secs} s to save it`, inRange ? 'Bark (Space) now: it drops the sheep!' : 'Run at it or bark (Space) near it: it drops the sheep');
         this.ui.hint('');
       } else if (this.dragFeasible) {
         const dist = Math.round(Math.hypot(dragger.x - d.x, dragger.z - d.z));
-        this.ui.alert(`A wolf has a sheep ${place}! ${this.arrowTo(dragger.x, dragger.z)} ${dist} m · ${secs} s to save it`, 'Sprint (Shift) to it, then run at it or bark (Space) near it');
+        this.ui.alert(`A wolf has a ${what} ${place}! ${this.arrowTo(dragger.x, dragger.z)} ${dist} m · ${secs} s to save it`, 'Sprint (Shift) to it, then run at it or bark (Space) near it');
         this.ui.hint('');
       } else {
-        // Out of reach: still announced for the whole drag (a quiet toast and a grey marker read as
-        // nothing happening), but calmly, with no countdown and no inset (see trackSnatch).
-        this.ui.alert(`A wolf is carrying a sheep off ${place}! ${this.arrowTo(dragger.x, dragger.z)}`, 'Too far to save it: keep the rest of the flock together', true);
+        this.ui.alert(`A wolf is carrying a ${what} off ${place}! ${this.arrowTo(dragger.x, dragger.z)}`, 'Too far to save it: keep the rest of the flock together', true);
         this.ui.hint('');
       }
       this.dragHint = true;
@@ -959,8 +1189,6 @@ export class Game {
       }
     }
 
-    // Warn as a wolf closes in on its prey, before it can strike. A wolf after Pip's own flock is
-    // announced once it is actually in view, so the words and the picture agree.
     for (const w of sim.wolves) {
       if (w.state !== 'stalk' || !w.target || this.stalkWarned.has(w.id)) continue;
       const s = w.target;
@@ -968,9 +1196,9 @@ export class Game {
       const nearPip = Math.hypot(s.x - d.x, s.z - d.z) < 26;
       if (nearPip ? !visible : Math.hypot(w.x - s.x, w.z - s.z) > 20) continue;
       this.stalkWarned.add(w.id);
-      // An arrow only when the wolf is out of view (on screen its ring and tether point at it).
       const arrow = visible ? '' : ` ${this.arrowTo(w.x, w.z)}`;
-      const text = nearPip ? `A wolf is stalking your flock!${arrow}` : `A wolf is stalking the sheep ${this.level.placeName(s.x, s.z)}!${arrow}`;
+      const prey = s.kind === 'lamb' ? 'a lamb' : 'the sheep';
+      const text = nearPip ? `A wolf is stalking your flock!${arrow}` : `A wolf is stalking ${prey} ${this.level.placeName(s.x, s.z)}!${arrow}`;
       this.ui.toast(text, 'warn');
       this.stalkToast = { id: w.id, text };
     }
@@ -984,35 +1212,30 @@ export class Game {
     }
     const wasGlowing = this.gateGlow;
     this.gateGlow = sim.targetMet && sim.free > 0 && !grabbed;
-    this.ui.prompt(
-      this.gateGlow ? 'Target met! <kbd>Enter</kbd> latches the gate, or herd more for stars' : null,
-      'Target met · <kbd>Enter</kbd> latches the gate',
-    );
-    // The call to action replaces the objective it completes, and wins over tutorial tips.
+    this.ui.prompt(this.gateGlow ? 'Target met! <kbd>Enter</kbd> latches the gate, or herd more for stars' : null, 'Target met · <kbd>Enter</kbd> latches the gate');
     if (this.gateGlow && !wasGlowing) this.ui.dropInfoToast();
     if (this.gateGlow && this.tipUntil > 0) {
       this.tipUntil = 0;
       this.ui.hint('');
     }
 
-    const wolvesOut = sim.t >= sim.preset.wolfStart;
+    const wolvesOut = sim.rules.wolfStart !== null && sim.t >= sim.rules.wolfStart;
     let nearest = Infinity;
     for (const s of sim.sheep) {
-      if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed') continue;
+      if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed' || s.state === 'hidden') continue;
       nearest = Math.min(nearest, Math.hypot(s.x - d.x, s.z - d.z));
     }
-    if (!wolvesOut && nearest < 22) {
+    if (!wolvesOut && nearest < 22 && !sim.watch) {
       if (t > 20 || this.runs > 1) this.tip('ring', 'Hold C to creep: the dashed ring shrinks and the sheep stay calmer', 9, t);
     }
+    // Angus: explain the stare the first time Pip squares up to him.
+    const ram = sim.sheep.find((s) => s.kind === 'ram' && s.state !== 'folded' && s.state !== 'lost');
+    if (ram && ram.stubborn > 0.15 && Math.hypot(ram.x - d.x, ram.z - d.z) < 14) this.tip('ram', 'Angus stands his ground: stand still or creep (C) near him to stare him down, or bark (Space)', 9, t);
     this.farT = nearest > 45 && nearest < Infinity ? this.farT + dt : 0;
-    if (!wolvesOut && this.farT > 3 && this.tipsShown.has('ring')) {
-      this.tip('sprint', 'Long way to the next sheep? Hold Shift to sprint', 6, t);
-    }
-    // Only when a wolf is near Pip and in view: off-screen hunts are shown by the wolf cam.
+    if (!wolvesOut && this.farT > 3 && this.tipsShown.has('ring')) this.tip('sprint', 'Long way to the next sheep? Hold Shift to sprint', 6, t);
     if (sim.wolves.some((w) => (w.state === 'stalk' || w.state === 'charge') && Math.hypot(w.x - d.x, w.z - d.z) < 30 && this.onScreen(w.x, w.z))) {
       this.tip('wolf', 'Wolves run from Pip: run at one or bark (Space) to drive it off', 7, t);
     }
-    // The wolf tip goes as soon as no wolf is about any more.
     const wolfAbout = sim.wolves.some((w) => (w.state === 'stalk' || w.state === 'charge' || w.state === 'drag') && Math.hypot(w.x - d.x, w.z - d.z) < 40);
     if (this.tipUntil > 0 && (t > this.tipUntil || (this.tipId === 'wolf' && !wolfAbout))) {
       this.tipUntil = 0;
@@ -1020,18 +1243,94 @@ export class Game {
     }
   }
 
-  /** Debug snapshot for the Playwright bot. */
   /** Events since the last call (test mode only; for the film script's cut marks). */
   eventLog: Record<string, unknown>[] = [];
   /** Film: the title shot at another time of the evening (null: the usual golden hour). */
   titleMood: number | null = null;
 
+  /** Test hook: open an evening's card, or start it at once. */
+  testEvening(id: string, begin: boolean) {
+    const ev = SEASON.find((e) => e.id === id);
+    if (!ev) return false;
+    this.openEvening(ev);
+    if (begin) this.newDay(this.eveningRules(ev));
+    return true;
+  }
+
+  testClassic(d: Difficulty) {
+    this.ui.setDifficulty(d);
+    this.evening = null;
+    this.newDay(classicRules(d));
+  }
+
+  testProgress(what: 'reset' | 'all') {
+    this.progress = what === 'reset' ? { evenings: {}, charms: [] } : { evenings: Object.fromEntries(SEASON.map((e) => [e.id, { stars: 2, ribbon: false }])), charms: [] };
+    saveProgress(this.progress);
+    this.ui.renderSeason(this.progress);
+    return totalStars(this.progress);
+  }
+
+  /**
+   * Walkability on a 2 m grid for the bot's path planner: 0 open, 1 water sheep refuse, 2 solid
+   * (walls, rocks, buildings, outside the valley), 3 a crossing (bridge deck or open ford).
+   */
+  navGrid() {
+    const L = this.level;
+    const w = L.def.world;
+    const step = 2;
+    const nx = Math.round((w.maxX - w.minX) / step) + 1;
+    const nz = Math.round((w.maxZ - w.minZ) / step) + 1;
+    const cells = new Array<number>(nx * nz).fill(0);
+    for (let iz = 0; iz < nz; iz++) {
+      for (let ix = 0; ix < nx; ix++) {
+        const x = w.minX + ix * step;
+        const z = w.minZ + iz * step;
+        let v = 0;
+        if (!L.insideValley(x, z)) v = 2;
+        else if (L.crossingAt(x, z)) v = 3;
+        else if (L.inWater(x, z) || L.waterQuery(x, z).edge < 1) v = 1;
+        else if (L.circles.some((c) => (c.x - x) ** 2 + (c.z - z) ** 2 < (c.r + 1) ** 2)) v = 2;
+        else if (L.rects.some((r) => x > r.minX - 1.2 && x < r.maxX + 1.2 && z > r.minZ - 1.2 && z < r.maxZ + 1.2)) v = 2;
+        else {
+          for (const s of L.segs) {
+            if (s.tag === 'gate' || s.tag === 'boundary') continue;
+            const dx = s.bx - s.ax;
+            const dz = s.bz - s.az;
+            const l2 = dx * dx + dz * dz || 1;
+            const t = Math.max(0, Math.min(1, ((x - s.ax) * dx + (z - s.az) * dz) / l2));
+            if ((x - s.ax - dx * t) ** 2 + (z - s.az - dz * t) ** 2 < (s.r + 1.3) ** 2) {
+              v = 2;
+              break;
+            }
+          }
+        }
+        cells[iz * nx + ix] = v;
+      }
+    }
+    const f = L.fold;
+    return {
+      minX: w.minX,
+      minZ: w.minZ,
+      step,
+      nx,
+      nz,
+      cells,
+      fold: { gate: f.gate, mouth: f.mouth, inside: f.inside, inward: f.inward, center: { x: f.cx, z: f.cz } },
+      farmhouse: L.rects[0] ?? null,
+    };
+  }
+
+  /** Debug snapshot for the Playwright bot. */
   snapshot() {
     const s = this.sim;
     return {
       mode: this.mode,
+      screen: this.ui.current,
       fps: Math.round(this.fps() * 10) / 10,
       difficulty: this.ui.difficulty,
+      evening: this.evening?.id ?? null,
+      levelId: this.level.def.id,
+      objective: s?.rules.objective ?? null,
       outcome: s?.outcome ?? null,
       t: s?.t ?? 0,
       elapsed: s?.elapsed ?? 0,
@@ -1039,18 +1338,18 @@ export class Game {
       lost: s?.lost ?? 0,
       total: s?.total ?? 0,
       target: s?.target ?? 0,
-      dog: s ? { x: s.dog.x, z: s.dog.z, vx: s.dog.vx, vz: s.dog.vz, stamina: s.dog.stamina, barkCd: s.dog.barkCd } : null,
-      sheep: s ? s.sheep.map((q) => ({ id: q.id, x: q.x, z: q.z, state: q.state })) : [],
+      fords: this.level.fords.map((f) => f.open),
+      dog: s ? { x: s.dog.x, z: s.dog.z, vx: s.dog.vx, vz: s.dog.vz, stamina: s.dog.stamina, barkCd: s.dog.barkCd, stunT: s.dog.stunT } : null,
+      sheep: s ? s.sheep.map((q) => ({ id: q.id, x: q.x, z: q.z, state: q.state, kind: q.kind, stubborn: q.stubborn, yieldT: q.yieldT, motherId: q.motherId })) : [],
       wolves: s ? s.wolves.filter((w) => w.state !== 'gone').map((w) => ({ id: w.id, x: w.x, z: w.z, state: w.state })) : [],
-      /** Whether the game judges the current snatch reachable (null: no snatch). */
       dragFeasible: this.dragFeasible,
+      progress: { stars: totalStars(this.progress), evenings: this.progress.evenings },
     };
   }
 }
 
 const tmpV = new THREE.Vector3();
-/** The herding camera's usual distance (1 = the configured offset): far enough that Pip's reach
- * ring takes about half the screen's height. */
+/** The herding camera's usual distance (1 = the configured offset). */
 const BASE_ZOOM = 0.98;
 const QUALITY_KEY = 'woolgather.quality';
 

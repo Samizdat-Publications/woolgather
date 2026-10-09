@@ -319,3 +319,81 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .loading-fill { width: 0; height: 100%; background: var(--ink); transition: width 0.25s ease; }
 .loading-note { font-family: var(--display); font-variation-settings: 'SOFT' 100; font-style: italic; font-size: 18px; font-weight: 500; }
 .perf-overlay { position: fixed; left: 50%; bottom: 4px; transform: translateX(-50%); font: 12px/1.2 ui-monospace, monospace; color: #fff; background: rgba(0, 0, 0, 0.55); padding: 3px 8px; border-radius: 4px; pointer-events: none; z-index: 10; }
+
+/* ---------------------------------------------------------------- the season */
+
+.btn.big { min-width: 300px; padding: 14px 26px; font-size: 21px; }
+.season-line { margin-top: -6px; font-size: 14px; font-weight: 700; color: var(--wool-2); }
+.classic { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 12px; border-top: 1.5px dashed var(--stitch); }
+
+.season-screen, .intro-screen { background: radial-gradient(ellipse at 50% 55%, rgba(20, 16, 26, 0.55), rgba(20, 16, 26, 0.25) 70%); }
+.season-card { width: min(1040px, 96vw); gap: 16px; padding: 24px 28px 22px; }
+.season-head { width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.season-head h2 { margin-top: 2px; }
+.season-tally { display: flex; gap: 18px; }
+.tally { display: flex; align-items: baseline; gap: 6px; }
+.tally-n { font-family: var(--display); font-variation-settings: 'SOFT' 100; font-size: 34px; font-weight: 800; color: var(--gold); line-height: 1; }
+.tally-of { font-size: 14px; font-weight: 800; color: var(--wool-2); }
+.season-grid { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.ev { pointer-events: auto; position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 136px; padding: 12px 14px 12px; border-radius: 12px; border: 2px solid rgba(251, 243, 228, 0.22); background: rgba(251, 243, 228, 0.05); color: var(--wool); font: inherit; text-align: left; cursor: pointer; overflow: hidden; transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease; }
+/* A strip of the evening's season along the top of each card. */
+.ev::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--season, #8eae5c); }
+.ev.season-summer { --season: linear-gradient(90deg, #8eae5c, #f2b45a); }
+.ev.season-heather { --season: linear-gradient(90deg, #9a5a9c, #f2b45a); }
+.ev.season-autumn { --season: linear-gradient(90deg, #c47a3a, #e8b040); }
+.ev.season-winter { --season: linear-gradient(90deg, #dfe8f2, #9ab4d8); }
+.ev:hover:not(.locked), .ev:focus-visible { border-color: var(--wool); background: rgba(251, 243, 228, 0.1); transform: translateY(-2px); outline: none; }
+.ev:focus-visible { box-shadow: 0 0 0 3px var(--gold-hi); }
+.ev.next { border-color: var(--gold); background: rgba(242, 180, 90, 0.12); }
+.ev.won { border-color: rgba(166, 224, 126, 0.45); }
+.ev.locked { cursor: default; opacity: 0.5; }
+.ev-num { position: absolute; right: 12px; top: 8px; font-family: var(--display); font-variation-settings: 'SOFT' 100; font-size: 30px; font-weight: 800; color: rgba(251, 243, 228, 0.16); }
+.ev-when { margin-top: 4px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
+.ev-title { font-family: var(--display); font-variation-settings: 'SOFT' 100; font-size: 21px; font-weight: 800; line-height: 1.1; }
+.ev-place { font-size: 13px; font-weight: 700; color: var(--wool-2); }
+.ev-foot { margin-top: auto; padding-top: 8px; display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--wool-3); }
+.ev-stars { font-size: 18px; letter-spacing: 1px; }
+.ev-stars span { color: rgba(251, 243, 228, 0.2); }
+.ev-stars span.on { color: var(--gold); }
+.lock { width: 15px; height: 17px; flex: none; }
+.ribbon-glyph { width: 18px; height: 21px; flex: none; }
+
+.charm-shelf { width: 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1.5px dashed var(--stitch); }
+.charm-title { font-size: 12.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+.charm-title small { margin-left: 8px; font-size: 12.5px; letter-spacing: 0; text-transform: none; color: var(--wool-3); font-weight: 700; }
+.charm-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.charm { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1 1 200px; padding: 8px 12px; border-radius: 10px; border: 1.5px dashed rgba(251, 243, 228, 0.22); color: var(--wool-3); font: inherit; text-align: left; }
+.charm b { font-size: 14.5px; font-weight: 800; }
+.charm small { font-size: 12.5px; font-weight: 600; }
+.charm.got { border-style: solid; border-color: rgba(242, 180, 90, 0.5); color: var(--wool); }
+.charm.got small { color: var(--wool-2); }
+.charm.pick { pointer-events: auto; cursor: pointer; background: rgba(251, 243, 228, 0.04); border-style: solid; border-color: rgba(251, 243, 228, 0.3); color: var(--wool); }
+.charm.pick:hover { border-color: var(--wool); }
+.charm.pick.on { border-color: var(--gold); background: rgba(242, 180, 90, 0.16); box-shadow: inset 0 0 0 1px var(--gold); }
+
+.intro-card { width: min(640px, 94vw); gap: 12px; padding: 26px 32px 26px; }
+.intro-card h2 { font-size: 46px; text-align: center; }
+.intro-story { margin: 0; max-width: 520px; font-size: 16.5px; font-weight: 600; line-height: 1.5; text-align: center; color: var(--wool-2); text-wrap: pretty; }
+.intro-new:empty, .intro-charms:empty { display: none; }
+.intro-new { width: 100%; padding: 10px 16px 12px; border-radius: 12px; background: rgba(242, 180, 90, 0.1); border: 1.5px dashed rgba(242, 180, 90, 0.5); }
+.intro-new .new-label { font-size: 12.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
+.intro-new p { margin: 4px 0 0; font-size: 15px; font-weight: 600; line-height: 1.45; }
+.intro-goals { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.goal-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; font-size: 14.5px; font-weight: 800; color: var(--gold); }
+.ribbon-row { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 700; color: var(--wool-2); }
+.best { font-size: 13.5px; font-weight: 700; color: var(--wool-3); }
+.best span { color: rgba(251, 243, 228, 0.2); }
+.best span.on { color: var(--gold); }
+.intro-charms { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+
+.end-ribbon { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 700; color: var(--wool-3); }
+.end-ribbon.on { color: #ffd0c4; }
+.end-ribbon.on .ribbon-glyph { animation: star-pop 0.4s 0.3s cubic-bezier(0.2, 1.6, 0.4, 1) both; width: 24px; height: 28px; }
+.end-unlock { font-size: 14.5px; font-weight: 700; color: var(--leaf); }
+.end-unlock b { color: var(--wool); }
+.sunbar-fill.dawn { background: linear-gradient(90deg, #8f73c8, #f7a08a, #f7c46e); }
+
+@media (max-width: 900px) {
+  .season-grid { grid-template-columns: repeat(2, 1fr); }
+  .ev { min-height: 112px; }
+}

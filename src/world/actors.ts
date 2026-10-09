@@ -10,7 +10,7 @@ import type { Terrain } from './terrain';
 // procedural animation can move them (milestone 3 adds the full motion).
 
 // Characters are drawn larger than life so they read from the herding camera's height.
-export const SCALE = { dog: 2.4, sheep: 1.9, wolf: 2.3 };
+export const SCALE = { dog: 2.4, sheep: 1.9, wolf: 2.3, lamb: 1.18, ram: 2.4 };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
 /** The reach ring by moonlight: a cooler, brighter white. */
 const RING_NIGHT = new THREE.Color('#e8f0ff');
@@ -276,6 +276,18 @@ function glowTexture() {
   return t;
 }
 
+/** A deep clone of a rig with some materials (by name) swapped for others. */
+function withMaterials(proto: THREE.Object3D, swap: Record<string, THREE.Material>) {
+  const c = proto.clone(true);
+  c.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh) return;
+    if (Array.isArray(m.material)) m.material = m.material.map((mm) => swap[mm.name] ?? mm);
+    else if (swap[m.material.name]) m.material = swap[m.material.name];
+  });
+  return c;
+}
+
 export class Actors {
   readonly root = new THREE.Group();
   readonly dog: Rig;
@@ -342,32 +354,13 @@ export class Actors {
     // The wolves' slate coat keeps its cool colour (it stands off the warm ground by hue); only
     // their pale muzzle and chest are kept neutral.
     const neutral = new Set(['wool', 'coat_white', 'coat_black', 'wolf_light']);
-    const noKeep = { value: 0 };
     for (const proto of [a.sheep, a.collie, a.wolf]) {
       const rimU = proto === a.wolf ? this.wolfRim : this.rim;
       proto.traverse((o) => {
         const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | undefined;
         if (!m || !m.isMeshLambertMaterial || m.name === 'wolf_eyes' || this.charMats.includes(m)) return;
-        const keep = neutral.has(m.name);
         if (m.name === 'wool' || m.name === 'coat_white') m.emissive.set(m.name === 'wool' ? 0x4c4842 : 0x3a3834);
-        m.onBeforeCompile = (shader) => {
-          shader.uniforms.uWhiteKeep = keep ? this.whiteKeep : noKeep;
-          shader.uniforms.uRim = rimU;
-          shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uWhiteKeep;\nuniform vec3 uRim;').replace(
-            '#include <opaque_fragment>',
-            `#include <opaque_fragment>
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(dot(gl_FragColor.rgb, vec3(0.2126, 0.7152, 0.0722))), uWhiteKeep);
-            float rimF = pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 2.5);
-            gl_FragColor.rgb += uRim * rimF;
-            // Alpha 0 marks a character for the colour grade, which leaves most of its own colour
-            // alone: cream sheep, grey wolves and a black and white dog against the evening.
-            gl_FragColor.a = 0.0;`,
-          );
-        };
-        m.customProgramCacheKey = () => (keep ? 'wg-char-keep' : 'wg-char');
-        m.needsUpdate = true;
-        this.charMats.push(m);
-        if (keep) this.whiteMats.push(m);
+        this.patchChar(m, neutral.has(m.name), rimU);
       });
     }
     // Outlines make the animals read as characters, not as bushes and rocks: sheep get a dark
@@ -375,12 +368,73 @@ export class Actors {
     // prototypes, so every clone shares them.
     addOutline(a.sheep, 0x2a2230, 0.04, ['body', 'head']);
     addOutline(a.wolf, 0x3a120e, 0.045);
+    // Old Angus: a bigger, creamier fleece, curled horns; the black sheep: charcoal wool.
+    const woolMat = this.charMats.find((m) => m.name === 'wool')!;
+    const ramWool = woolMat.clone();
+    ramWool.name = 'ram_wool';
+    ramWool.color.set('#e2d4b4');
+    const blackWool = woolMat.clone();
+    blackWool.name = 'black_wool';
+    blackWool.color.set('#4a4248');
+    blackWool.emissive.set(0x161214);
+    const horn = new THREE.MeshLambertMaterial({ name: 'ram_horn', color: '#cdb88c', flatShading: true });
+    this.ramProto = withMaterials(a.sheep, { wool: ramWool });
+    this.blackProto = withMaterials(a.sheep, { wool: blackWool });
+    const head = this.ramProto.getObjectByName('head');
+    if (head) {
+      for (const sx of [1, -1]) {
+        // A curled horn: most of a thick ring standing beside the head, turning forwards and down.
+        const g = new THREE.TorusGeometry(0.12, 0.05, 5, 10, Math.PI * 1.55);
+        g.rotateY(Math.PI / 2);
+        g.rotateX(-0.4);
+        const m = new THREE.Mesh(g, horn);
+        m.position.set(0.19 * sx, 0.08, -0.01);
+        m.rotation.y = 0.25 * sx;
+        m.castShadow = true;
+        head.add(m);
+      }
+    }
+    for (const m of [ramWool, blackWool, horn]) this.patchChar(m, m !== horn, this.rim);
     // Sheep and wolves are drawn instanced (see RigInstancer); Pip is one of a kind.
-    this.sheepInst = new RigInstancer(a.sheep, 24);
+    this.sheepInst = new RigInstancer(a.sheep, 32);
+    this.ramInst = new RigInstancer(this.ramProto, 2);
+    this.blackInst = new RigInstancer(this.blackProto, 3);
     this.wolfInst = new RigInstancer(a.wolf, 6);
-    this.root.add(this.sheepInst.group, this.wolfInst.group);
+    this.root.add(this.sheepInst.group, this.ramInst.group, this.blackInst.group, this.wolfInst.group);
   }
 
+  /**
+   * Character materials get two touches in their shader: white wool and coat (and the wolves'
+   * grey) take most of the light's colour back out, and a rim light lets silhouettes catch the sky.
+   */
+  private patchChar(m: THREE.MeshLambertMaterial, keep: boolean, rimU: { value: THREE.Color }) {
+    const noKeep = this.noKeep;
+    m.onBeforeCompile = (shader) => {
+      shader.uniforms.uWhiteKeep = keep ? this.whiteKeep : noKeep;
+      shader.uniforms.uRim = rimU;
+      shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uWhiteKeep;\nuniform vec3 uRim;').replace(
+        '#include <opaque_fragment>',
+        `#include <opaque_fragment>
+        gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(dot(gl_FragColor.rgb, vec3(0.2126, 0.7152, 0.0722))), uWhiteKeep);
+        float rimF = pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 2.5);
+        gl_FragColor.rgb += uRim * rimF;
+        // Alpha 0 marks a character for the colour grade, which leaves most of its own colour alone.
+        gl_FragColor.a = 0.0;`,
+      );
+    };
+    m.customProgramCacheKey = () => (keep ? 'wg-char-keep' : 'wg-char');
+    m.needsUpdate = true;
+    if (!this.charMats.includes(m)) this.charMats.push(m);
+    if (keep && !this.whiteMats.includes(m)) this.whiteMats.push(m);
+  }
+  private noKeep = { value: 0 };
+  private ramProto!: THREE.Object3D;
+  private blackProto!: THREE.Object3D;
+  private ramInst!: RigInstancer;
+  private blackInst!: RigInstancer;
+  /** The sim the flock rigs were made for (a new evening may bring different animals). */
+  private flockOf: Sim | null = null;
+  private sheepKind: string[] = [];
   private whiteMats: THREE.MeshLambertMaterial[] = [];
   private charMats: THREE.MeshLambertMaterial[] = [];
   private sheepInst: RigInstancer;
@@ -478,7 +532,7 @@ export class Actors {
     let fx = 0;
     let fz = 0;
     for (const s of sim.sheep) {
-      if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed') continue;
+      if (s.state === 'folded' || s.state === 'lost' || s.state === 'grabbed' || s.state === 'hidden') continue;
       const dx = s.x - d.x;
       const dz = s.z - d.z;
       const dd = dx * dx + dz * dz;
@@ -506,17 +560,35 @@ export class Actors {
     this.zoneUnder.mesh.material.opacity = this.zoneA * 0.4;
     this.zone.mesh.visible = this.zoneUnder.mesh.visible = showRings && this.zoneA > 0.005;
 
+    if (this.flockOf !== sim) {
+      // A new evening: new animals (lambs, a ram, a black sheep) for the new flock.
+      this.flockOf = sim;
+      this.sheep.forEach((r, i) => {
+        this.root.remove(r.root);
+        this.instFor(this.sheepKind[i]).remove(r.root);
+      });
+      this.sheep = [];
+      this.sheepAnim = [];
+      this.sheepKind = [];
+    }
     while (this.sheep.length < sim.sheep.length) {
       const n = this.sheep.length;
+      const kind = sim.sheep[n].kind;
       this.sheepAnim.push(new AnimState());
-      const r = rig(this.a.sheep, SCALE.sheep * (0.93 + 0.14 * (((n * 0.618) % 1 + 1) % 1)));
+      const vary = 0.93 + 0.14 * (((n * 0.618) % 1 + 1) % 1);
+      const proto = kind === 'ram' ? this.ramProto : kind === 'black' ? this.blackProto : this.a.sheep;
+      const r = rig(proto, kind === 'lamb' ? SCALE.lamb * vary : kind === 'ram' ? SCALE.ram : SCALE.sheep * vary);
+      // Lambs: a big head on a small body, longer legs for their size.
+      if (kind === 'lamb' && r.head) r.head.scale.setScalar(1.3);
+      if (kind === 'lamb') for (const l of r.legs) l.scale.set(1, 1.15, 1);
       this.sheep.push(r);
+      this.sheepKind.push(kind);
       this.root.add(r.root);
-      this.sheepInst.add(r.root);
+      this.instFor(kind).add(r.root);
     }
     sim.sheep.forEach((s, i) => {
       const r = this.sheep[i];
-      r.root.visible = s.state !== 'lost';
+      r.root.visible = s.state !== 'lost' && s.state !== 'hidden';
       if (!r.root.visible) return;
       const grabbed = s.state === 'grabbed';
       // A snatched sheep hangs crosswise from the wolf's jaws by the scruff, rolled on its side so
@@ -526,6 +598,8 @@ export class Actors {
       const st = this.sheepAnim[i];
       const before = st.steps;
       animateSheep(r, st, s, dt, this.time);
+      // Angus squared up to a dog: head down, horns forward.
+      if (s.kind === 'ram' && s.stubborn > 0.15 && s.yieldT <= 0 && r.head) r.head.rotation.x += 0.45;
       // A bolting flock kicks up dust, one puff for every other footfall of each sheep.
       if (st.steps !== before && st.steps % 2 === 0 && (s.state === 'flee' || s.state === 'panic') && s.speed > 4.5 && !s.inWater) step(s.x, s.z, s.vx, s.vz, 0.85);
     });
@@ -607,7 +681,13 @@ export class Actors {
       }
     }
     this.sheepInst.update();
+    this.ramInst.update();
+    this.blackInst.update();
     this.wolfInst.update();
+  }
+
+  private instFor(kind: string) {
+    return kind === 'ram' ? this.ramInst : kind === 'black' ? this.blackInst : this.sheepInst;
   }
 
   /**
@@ -642,7 +722,7 @@ export class Actors {
     const pts: { x: number; z: number }[] = [{ x: d.x, z: d.z }];
     for (const w of sim.wolves) if (w.state !== 'gone') pts.push({ x: w.x, z: w.z });
     const near = sim.sheep
-      .filter((s) => s.state !== 'lost' && s.state !== 'folded' && (s.x - d.x) ** 2 + (s.z - d.z) ** 2 < 32 * 32)
+      .filter((s) => s.state !== 'lost' && s.state !== 'folded' && s.state !== 'hidden' && (s.x - d.x) ** 2 + (s.z - d.z) ** 2 < 32 * 32)
       .sort((a, b) => (a.x - d.x) ** 2 + (a.z - d.z) ** 2 - ((b.x - d.x) ** 2 + (b.z - d.z) ** 2));
     for (const s of near) pts.push({ x: s.x, z: s.z });
     return pts;

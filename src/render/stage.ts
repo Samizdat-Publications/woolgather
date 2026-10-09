@@ -10,6 +10,9 @@ const tmpV = new THREE.Vector3();
 const tmpC = new THREE.Color();
 const MOON_GLOW = new THREE.Color(0.62, 0.68, 0.95);
 const HAZE = new THREE.Vector3();
+const GREY = new THREE.Color('#9aa0aa');
+const FLASH = new THREE.Color('#e8eeff');
+const MIST = new THREE.Color('#c9ced6');
 
 export type Quality = 'high' | 'medium' | 'low';
 
@@ -48,6 +51,10 @@ export class Stage {
   private titleAngle = 0;
   /** Metres the herding camera stands further back than the one the fog was set for. */
   private fogShift = 0;
+  /** Weather on the light: overcast (0..1), mist (0..1) and a lightning flash (0..1). */
+  readonly weather = { cloud: 0, mist: 0, flash: 0 };
+  /** The mist's colour this frame (display space), for the grade. */
+  readonly mistColor = new THREE.Color();
 
   constructor(host: HTMLElement) {
     // The scene renders into the grade pass's multisampled target, so the canvas itself needs
@@ -124,6 +131,33 @@ export class Stage {
 
   applyMood(t: number) {
     const m = sampleMood(t, this.mood);
+    const W = this.weather;
+    if (W.cloud > 0.001) {
+      // Overcast: the key light weakens and greys, the sky fill carries more of the light, shadows
+      // go soft, and the sky and fog flatten to cloud grey at the evening's own brightness.
+      const c = W.cloud;
+      const lum = (col: THREE.Color) => 0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b;
+      const grey = (col: THREE.Color, k: number, tint = GREY) => col.lerp(tmpC.copy(tint).multiplyScalar(lum(col) / lum(tint)), k);
+      m.keyIntensity *= 1 - 0.55 * c;
+      m.hemiIntensity *= 1 + 0.3 * c;
+      grey(m.keyColor, 0.6 * c);
+      grey(m.hemiSky, 0.5 * c);
+      grey(m.skyTop, 0.75 * c);
+      grey(m.skyHorizon, 0.7 * c);
+      grey(m.fog, 0.7 * c);
+      grey(m.ground, 0.4 * c);
+      m.sunGlow.multiplyScalar(1 - 0.85 * c);
+      m.shadow *= 1 - 0.65 * c;
+      m.exposure *= 1 - 0.08 * c;
+    }
+    if (W.flash > 0.001) {
+      m.keyIntensity += 9 * W.flash;
+      m.keyColor.lerp(FLASH, W.flash);
+      m.hemiIntensity += 2 * W.flash;
+    }
+    // Mist colour: pale and pearly by day, a dim blue-grey under the moon.
+    this.mistColor.copy(m.fog).lerp(MIST, 0.55).multiplyScalar(1 - 0.55 * m.night).convertLinearToSRGB();
+    this.grade.setFlash(W.flash);
     this.key.color.copy(m.keyColor);
     this.key.intensity = m.keyIntensity;
     this.hemi.color.copy(m.hemiSky);
@@ -135,6 +169,14 @@ export class Stage {
     // stands further back, so the fog starts that much further out.
     this.fog.near = this.titleShot ? m.fogNear * 1.8 : m.fogNear + this.fogShift;
     this.fog.far = this.titleShot ? m.fogFar * 1.5 : m.fogFar + this.fogShift;
+    if (W.mist > 0.001) {
+      // Mist: the scene fog closes in to the far side of the view (the grade adds the veil round Pip).
+      const dist = Math.hypot(CAMERA.offset.x, CAMERA.offset.y, CAMERA.offset.z) * this.zoom;
+      const k = this.titleShot ? 0.6 : 1;
+      this.fog.near += (dist - 30 - this.fog.near) * W.mist * k;
+      this.fog.far += (dist + 70 - this.fog.far) * W.mist * k;
+      this.fog.color.lerp(MIST, 0.5 * W.mist).multiplyScalar(1 - 0.5 * m.night * W.mist);
+    }
     this.key.shadow.intensity = m.shadow;
     this.grade.hazeScale = this.titleShot ? 0 : 1;
     const sky = tmpC.copy(m.skyHorizon).convertLinearToSRGB();

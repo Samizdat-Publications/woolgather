@@ -52,7 +52,9 @@ function exposeTestHooks() {
     setTimeScale: (k: number) => {
       game.timeScale = k;
     },
-    level: game.level.data,
+    get level() {
+      return game.level.def;
+    },
     /** Events since the last call, each with the day clock t (film cut marks). */
     drain: () => game.eventLog.splice(0),
     /** Film: show the title shot at mood time t (0 golden hour .. 1 night), or null for the default. */
@@ -101,7 +103,7 @@ function exposeTestHooks() {
     },
     /** Jump the day clock (0..1) for look-dev screenshots. */
     jumpTo: (t: number) => {
-      if (game.sim) game.sim.elapsed = t * game.sim.preset.dayLength;
+      if (game.sim) game.sim.elapsed = t * game.sim.rules.dayLength;
     },
     /** Look-dev: put Pip somewhere so the camera frames that part of the valley. */
     teleportDog: (x: number, z: number) => {
@@ -111,6 +113,17 @@ function exposeTestHooks() {
       s.dog.z = z;
       game.stage.snapTo(x, game.terrain.height(x, z), z);
     },
+    /** Season: open an evening's card (unlocking the season if asked), or begin it at once. */
+    evening: (id: string, begin = false) => game.testEvening(id, begin),
+    /** Classic evening at a difficulty. */
+    classic: (d: Difficulty) => game.testClassic(d),
+    /** Season progress: wipe it, or mark every evening won (to test the map and charms). */
+    progress: (what: 'reset' | 'all') => game.testProgress(what),
+    /**
+     * Walkability for the bot's path planner on a 2 m grid over the level: 0 open ground, 1 water
+     * (sheep refuse it), 2 solid (walls, rocks, buildings, outside the valley), 3 a crossing.
+     */
+    navGrid: () => game.navGrid(),
     /** Scenario setup: walk `n` loose sheep straight into the fold (they count next frame). */
     placeInFold: (n: number) => {
       const s = game.sim;

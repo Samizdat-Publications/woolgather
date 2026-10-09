@@ -1,0 +1,99 @@
+{
+ "critic": "gemini-stills",
+ "mode": "images",
+ "model": "gemini-3.8-flash",
+ "models_tried": [],
+ "source": [
+  "docs/critic/r00-baseline/stills/title.jpg",
+  "docs/critic/r00-baseline/stills/herding-early.jpg",
+  "docs/critic/r00-baseline/stills/wolf-near.jpg",
+  "docs/critic/r00-baseline/stills/sunset.jpg",
+  "docs/critic/r00-baseline/stills/snatch.jpg",
+  "docs/critic/r00-baseline/stills/end-card.jpg"
+ ],
+ "media": "Below are screenshots from the game, in order: title.jpg, herding-early.jpg, wolf-near.jpg, sunset.jpg, snatch.jpg, end-card.jpg.",
+ "when": "2026-10-09T08:01:58.969Z",
+ "timing": {
+  "generate_s": 31.4,
+  "total_s": 31.5
+ },
+ "usage": {
+  "promptTokenCount": 7325,
+  "candidatesTokenCount": 963,
+  "totalTokenCount": 10193,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 725
+   },
+   {
+    "modality": "IMAGE",
+    "tokenCount": 6600
+   }
+  ],
+  "thoughtsTokenCount": 1905,
+  "serviceTier": "standard"
+ },
+ "first_impression": "Looks like an endearing low-poly game jam project about being a good dog, nailing the cozy dusk aesthetic right off the bat. However, it also looks like a 10-minute micro-game on a single static map rather than a fleshed-out commercial game. If you're charging $10, there needs to be a lot more game here than just shooing cubes into a pen three times.",
+ "scores": {
+  "visual_appeal": 7,
+  "readability": 8,
+  "game_feel": 5,
+  "fun_factor": 6,
+  "variety": 3,
+  "sense_of_progression": 2,
+  "want_to_keep_playing": 3,
+  "would_wishlist": 4
+ },
+ "best_things": [
+  "The picture-in-picture 'Snatch!' alert camera in snatch.jpg is brilliant UI design for showing urgent off-screen peril without feeling disorienting.",
+  "The warm golden-hour lighting progression across sunset.jpg and end-card.jpg creates a wonderfully cozy, authentic countryside mood.",
+  "Objective tracking and timer pacing in the HUD are clean, instantly readable, and clearly communicate high stakes."
+ ],
+ "worst_problems": [
+  {
+   "problem": "Zero content depth or meta-progression beyond replaying the same single pasture on three difficulty presets.",
+   "where": "title.jpg",
+   "severity": "major",
+   "suggestion": "Add a multi-day campaign with changing seasons, different farm layouts, weather events, or cosmetic unlocks for Pip to justify a full purchase."
+  },
+  {
+   "problem": "Intrusive red tutorial banner over-explains the emergency with clunky button reminders that break the pastoral immersion.",
+   "where": "snatch.jpg",
+   "severity": "major",
+   "suggestion": "Rely on the PIP camera and urgent barking/whistle audio cues instead of slapping a massive red text box explaining basic controls mid-run."
+  },
+  {
+   "problem": "The environment feels sterile and barren, relying on repetitive cookie-cutter tree cones and purple bush clusters.",
+   "where": "herding-early.jpg",
+   "severity": "minor",
+   "suggestion": "Add organic terrain variety like elevation cliffs, tall grass patches to stalk through, and natural obstacles that sheep refuse to cross."
+  },
+  {
+   "problem": "Animals appear stiff and toy-like, with blocky polygonal sheep clumping unnaturally like sliding geometric props.",
+   "where": "wolf-near.jpg",
+   "severity": "minor",
+   "suggestion": "Rework flocking physics to feel like fluid herd behavior and give Pip and the wolves snappier, more expressive run-and-turn animations."
+  },
+  {
+   "problem": "Harsh, jagged twilight shadow cutoff splits the ground awkwardly down the middle instead of casting a soft sunset gradient.",
+   "where": "snatch.jpg",
+   "severity": "cosmetic",
+   "suggestion": "Soft-filter directional terrain shadows and blend ambient nightfall lighting so dusk settles organically instead of creating a sharp visual divide."
+  }
+ ],
+ "boredom_points": [
+  "Patrolling the exact same stone wall border every round once you memorize wolf spawn timings.",
+  "Waiting on slow straggler sheep when you already have enough home to clear the tier."
+ ],
+ "confusions": [
+  "The dotted red laser line from the wolf in wolf-near.jpg looks like an RTS targeting reticle rather than natural predatory AI.",
+  "Unclear whether Pip can actually take damage or get knocked down by wolves, or if the dog is completely invincible."
+ ],
+ "wish_list": [
+  "Multiple maps featuring rougher terrain like Scottish moors, rocky cliffs, and river crossings.",
+  "Different herding dog breeds with distinct handling attributes like speed, bark radius, or stamina.",
+  "Dynamic weather system introducing thick fog, heavy rain, or howling winds that disrupt sheep hearing."
+ ],
+ "one_line_review": "A gorgeous, cozy 15-minute prototype with great dusk vibes, but desperately needs a campaign and multiple maps before asking for ten bucks."
+}

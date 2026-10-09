@@ -1,0 +1,73 @@
+{
+  "critic": "claude-stills",
+  "first_impression": "The title screen sold me straight away: a chunky woolly serif logo over a golden-hour valley is exactly the thumbnail I click on itch.io. In play it's more mixed. The HUD is clear and the wolves read as a real threat, but in half the shots most of the screen is a wall of dark pines and I'm looking at my dog with no sheep anywhere near him.",
+  "scores": {
+    "visual_appeal": 7,
+    "readability": 6,
+    "game_feel": 6,
+    "fun_factor": 6,
+    "variety": 4,
+    "sense_of_progression": 3,
+    "want_to_keep_playing": 5,
+    "would_wishlist": 6
+  },
+  "best_things": [
+    "title.jpg is a great first impression: big soft serif logo, warm sunset sky, the three evenings each described in one flavourful line (\"The way the old shepherds tell it\"), and every control on one tidy line of key caps.",
+    "The wolf threat in wolf-near.jpg is instantly readable: a spiky red ring round the wolf plus a dashed line to the exact three sheep it wants tells me what's in danger and where to run without reading a word.",
+    "end-card.jpg is a lovely payoff: twelve fluffy sheep packed into a lantern-lit stone fold, Pip standing at the gate, three stars popping and a clean ledger that even credits the one sheep I pulled out of a wolf's jaws."
+  ],
+  "worst_problems": [
+    {
+      "problem": "The camera spends huge parts of the screen on dark pine forest, and the flock is almost never in view. In herding-early.jpg the whole bottom half is towering pines that even cut off Pip's dashed ring; in sunset.jpg and snatch.jpg the left 40 percent is a murky black-purple tree wall. In three of the five gameplay shots there's not a single sheep on screen, in a game about herding sheep.",
+      "where": "herding-early.jpg, sunset.jpg, snatch.jpg",
+      "severity": "major",
+      "suggestion": "Bias the camera towards the open valley and the nearest flock rather than centring on Pip at the forest edge, and fade or thin out trees in the near half of the frame so the play space is grass, not canopy."
+    },
+    {
+      "problem": "No visible progression. The end card only offers Play again or Title screen, and the title only offers one valley at three difficulties. After a 12/12, three-star Standard run I can't see any reason to come back: no next evening, no unlocks, no new map, not even a best time or record.",
+      "where": "end-card.jpg, title.jpg",
+      "severity": "major",
+      "suggestion": "Add a run of evenings (a week on the farm, or seasons) with new valleys or twists, show personal bests on the end card, and give small unlocks such as collars, new dogs or farm upgrades."
+    },
+    {
+      "problem": "The snatch inset is milky and washed out: the wolf is a pale see-through shape that looks more like a hare than a wolf. The direction cues also disagree. The banner says the far bank and points up-right, the minimap's red marker sits on Bridge, and the inset is docked on the left edge next to the forest with a little arrow that seems to point left. In the most urgent moment of the game I don't know which way to sprint.",
+      "where": "snatch.jpg",
+      "severity": "major",
+      "suggestion": "Render the inset crisp, without the haze, and dock it on the side of the screen the threat is actually on. Use one place name in the banner and on the minimap, and give one big unmistakable arrow from Pip."
+    },
+    {
+      "problem": "Pip reads as a black and white pill when he runs up the screen, and he's tiny next to pines several times his height. Worse, the tree beside him has a perfect round bite cut out of it, which looks like a rendering glitch rather than a feature.",
+      "where": "sunset.jpg, snatch.jpg, wolf-near.jpg",
+      "severity": "minor",
+      "suggestion": "Give Pip a stronger top-down silhouette (ears, a plumed tail held out, a slight lean or turn when running), scale the trees down a bit, and make the see-through effect a soft fade instead of a hard circular hole."
+    },
+    {
+      "problem": "The ground often doesn't read as a highland meadow. In wolf-near.jpg the floor is a flat mustard-ochre that looks like dry dust or sand, with purple heather clumps dotted on like grape bunches. In sunset.jpg and snatch.jpg, broad diagonal orange and purple shadow bands make it look like a striped rug.",
+      "where": "wolf-near.jpg, sunset.jpg",
+      "severity": "minor",
+      "suggestion": "Keep more green and grass texture in the base, vary it with patches and paths, and soften the long shadow bands so the sunset reads as light on grass, not paint stripes."
+    }
+  ],
+  "boredom_points": [
+    "It's the same valley every evening: after two or three runs I'd know where every flock grazes, and the only change between difficulties is a shorter clock and more wolves.",
+    "Long jogs across empty ground looking for the next flock. sunset.jpg is just Pip trotting past trees with no sheep in sight, and the stamina bar is nearly empty in every gameplay shot, so sprinting doesn't seem to be much of an option.",
+    "Once I've got all 12 home with three stars on Standard (end-card.jpg) there's nothing obvious left to chase except Hard.",
+    "Sprinting 64 m across the map to save one sheep (snatch.jpg) is exciting once, but it could become a chore if it happens every run."
+  ],
+  "confusions": [
+    "The stamina bar sits at about a fifth full in all four gameplay shots across nearly three minutes. Is it slow to refill, broken, or was I just always sprinting?",
+    "snatch.jpg: the banner says far bank and points up-right, the minimap marker is on Bridge, and the inset with its arrow is on the left edge. Which way do I actually run?",
+    "herding-early.jpg: the dashed circle round Pip is presumably how close sheep let me get, but nothing on screen says so, and the trees cut it off at the bottom.",
+    "herding-early.jpg: 3 sheep are already home with 5:40 left, but the only hint of where the rest are is one small sheep icon on the left edge, so I'd be relying on the minimap a lot.",
+    "The tree next to Pip with a round hole in it (sunset.jpg, snatch.jpg): is that a deliberate see-through effect or a bug?"
+  ],
+  "wish_list": [
+    "More valleys, or a season of evenings with weather (fog, rain, first snow) and new hazards like a river in flood or a fox.",
+    "Different sheep to handle: a stubborn ram, lambs that wander off, a nervous ewe that bolts the whole flock.",
+    "Real progression: unlock dogs or collars, upgrade the farm, keep a record of best times and stars per evening.",
+    "A daily seeded evening with a leaderboard, so there's a reason to open it every day.",
+    "A photo mode for that golden-hour light, and please let me pet Pip.",
+    "Two-dog local co-op: herding with a friend would be chaos in the best way."
+  ],
+  "one_line_review": "A gorgeous golden-hour sheepdog game with a clear HUD and properly scary wolves, but the camera keeps showing me pine trees instead of sheep and there's only one valley to master: wishlisted, buying on sale."
+}

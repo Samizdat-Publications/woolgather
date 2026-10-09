@@ -1,0 +1,94 @@
+{
+ "critic": "gemini",
+ "mode": "video",
+ "model": "gemini-3.8-flash",
+ "models_tried": [],
+ "source": "test-results/critic/r00-baseline/video.mp4",
+ "media": "Below is a video of someone playing it.",
+ "when": "2026-10-09T08:04:32.005Z",
+ "timing": {
+  "upload_s": 109.2,
+  "processing_s": 10.7,
+  "generate_s": 31.5,
+  "total_s": 151.5
+ },
+ "usage": {
+  "promptTokenCount": 18249,
+  "candidatesTokenCount": 944,
+  "totalTokenCount": 21106,
+  "promptTokensDetails": [
+   {
+    "modality": "VIDEO",
+    "tokenCount": 17556
+   },
+   {
+    "modality": "TEXT",
+    "tokenCount": 693
+   }
+  ],
+  "thoughtsTokenCount": 1913,
+  "serviceTier": "standard"
+ },
+ "first_impression": "Charming pastoral aesthetic right out of the gate - feels like A Short Hike blended with an old-school herding arcade loop. But within two minutes you realize half the game is just jogging across empty grass, and sheep pathfinding gets maddeningly sticky at choke points.",
+ "scores": {
+  "visual_appeal": 7,
+  "readability": 8,
+  "game_feel": 6,
+  "fun_factor": 6,
+  "variety": 4,
+  "sense_of_progression": 3,
+  "want_to_keep_playing": 5,
+  "would_wishlist": 5
+ },
+ "best_things": [
+  "The wolf snatch picture-in-picture window and frantic rescue countdown inject genuine urgency into an otherwise sleepy herding loop.",
+  "The herding influence ring is exceptionally readable, giving you instant visual feedback on how creeping shrinks your pressure radius.",
+  "The golden-hour low-poly lighting creates a cozy, relaxing countryside vibe that looks great in stills."
+ ],
+ "worst_problems": [
+  {
+   "problem": "Sheep cluster and refuse to cross narrow bottlenecks like the bridge, freezing in place while you awkwardly nudge them from behind.",
+   "where": "03:22 - 03:42",
+   "severity": "major",
+   "suggestion": "Give sheep a funneling flock AI across bridges and gates so they naturally single-file forward instead of bouncing off invisible barrier angles."
+  },
+  {
+   "problem": "Excessive dead downtime spent holding sprint across empty fields and tree groves with zero interaction or hazards.",
+   "where": "00:48 - 02:00",
+   "severity": "major",
+   "suggestion": "Condense map scale, add whistle mechanics to call distant sheep, or sprinkle pickups/shortcuts to keep travel engaging."
+  },
+  {
+   "problem": "No visible progression or unlock loop after achieving a 3-star rating, leaving no motivation to play again beyond repeating preset difficulties.",
+   "where": "04:22",
+   "severity": "minor",
+   "suggestion": "Add unlockable maps, farm cosmetics, whistles, or dog customizations earned through stars."
+  },
+  {
+   "problem": "Cluttered text banners and popups repeatedly obstruct the upper and lower screen during tense moments.",
+   "where": "03:06 - 03:12",
+   "severity": "minor",
+   "suggestion": "Fade tutorial tooltips permanently after the first minute and consolidate wolf alerts into subtle world-space audio/visual cues."
+  },
+  {
+   "problem": "Pip's turning and locomotion feel floaty with noticeable foot-sliding during pivots.",
+   "where": "00:05 - 00:09",
+   "severity": "cosmetic",
+   "suggestion": "Add subtle banking on turns, turn-in-place animations, and small ground dust puffs to give the collie tangible weight."
+  }
+ ],
+ "boredom_points": [
+  "Jogging solo across the pine forest between 00:50 and 02:00 before wolves spawn, with literally nothing happening on screen.",
+  "Repeating the exact same fetch-and-deposit pattern three consecutive times on a map with no layout variation."
+ ],
+ "confusions": [
+  "Why the sheep panicked and stopped right at the bridge mouth around 03:25 despite having a clear path straight ahead.",
+  "Whether the stars on the victory screen unlock new levels or are strictly high-score tracking."
+ ],
+ "wish_list": [
+  "Multiple distinct maps (steep cliffs, bogs, coastal farms) with unique environmental hazards.",
+  "Whistle commands to herd or hold sheep remotely without running behind every single straggler.",
+  "Unlockable dog coats, collies, or stamina perks to give runs a sense of long-term reward."
+ ],
+ "one_line_review": "A gorgeous, cozy herding concept with tense wolf encounters that currently feels more like a 10-minute game jam prototype than a complete purchase."
+}

@@ -1,0 +1,64 @@
+{
+ "label": "r00-baseline",
+ "scenario": "classic",
+ "dist": "C:\\Users\\stewa\\AppData\\Local\\Temp\\claude\\C--Users-stewa-ClaudeProjects-Opu5-5-Game-Prompt-woolgather\\26917d4c-2889-48a3-9efd-2b07e2007aaf\\scratchpad\\baseline-dist",
+ "url": "/?test=1&seed=11&diff=standard&quality=high",
+ "width": 1280,
+ "height": 720,
+ "fps": 20,
+ "frames": 5325,
+ "duration_s": 266.25,
+ "real_s": 231,
+ "mode": "ended",
+ "outcome": {
+  "kind": "win",
+  "reason": "all-home",
+  "stars": 3
+ },
+ "folded": 12,
+ "lost": 0,
+ "total": 12,
+ "target": 9,
+ "day_elapsed_s": 257.93,
+ "stills": [
+  {
+   "name": "title",
+   "file": "stills/title.jpg",
+   "video_t": 2.95,
+   "game_t": 0
+  },
+  {
+   "name": "herding-early",
+   "file": "stills/herding-early.jpg",
+   "video_t": 23,
+   "game_t": 20
+  },
+  {
+   "name": "wolf-near",
+   "file": "stills/wolf-near.jpg",
+   "video_t": 144.6,
+   "game_t": 141.6
+  },
+  {
+   "name": "sunset",
+   "file": "stills/sunset.jpg",
+   "video_t": 183.05,
+   "game_t": 180
+  },
+  {
+   "name": "snatch",
+   "file": "stills/snatch.jpg",
+   "video_t": 186.4,
+   "game_t": 183.35
+  },
+  {
+   "name": "end-card",
+   "file": "stills/end-card.jpg",
+   "video_t": 263.2,
+   "game_t": 257.93
+  }
+ ],
+ "periodic_frames": 107,
+ "console_errors": [],
+ "scenario_error": null
+}

@@ -94,6 +94,17 @@ export function moodTime(t: number, wolfStart: number, dayLength = 300) {
   return 0.88 + ((t - night) / (1 - night)) * (1 - 0.88);
 }
 
+/**
+ * A night watch runs the evening backwards: deep night for most of it, the moon going down, then
+ * a quick rose dawn and the first gold as the wolves give up.
+ */
+export function dawnTime(t: number) {
+  t = clamp(t, 0, 1);
+  if (t < 0.6) return 1 - (t / 0.6) * 0.1;
+  if (t < 0.88) return 0.9 - ((t - 0.6) / 0.28) * 0.36;
+  return 0.54 - ((t - 0.88) / 0.12) * 0.32;
+}
+
 const ca = new THREE.Color();
 const cb = new THREE.Color();
 

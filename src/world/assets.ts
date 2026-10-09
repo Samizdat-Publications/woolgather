@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { parseHeightField, type HeightField, type TerrainMeta } from './terrain';
 
-// Loads every Blender export once. Materials are converted to flat-shaded Lambert (cheap, and the
+// Loads every Blender export once (characters and props; the ground is generated per level). Materials are converted to flat-shaded Lambert (cheap, and the
 // faceted look is the art direction); colours and emissive glow come straight from Blender.
 
 const BASE = `${import.meta.env.BASE_URL}assets/`;
@@ -14,11 +13,6 @@ export interface Assets {
   nature: Map<string, THREE.Object3D>;
   structures: Map<string, THREE.Object3D>;
   fx: Map<string, THREE.Object3D>;
-  terrain: THREE.Mesh;
-  path: THREE.Object3D;
-  water: THREE.Mesh;
-  heightField: HeightField;
-  meta: TerrainMeta;
 }
 
 const matCache = new Map<string, THREE.Material>();
@@ -64,8 +58,8 @@ function childrenByName(scene: THREE.Object3D) {
 
 export async function loadAssets(onProgress: (done: number, total: number) => void): Promise<Assets> {
   const loader = new GLTFLoader();
-  const files = ['collie', 'sheep', 'wolf', 'nature', 'structures', 'fx', 'terrain', 'water'];
-  const total = files.length + 2;
+  const files = ['collie', 'sheep', 'wolf', 'nature', 'structures', 'fx'];
+  const total = files.length;
   let done = 0;
   const tick = () => onProgress(++done, total);
   const gltfs = await Promise.all(
@@ -76,18 +70,6 @@ export async function loadAssets(onProgress: (done: number, total: number) => vo
     }),
   );
   const scenes = Object.fromEntries(gltfs) as Record<string, THREE.Group>;
-  const [hfBuf, meta] = await Promise.all([
-    fetch(`${BASE}terrain_height.bin`).then((r) => {
-      if (!r.ok) throw new Error(`terrain_height.bin: ${r.status}`);
-      tick();
-      return r.arrayBuffer();
-    }),
-    fetch(`${BASE}terrain_meta.json`).then((r) => {
-      if (!r.ok) throw new Error(`terrain_meta.json: ${r.status}`);
-      tick();
-      return r.json() as Promise<TerrainMeta>;
-    }),
-  ]);
   for (const s of Object.values(scenes)) prepare(s);
 
   const pick = (scene: THREE.Group, name: string) => {
@@ -95,11 +77,6 @@ export async function loadAssets(onProgress: (done: number, total: number) => vo
     if (!o) throw new Error(`asset ${name} missing`);
     return o;
   };
-  const terrain = pick(scenes.terrain, 'terrain') as THREE.Mesh;
-  terrain.castShadow = false;
-  const water = pick(scenes.water, 'water') as THREE.Mesh;
-  water.castShadow = false;
-
   return {
     collie: pick(scenes.collie, 'collie'),
     sheep: pick(scenes.sheep, 'sheep'),
@@ -107,11 +84,6 @@ export async function loadAssets(onProgress: (done: number, total: number) => vo
     nature: childrenByName(scenes.nature),
     structures: childrenByName(scenes.structures),
     fx: childrenByName(scenes.fx),
-    terrain,
-    path: pick(scenes.terrain, 'path'),
-    water,
-    heightField: parseHeightField(hfBuf),
-    meta,
   };
 }
 

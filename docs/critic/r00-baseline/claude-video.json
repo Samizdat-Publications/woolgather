@@ -1,0 +1,68 @@
+{
+  "critic": "claude-video",
+  "first_impression": "The title screen and the golden low-poly valley sold me in about two seconds, and a little black and white collie nudging a knot of sheep through a gate is instantly charming. Then I watched the dog pace around one forest corner for over a minute, and by the end I realised the herding itself is pretty shallow and the whole thing is one four-minute run on one map.",
+  "scores": { "visual_appeal": 7, "readability": 6, "game_feel": 6, "fun_factor": 6, "variety": 4, "sense_of_progression": 3, "want_to_keep_playing": 5, "would_wishlist": 5 },
+  "best_things": [
+    "The look: the title shot at 00:00 (dark pines against a peach sky, chunky serif logo) and the golden-hour valley with long tree shadows are screenshot-worthy, and the lantern glow on the fold at 04:20 is lovely.",
+    "The sunset works as a timer you can feel: at 02:02 the light drops to rose and violet with 'The sun is setting. Wolves are stirring in the pines.', so the mood and the threat change together instead of a number just ticking down.",
+    "The wolf moments are well staged: the red snatch banner with distance and seconds left plus the little close-up inset at 03:07, then the big gold burst and 'Sheep rescued!' at 03:12, and the dashed tether line from a stalking wolf to the flock at 03:47 tells you exactly which sheep is in danger."
+  ],
+  "worst_problems": [
+    {
+      "problem": "For roughly 80 seconds Pip hovers in the same corner by a log or wall line at the forest edge with no sheep on screen, turning back and forth, while a sheep marker sits on the left edge the whole time. It looks like he is either stuck behind that wall or the player has no idea how to get round it. Nothing happens in the video for a third of its length.",
+      "where": "01:00 - 02:22",
+      "severity": "major",
+      "suggestion": "Make it obvious what blocks you and where the gaps are (gates or gaps in walls, a visible path), put a distance and a direction arrow on the stray-sheep marker, and if the dog makes no progress toward the nearest loose sheep for 15-20 seconds, pull the camera out to show both or offer a hint."
+    },
+    {
+      "problem": "The herding has almost no resistance. Every group is three sheep that bunch up and walk wherever the dog points them: the first trio goes from field to fold in about 8 seconds (00:12 - 00:20), the grove trio in about 15 (02:27 - 02:42). Nobody splits off, bolts, or balks at the gate, so the skill the game is about barely gets tested; the only real pressure is the wolves, which only show up after two minutes.",
+      "where": "00:12 - 00:20, 00:35 - 00:45, 02:27 - 02:42",
+      "severity": "major",
+      "suggestion": "Bigger flocks that can split, a stubborn ram or a skittish lamb, sheep that baulk at narrow gaps or the bridge, gates you have to line up properly. Make the drive itself the challenge, not just the walk to the next group."
+    },
+    {
+      "problem": "There is nothing to come back for. One valley, the same find-three-sheep-and-walk-them-home loop four times, and the results card at 04:22 offers only 'Play again' or 'Title screen'. Even with a long stretch of doing nothing the run ended with 1:43 of daylight left, so the night the store page promises never arrives on a decent run.",
+      "where": "04:22 - 04:25",
+      "severity": "major",
+      "suggestion": "Add a run of evenings or several valleys with new layouts, weather and sheep types, unlocks tied to stars, and a daily seeded evening with a leaderboard. Tighten the clock or add late events so a good run still meets real nightfall."
+    },
+    {
+      "problem": "The foreground pines regularly swallow half the screen as big dark faceted blobs, and the dog runs around in a thin strip of ground beside them. At 03:00 - 03:05, during a wolf alert, most of the frame is dark canopy and Pip is a speck. The wall of dark trees on the right also dominates the whole stuck stretch.",
+      "where": "00:22 - 00:27, 01:00 - 02:22, 02:45 - 03:05",
+      "severity": "major",
+      "suggestion": "Fade or cut away trees between the camera and the dog much more aggressively, or angle the camera away from the forest edge when the dog is near it, so the ground you are playing on always fills most of the screen."
+    },
+    {
+      "problem": "Once the sun sets the ground turns into a soft orange-and-purple smear with big blurry blotches, the whole image goes slightly out of focus and low contrast, and the sheep turn pink. It still looks moody, but the crisp golden-hour look is gone and the dusk frames would not make me click.",
+      "where": "02:30 - 02:42, 03:30 - 04:20",
+      "severity": "minor",
+      "suggestion": "Keep the ground texture and edges sharp at dusk, cut back the haze and the blotchy shading, and keep the sheep reading as white wool with a warm rim rather than pink cotton balls."
+    }
+  ],
+  "boredom_points": [
+    "01:00 - 02:22: over a minute of the dog pacing in one forest corner with no sheep, no wolves and nothing changing except the timer.",
+    "00:47 - 00:57: crossing a big empty meadow past the farmhouse to the next group; the 'Hold Shift to sprint' tip says it all, the map has long dead stretches.",
+    "03:30 - 03:45: the flock just stands east of the bridge while Pip sits on the bridge deck hidden by the railing, 15 seconds of nothing.",
+    "By the third group of three (02:27 - 02:42) the loop is already routine: find the trio, walk behind it, gate, hearts, repeat.",
+    "The first two minutes have no threat at all, so the opening is pleasant but flat."
+  ],
+  "confusions": [
+    "What happened between 01:00 and 02:22: is Pip blocked by that log or wall, lost, or was the player waiting? The sheep marker on the left edge was right there.",
+    "02:22 to 02:25 the view jumps from the pine corner to a birch grove with a wolf and sheep in it, and I lost track of where on the map I was.",
+    "At 03:07 the snatch banner says the wolf has a sheep 'by the bridge', at 03:10 the same snatch is 'on the far bank'. Which is it?",
+    "03:30 - 03:45: Pip is hidden behind the bridge railing and I could not tell if he was on it, under it or stuck.",
+    "Why do the sheep turn pink after sunset? I wondered whether they were a different kind of sheep or marked somehow.",
+    "The HUD text is tiny: the counter top left, the 'wolves come out in' line under the timer, the minimap labels and the Stamina, Creep and Bark labels were mostly unreadable, and the edge icons (gold pin at the bottom, white sheep circle, red wolf diamond) need a legend in play, not just on a help screen."
+  ],
+  "wish_list": [
+    "More valleys and a run of evenings (a week on the farm) with different layouts, weather and longer drives.",
+    "Sheep with personality: a stubborn ram, wandering lambs, a black sheep that bolts at the worst moment.",
+    "Real sheepdog commands or a whistle (come-by, away, lie down) so the herding has more depth than walking behind the flock.",
+    "Stars that unlock something: new collies, collars, farm upgrades, new valleys.",
+    "A daily seeded evening with a leaderboard for time and sheep saved.",
+    "Let night actually fall in a good run: a last stretch under the moon with the wolves at their boldest.",
+    "A photo mode for the sunset, because those golden frames deserve it.",
+    "Local co-op with two dogs."
+  ],
+  "one_line_review": "Gorgeous golden-hour sheepdog game with a genuinely tense wolf rescue, but the herding is too easy, one valley is all there is, and I watched the dog stare at a wall for over a minute: wishlist, not a 10 dollar buy yet."
+}
