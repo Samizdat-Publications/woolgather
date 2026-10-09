@@ -73,17 +73,23 @@ export const scenarios = {
     }
     const click = (sel) => page.evaluate((s) => document.querySelector(s)?.click(), sel);
     const taken = new Set();
-    /** Play with the bot for `seconds` of game time (or to the end), taking stills on cue. */
+    /**
+     * Play with the bot for `seconds` of game time (or to the end), taking stills on cue. A cue with
+     * a third element runs that instead of taking a still (for example the player zooming in).
+     */
     const play = async (seconds, cues = []) => {
       const bot = new Bot(page);
       const until = ctx.time() + seconds;
       let st = await state();
       while (st.mode !== 'ended' && ctx.time() < until && !ctx.overTime()) {
         const due = [];
-        for (const [name, cond] of cues) {
+        for (const [name, cond, act] of cues) {
           if (!taken.has(name) && st.mode === 'playing' && cond(st)) {
             taken.add(name);
-            due.push(name);
+            if (act) {
+              await act();
+              mark(name);
+            } else due.push(name);
           }
         }
         if (st.mode === 'playing') await bot.step(st, 1 / fps);
@@ -112,6 +118,10 @@ export const scenarios = {
       ['e1-herding', (s) => s.elapsed >= 20],
       ['e1-first-home', (s) => s.folded >= 1],
       ['e1-wolf', (s) => s.wolves?.some((w) => (w.state === 'stalk' || w.state === 'charge') && dist(w, s.dog) < 35)],
+      // The player rolls the wheel all the way in for a low look across the valley, then back out.
+      ['zoom-in', (s) => s.elapsed >= 38, () => page.evaluate(() => window.__WG.zoom?.(0.5))],
+      ['e1-low-view', (s) => s.elapsed >= 45],
+      ['zoom-out', (s) => s.elapsed >= 52, () => page.evaluate(() => window.__WG.zoom?.(1))],
     ]);
     mark('outcome', st.outcome);
     await frames(2.5);

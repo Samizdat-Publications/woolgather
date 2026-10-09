@@ -190,6 +190,7 @@ export class Ui {
               <dt><kbd>Enter</kbd></dt><dd>latch the gate once enough sheep are home</dd>
               <dt><kbd>Esc</kbd></dt><dd>pause</dd>
               <dt><kbd>M</kbd></dt><dd>sound on or off</dd>
+              <dt><kbd>Wheel</kbd></dt><dd>zoom; all the way in, a low view across the valley</dd>
             </dl>
             <div class="pad-line"><b>Gamepad:</b> left stick moves, RT sprints, LT creeps, B lies down, A barks, Y latches, Start pauses.</div>
           </div>

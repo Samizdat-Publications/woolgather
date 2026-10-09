@@ -1,0 +1,51 @@
+{
+  "critic": "claude-video",
+  "mode": "contact sheets",
+  "model": "claude-opus-5-5 (blind subagent)",
+  "first_impression": "The title shot and the sunset cutaways are gorgeous, and I would click a screenshot of them. The flock moves like a real flock. But during play it's mostly a top-down view of a dog, a dashed circle and a clump of sheep on a flat lawn, and two of the later evenings (mist and storm) turn to grey and purple mud. The season structure is smarter and deeper than I expected from a herding game.",
+  "scores": {
+    "visual_appeal": 7,
+    "readability": 6,
+    "game_feel": 6,
+    "fun_factor": 6,
+    "variety": 8,
+    "sense_of_progression": 7,
+    "want_to_keep_playing": 6,
+    "would_wishlist": 7
+  },
+  "best_things": [
+    "The golden-hour title screen and the low cutaways into the sunset (00:00, 02:57, 05:09, 08:39, 10:45) look painterly and warm, and they sell the mood better than anything else in the footage.",
+    "The sheep act like a flock: they bunch, flow through the trial gates as a group (01:39), trot into the fold with hearts popping (03:21, 05:42), and the dashed ring around Pip makes it clear how close you can push.",
+    "Every evening adds something new (lambs, Old Angus the ram you have to stare down at 04:42, a sheepdog trial with gates, a night watch, mist, a storm with a flood, snow with a black sheep), and the season map with stars, ribbons and charms (00:03, 00:45) gives a real reason to replay for three stars."
+  ],
+  "worst_problems": [
+    { "problem": "The mist evening washes the whole screen out to a flat grey-white. You only see a small orange-brown bubble around Pip, so for over a minute and a half you are just following edge icons. At 07:00 the screen is almost blank apart from a row of bleat icons.", "where": "06:24-08:03, worst at 07:00", "severity": "major", "suggestion": "Thin the fog and let sheep show through it as faint silhouettes. Make the clear bubble bigger and give the fog some colour and depth, so it feels spooky rather than like an unloaded texture." },
+    { "problem": "The storm evening is a murky purple-grey. Dark black lumps are scattered everywhere around Pip and I can't tell what they are. The flooded stream looks like a cracked white concrete road, not water.", "where": "08:30, 08:54, 09:00-09:27, 09:51", "severity": "major", "suggestion": "Keep the rain mood but lift the contrast so the ground, the rocks and the debris read differently. Make the floodwater look like brown churning water with foam, not a pale tiled strip." },
+    { "problem": "The Glenbrae Trial is about 90 seconds of the same flat mustard-yellow field with tiny gate posts and nothing else to look at. At the end the five ewes sit beside the pen mouth for about 20 seconds without going in while the clock runs, which looks fiddly and frustrating.", "where": "00:51-02:18, stall at 02:00-02:18", "severity": "major", "suggestion": "Dress the show field with spectators, flags, a judges' tent and a colour change in the turf near the gates. Make the pen easier to read and to enter, for example a funnel or a clear 'push here' cue." },
+    { "problem": "The first evening is over in about 30 seconds with 4:00 of daylight still left. There are no wolves and no sunset, so the opening level shows none of the 'before nightfall' tension from the store page.", "where": "00:12-00:42", "severity": "minor", "suggestion": "Make the first evening a bit longer, or at least show the sun dropping and one wolf being chased off, so a new player feels the hook straight away." },
+    { "problem": "Alerts and markers pile up on top of the action. The 'A wolf is stalking your flock!' toast sits right over the wolf, the latch banner covers the wolf's red ring, the snatch alert plus inset plus markers crowd one corner, a column of five bleat icons stacks on the left edge in the mist, and the text in the top-left panel is tiny.", "where": "05:21, 09:51, 04:09, 07:03", "severity": "minor", "suggestion": "Keep banners away from whatever they are warning about, merge stacked edge icons into one icon with a number, and make the corner panel text bigger." }
+  ],
+  "boredom_points": [
+    "The Glenbrae Trial (00:51-02:18): five sheep, an empty yellow field, no threat and no landmarks, then a slow penning stall.",
+    "The Night Watch (12:00-12:24): the flock stands in a clump, Pip stands in his ring and you watch a 'Dawn in' timer while a wolf sometimes appears at the edge.",
+    "The mist (06:24-08:03): walking along a path inside a fog bubble chasing bleat icons for well over a minute.",
+    "In general the in-play framing barely changes between evenings (dog, dashed circle, sheep clump, the same panels), so the montage evenings blur together except for the ground colour."
+  ],
+  "confusions": [
+    "A bright glowing yellow ball keeps appearing on the ground (05:06, 06:18, 09:12, 12:27). Is it a pickup, a light, sun glare or a bug?",
+    "What are the black lumps scattered all over the storm level (08:30, 09:15): rocks, crows, mud, black sheep?",
+    "In the mist, the bleat icons stack up at the screen edge (07:03), so I can't tell how many sheep are out there or which way each one is.",
+    "The fold looks smeared and blurry when it sits near the left edge in Lambing Time and Old Angus (02:24, 03:00, 05:00). Is that intended?",
+    "Pip is swimming in the loch with a white ring around him (05:15). Is that a shortcut, a slowdown or a mistake?",
+    "The flooded stream in the storm (09:00) could be water, ice or a road: I honestly couldn't tell."
+  ],
+  "wish_list": [
+    "A way to pull the camera back or tilt it during play so I can see the valley and the sunset I'm racing, not only in cutaways.",
+    "Proper sheepdog commands or whistles (come-bye, away, walk up) for the trial evenings, and a score-attack leaderboard for the trial.",
+    "Wolves that work as a pack and force real decisions, instead of single wolves that a bark seems to solve in a few seconds (04:09-04:15).",
+    "Cosmetics and farm touches earned with stars: collars, coat patterns, a dog name, decorating the farmhouse.",
+    "A photo mode for the golden-hour and sunset moments.",
+    "A free-play or endless evening once the season is done."
+  ],
+  "one_line_review": "A cosy, clever sheepdog game with a real season to work through. I just wish the top-down play view looked half as good as its sunset cutscenes."
+}

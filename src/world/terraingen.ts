@@ -215,6 +215,13 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
         if (q.d < 4) c.lerp(C.shingle, (1 - smoothstep(0.5, 4, q.d)) * 0.45);
         if (q.d < 0) c.lerp(C.lochBed, smoothstep(0, 4, -q.d));
       }
+      // A show field is mown: fresher turf in light and dark stripes, the way a trial ground looks.
+      if (def.trial && pointInPolygon(x, z, bound)) {
+        const k = smoothstep(6, 14, polyDistance(x, z, bound));
+        const stripe = Math.cos((x / 9) * Math.PI) > 0 ? 1 : 0;
+        c.lerp(C.lush, 0.45 * k);
+        c.multiplyScalar(1 + (stripe ? 0.16 : -0.12) * k);
+      }
       const pd = pathDist(x, z);
       c.lerp(C.worn, (1 - smoothstep(1, 2.6, pd)) * 0.6);
       for (const pen of level.pens) {

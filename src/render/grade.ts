@@ -363,8 +363,9 @@ export class GradePass {
               vec2 q = vec2(vUv.x * uAspect, vUv.y) * 2.2 + uMistOff;
               float bank = mnoise(q + vec2(uTime * 0.035, uTime * 0.012)) * 0.6 + mnoise(q * 2.3 - vec2(uTime * 0.05, 0.0)) * 0.4;
               float far = smoothstep(uMistR * 0.45, uMistR * 1.5, length(mv) + (bank - 0.5) * 0.22);
-              float mist = uMist * (0.18 + 0.82 * far) * (0.8 + 0.4 * bank);
-              c = mix(c, uMistCol, clamp(mist, 0.0, 0.94) * free);
+              float mist = uMist * (0.14 + 0.72 * far) * (0.8 + 0.4 * bank);
+              // Never a solid wall: the ground and anything on it show through the far mist as shapes.
+              c = mix(c, uMistCol, clamp(mist, 0.0, 0.8) * free);
             }
             // Lightning: the whole frame flashes cold white for an instant.
             c = 1.0 - (1.0 - c) * (1.0 - vec3(0.86, 0.9, 1.0) * uFlash * 0.75);

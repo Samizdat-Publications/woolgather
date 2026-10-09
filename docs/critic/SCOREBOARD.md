@@ -14,6 +14,10 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
 | r01-season | claude-video | 7 | 6 | 6 | 6 | 7 | 8 | 6 | 7 | 6.63 |
 | r01-season | gemini-stills | 7 | 9 | 6 | 7 | 8 | 8 | 7 | 7 | 7.38 |
 | r01-season | gemini | 7 | 8 | 6 | 7 | 8 | 7 | 7 | 8 | 7.25 |
+| r02-season | claude-stills | 7 | 7 | 6 | 7 | 8 | 8 | 7 | 7 | 7.13 |
+| r02-season | claude-video | 7 | 6 | 6 | 6 | 8 | 7 | 6 | 7 | 6.63 |
+| r02-season | gemini-stills | 7 | 8 | 7 | 7 | 8 | 6 | 6 | 7 | 7.00 |
+| r02-season | gemini | 7 | 8 | 7 | 7 | 8 | 7 | 7 | 8 | 7.38 |
 
 ## One-line reviews
 
@@ -40,3 +44,14 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
   - worst problem (major): Narrow chokepoints like wooden bridges look primed for frustrating AI pathfinding snags where sheep get stuck on railing corners.
 - **gemini**: A cozy, clever pastoral puzzler that nails sheepdog mechanics far better than expected, despite slightly floaty paws and bridge traffic jams.
   - worst problem (major): Sheep pathfinding chokes badly at narrow crossings, turning the bridge sequence into an annoying micro-nudging stalemate where sheep bunch up and refuse to cross.
+
+### r02-season
+
+- **claude-stills**: A gorgeous, cosy sheepdog season with a real progression spine and a new twist every evening, held back by a flat top-down view that makes most of its evenings look alike.
+  - worst problem (major): The gameplay camera is so high and flat that the daytime evenings all look like the same olive-mustard lawn with a brown path and a stone fold; none of the sunset, pines or sky from the menus survives into play.
+- **claude-video**: A cosy, clever sheepdog game with a real season to work through. I just wish the top-down play view looked half as good as its sunset cutscenes.
+  - worst problem (major): The mist evening washes the whole screen out to a flat grey-white. You only see a small orange-brown bubble around Pip, so for over a minute and a half you are just following edge icons. At 07:00 the screen is almost blank apart from a row of bleat icons.
+- **gemini-stills**: Short but sweet Highland herding sim that captures the tense geometry of sheepdog work, though it runs out of pasture far too quickly.
+  - worst problem (major): The total campaign is only 9 short evenings, which looks like it would take less than 45 minutes to finish completely.
+- **gemini**: A surprisingly atmospheric and cozy sheepdog sim that captures the grit and calm of hill farming, though slow walking speeds and tedious waiting timers occasionally test your patience.
+  - worst problem (major): The Night Watch level devolves into four minutes of standing around waiting for the timer to tick down while occasionally barking at a wolf.

@@ -129,6 +129,12 @@ export class GameAudio {
         case 'spook':
           this.rec('flutter', this.where(e.x, e.z, 0.4), 0.9);
           break;
+        case 'scatter':
+          // Something heavy through the bracken: a crash of wings and hooves, then the flock cries out.
+          this.rec('flutter', this.where(e.x, e.z, 0.3), 0.7, true);
+          this.rec('stamp', this.where(e.x, e.z, 0.3), 0.8, true, 0.6);
+          window.setTimeout(() => this.rec('bleat_ewe', this.where(e.x, e.z, 0.2), 1.1, true), 250);
+          break;
         case 'folded':
           this.sfx.chime(e.count - 1);
           break;
@@ -171,9 +177,11 @@ export class GameAudio {
 
   /** The day's result: the gate clanks shut on a win before the fanfare. */
   outcome(win: boolean) {
+    // The recorded score has its own win phrase; the synth sting only plays without it.
+    const phrase = this.music.outcome(win);
     if (win) {
       if (!this.rec('gate', { pan: 0, level: 1 }, 0.9)) this.sfx.gate();
-      window.setTimeout(() => this.sfx.sting('win'), 350);
+      if (!phrase) window.setTimeout(() => this.sfx.sting('win'), 350);
     } else {
       this.sfx.sting('lose');
     }
@@ -224,7 +232,7 @@ export class GameAudio {
       set('night', 0.55 * Math.max(0, (night - 0.25) / 0.5) * (1 - wx.rain) * (1 - wx.snow));
       set('dawn', 0.4 * Math.min(1, birds) * (1 - wx.rain) * (1 - wx.snow * 0.8));
     }
-    this.music.update({ mood, tension, playing });
+    this.music.update({ mood, tension, playing, mode, watch: this.rules?.objective === 'watch' });
     // Menus sit the score back a little; the end card lets the stinger speak.
     const t = ctx.currentTime;
     const duck = mode === 'paused' ? 0.45 : mode === 'ended' ? 0.35 : 1;

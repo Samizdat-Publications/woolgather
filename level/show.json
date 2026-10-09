@@ -7,7 +7,7 @@
     [60, 64], [0, 66], [-60, 64], [-80, 56], [-88, 30], [-88, -30]
   ],
   "dogStart": [0, 44],
-  "pens": [{ "id": "fold", "center": [-30, 36], "angleDeg": 180, "role": "fold", "scale": 0.62 }],
+  "pens": [{ "id": "fold", "center": [-30, 36], "angleDeg": 180, "role": "fold", "scale": 0.74 }],
   "streams": [],
   "lochs": [],
   "bridges": [],
@@ -29,8 +29,8 @@
     { "name": "FETCH GATES", "phrase": "by the fetch gates", "x": 0, "z": -16 },
     { "name": "DRIVE GATES", "phrase": "by the drive gates", "x": 46, "z": 4 },
     { "name": "CROSS GATES", "phrase": "by the cross gates", "x": -46, "z": 4 },
-    { "name": "THE PEN", "phrase": "by the pen", "x": -30, "z": 44 },
-    { "name": "THE POST", "phrase": "by the post", "x": 0, "z": 40 }
+    { "name": "THE PEN", "phrase": "by the pen", "x": -30, "z": 26 },
+    { "name": "THE POST", "phrase": "by the post", "x": 10, "z": 46 }
   ],
   "relief": { "floor": 0.6, "rim": 5, "knolls": [], "slopes": [{ "axis": "z", "from": -20, "to": -66, "height": 2.2 }], "noiseSeed": 3 },
   "heather": [],

@@ -76,7 +76,7 @@ const LOSS_LEVEL = 0.8;
 /** The win phrase, relative to the music volume setting (it bypasses the results-card duck). */
 const WIN_LEVEL = 0.6;
 /** Seconds after the outcome before the win phrase (the gate clank and the synth sting go first). */
-const WIN_DELAY = 2.0;
+const WIN_DELAY = 0.8;
 /** Mood at which the evening bed hands over to the dusk bed, and back (hysteresis). */
 const DUSK_ON = 0.6;
 const DUSK_OFF = 0.5;
@@ -143,8 +143,8 @@ export class Score {
   }
 
   /**
-   * The evening's result. On a win the bed fades and the recorded phrase plays after the gate and the
-   * synth sting; returns true if it will. On a loss the bed plays on, a little lower.
+   * The evening's result. On a win the bed fades and the recorded phrase plays just after the gate (the
+   * synth sting is skipped); returns true if it will. On a loss the bed plays on, a little lower.
    */
   outcome(win: boolean): boolean {
     this.ending = win ? 'win' : 'lose';

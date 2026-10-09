@@ -780,7 +780,7 @@ function writeDoc(rows, manifest) {
   lines.push('');
   lines.push('The creature sounds and ambience loops in `public/audio/` were generated with the ElevenLabs Sound');
   lines.push(`Effects API (model \`${MODEL}\`) for this project and post-processed by \`tools/gen-sfx.mjs\`.`);
-  lines.push('Everything else in the game (music, UI, footsteps and the rest) is still synthesised in `src/audio/`.');
+  lines.push("The music score is recorded too (see `MUSIC.md`); the UI chimes, footsteps and the music's tension layer are still synthesised in `src/audio/`.");
   lines.push('');
   lines.push(`Credit: ${CREDIT}. Usage rights follow the ElevenLabs terms of the account that generated them.`);
   lines.push('');

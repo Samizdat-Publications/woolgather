@@ -172,7 +172,9 @@ class Ripple {
       arr[i + 2] = wz;
     }
     pos.needsUpdate = true;
-    this.mesh.material.opacity = peak * (1 - u);
+    // Fade in over the first fifth: a small ring at full strength bloomed into a glowing ball that
+    // players took for a pickup.
+    this.mesh.material.opacity = peak * Math.min(1, u * 5) * (1 - u);
   }
 }
 
@@ -363,7 +365,7 @@ export class Particles {
     for (const p of [this.dropPool, this.tuftPool, this.heartPool]) this.root.add(p.mesh);
     this.root.add(this.dustPool.points, this.sprayPool.points);
     for (let i = 0; i < 6; i++) {
-      const r = new Ripple(a.fx.get('bark_ring')!, i < 3 ? 0xffe2a0 : 0xe8f4ff, terrain);
+      const r = new Ripple(a.fx.get('bark_ring')!, i < 3 ? 0xf0d394 : 0xe8f4ff, terrain);
       this.rings.push(r);
       this.root.add(r.mesh);
     }
@@ -534,7 +536,7 @@ export class Particles {
     this.dropPool.update(dt, this.terrain, camera);
     this.tuftPool.update(dt, this.terrain, camera);
     this.heartPool.update(dt, this.terrain, camera);
-    this.rings.forEach((r, i) => r.update(dt, i < 3 ? 0.75 : 0.5));
+    for (const r of this.rings) r.update(dt, 0.5);
     const u = this.flies.material.uniforms;
     u.uTime.value = time;
     u.uNight.value = Math.max(0, Math.min(1, (night - 0.25) / 0.45));

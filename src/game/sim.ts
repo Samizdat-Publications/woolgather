@@ -69,6 +69,10 @@ export interface Sheep extends Body {
   boltCd: number;
   /** The pen it is home in. */
   penId: string | null;
+  /** Night watch: a ewe walking off on her own into the dark (seconds left), and where to. */
+  strayT: number;
+  strayX: number;
+  strayZ: number;
 }
 
 export type WolfState = 'stalk' | 'charge' | 'drag' | 'flee' | 'gone';
@@ -111,6 +115,10 @@ export type SimEvent =
   | { type: 'flood' }
   /** Something in the dark startles part of the flock (night watch). */
   | { type: 'spook'; x: number; z: number }
+  /** Night watch: a ewe wanders off on her own towards (tx, tz). */
+  | { type: 'stray'; id: number; x: number; z: number; tx: number; tz: number }
+  /** Night watch, midnight: something big crashes through the bracken and the flock scatters. */
+  | { type: 'scatter'; x: number; z: number }
   /** A trial gate passed or missed. */
   | { type: 'gate'; index: number; name: string; passed: boolean; x: number; z: number };
 
@@ -156,6 +164,8 @@ export class Sim {
   private wolfIds = 0;
   private thunderT = 0;
   private spookT = 12;
+  private strayCd = 20;
+  private scattered = false;
   /**
    * One snatch at a time: while a wolf is dragging a sheep, or shortly after a snatch, the others
    * only stalk. One dog must always be able to answer every snatch.
@@ -248,6 +258,9 @@ export class Sim {
         buttCd: 0,
         boltCd: place.range(2, 6),
         penId: null,
+        strayT: 0,
+        strayX: 0,
+        strayZ: 0,
       };
       this.sheep.push(s);
       return s;
@@ -489,7 +502,7 @@ export class Sim {
 
   // ---------------------------------------------------------------- sheep
 
-  private isFree(s: Sheep) {
+  isFree(s: Sheep) {
     return s.state !== 'lost' && s.state !== 'grabbed' && s.state !== 'folded' && s.state !== 'hidden';
   }
 
@@ -645,7 +658,8 @@ export class Sim {
       // On the approach to a crossing (in line with the deck): bunched tighter, and the water on
       // either side of the deck no longer pushes them back off it.
       const approach = this.onApproach(s);
-      const crowd = approach && (s.alertT > 0 || fear > 0.05);
+      // ...and the same in the mouth of a pen, so a driven bunch files through the gate.
+      const crowd = (approach || L.pens.some((p) => p.inFunnel(s.x, s.z))) && (s.alertT > 0 || fear > 0.05);
 
       // Flocking with free neighbours (lambs mostly keep to their mothers instead).
       let n = 0;
@@ -678,7 +692,7 @@ export class Sim {
         if (o.fear > 0.25 && od < 7) neighbourAlert = true;
       }
       if (neighbourAlert) s.alertT = Math.max(s.alertT, 0.8);
-      const cohK = s.kind === 'black' ? 0.5 : lamb ? 0.3 : s.kind === 'ram' ? 0.4 : 1;
+      const cohK = (s.kind === 'black' ? 0.5 : lamb ? 0.3 : s.kind === 'ram' ? 0.4 : 1) * (s.strayT > 0 ? 0.15 : 1);
       if (n > 0) {
         cx /= n;
         cz /= n;
@@ -857,6 +871,18 @@ export class Sim {
         s.grazing = false;
         s.wanderT = this.rng.range(1, 3);
       }
+      // A straying ewe (night watch) walks off on her own until the dog turns her or she gets there.
+      if (s.strayT > 0) {
+        s.strayT -= dt;
+        const gx = s.strayX - s.x;
+        const gz = s.strayZ - s.z;
+        const gl = Math.hypot(gx, gz);
+        if (alert || fear > 0.05 || gl < 3) s.strayT = 0;
+        else {
+          vx += (gx / gl) * 1.5;
+          vz += (gz / gl) * 1.5;
+        }
+      }
       if (stubborn) {
         // Squared up to the dog: he holds his ground.
         vx *= 0.15;
@@ -869,7 +895,7 @@ export class Sim {
       vz += av.z;
 
       const spdK = lamb ? 1.08 : s.kind === 'ram' ? 0.92 : 1;
-      const cap = (s.panicT > 0 ? SHEEP.panicSpeed : fear > 0.02 || alert || s.trotT > 0 || orphan ? SHEEP.fleeSpeed : SHEEP.grazeSpeed * 1.3) * spdK;
+      const cap = (s.panicT > 0 ? SHEEP.panicSpeed : fear > 0.02 || alert || s.trotT > 0 || orphan ? SHEEP.fleeSpeed : SHEEP.grazeSpeed * (s.strayT > 0 ? 1.9 : 1.3)) * spdK;
       const vl = Math.hypot(vx, vz);
       if (vl > cap) {
         vx = (vx / vl) * cap;
@@ -1103,6 +1129,81 @@ export class Sim {
     s.inWater = false;
   }
 
+  /**
+   * Night watch: a ewe at the far side of the flock from Pip sets off on her own towards a spot
+   * 30-42 m out into the dark. Unless Pip turns her she keeps going, and the wolves notice.
+   */
+  private startStray() {
+    const L = this.level;
+    const d = this.dog;
+    const free = this.sheep.filter((s) => this.isFree(s) && s.kind !== 'lamb' && s.kind !== 'ram');
+    if (free.length < 4 || free.filter((s) => s.strayT > 0).length >= 2) return;
+    let cx = 0;
+    let cz = 0;
+    for (const s of free) {
+      cx += s.x;
+      cz += s.z;
+    }
+    cx /= free.length;
+    cz /= free.length;
+    let best: Sheep | null = null;
+    let bd = -1;
+    for (const s of free) {
+      if (s.strayT > 0 || s.fear > 0.05 || s.alertT > 0) continue;
+      const dd = Math.hypot(s.x - d.x, s.z - d.z);
+      if (dd > bd) {
+        bd = dd;
+        best = s;
+      }
+    }
+    if (!best || bd < 13) return;
+    const ax = best.x - cx;
+    const az = best.z - cz;
+    const base = Math.hypot(ax, az) > 1 ? Math.atan2(ax, az) : Math.atan2(best.x - d.x, best.z - d.z);
+    for (let i = 0; i < 12; i++) {
+      const a = base + this.rng.range(-1, 1);
+      const r = this.rng.range(30, 42);
+      const x = cx + Math.sin(a) * r;
+      const z = cz + Math.cos(a) * r;
+      if (!L.insideValley(x, z) || L.boundaryDistance(x, z) < 7 || L.inWater(x, z) || L.penAt(x, z, -2) || L.acrossWater(best.x, best.z, x, z)) continue;
+      best.strayT = 50;
+      best.strayX = x;
+      best.strayZ = z;
+      this.events.push({ type: 'stray', id: best.id, x: best.x, z: best.z, tx: x, tz: z });
+      return;
+    }
+  }
+
+  /** Midnight on the watch: something big crashes through the bracken; the flock bolts three ways. */
+  private scatter() {
+    const free = this.sheep.filter((s) => this.isFree(s));
+    if (free.length < 3) return;
+    let cx = 0;
+    let cz = 0;
+    for (const s of free) {
+      cx += s.x;
+      cz += s.z;
+    }
+    cx /= free.length;
+    cz /= free.length;
+    const a0 = this.rng.range(0, Math.PI * 2);
+    const third = (Math.PI * 2) / 3;
+    for (const s of free) {
+      s.strayT = 0;
+      if (s.kind === 'ram') continue;
+      const ang = Math.atan2(s.x - cx, s.z - cz);
+      const k = Math.round((ang - a0) / third);
+      const dir = a0 + k * third + this.rng.range(-0.3, 0.3);
+      s.panicT = this.rng.range(2.4, 3.3);
+      s.panicX = Math.sin(dir);
+      s.panicZ = Math.cos(dir);
+      s.alertT = 3;
+    }
+    // The wolves hold off for a moment: the player gets to see where everyone went.
+    this.snatchCd = Math.max(this.snatchCd, 6);
+    this.events.push({ type: 'scatter', x: cx, z: cz });
+  }
+
   // ---------------------------------------------------------------- wolves
 
   private allowedWolves() {
@@ -1318,7 +1419,7 @@ export class Sim {
         const sheepToDog = Math.hypot(s.x - d.x, s.z - d.z);
         const seenLongEnough = w.valleyT > (this.watch ? 3 : w.id === 0 ? 10 : 6);
         const mayCharge = !someoneDragging && this.snatchCd <= 0 && seenLongEnough;
-        if (mayCharge && sd < WOLF.chargeRange && sheepToDog > 8) {
+        if (mayCharge && sd < WOLF.chargeRange && sheepToDog > (this.watch ? 6 : 8)) {
           w.state = 'charge';
           w.stateT = 0;
           this.events.push({ type: 'charge', x: w.x, z: w.z, id: w.id });
@@ -1450,6 +1551,17 @@ export class Sim {
       this.flooded = true;
       for (const f of this.level.fords) f.open = false;
       this.events.push({ type: 'flood' });
+    }
+    if (this.watch && this.t > 0.04 && this.t < 0.86) {
+      this.strayCd -= dt;
+      if (this.strayCd <= 0) {
+        this.strayCd = this.rng.range(15, 24);
+        this.startStray();
+      }
+    }
+    if (this.watch && !this.scattered && this.t >= 0.42) {
+      this.scattered = true;
+      this.scatter();
     }
     if (this.watch && this.t < 0.9) {
       this.spookT -= dt;

@@ -7,6 +7,7 @@ import './style.css';
 import type { Difficulty } from './game/config';
 import { Game } from './game/game';
 import { PerfOverlay } from './ui/perf';
+import * as THREE from 'three';
 
 const params = new URLSearchParams(location.search);
 const test = params.has('test');
@@ -85,6 +86,49 @@ function exposeTestHooks() {
       for (const o of out) groups[o.name.split('/')[0] || '(root)'] = (groups[o.name.split('/')[0] || '(root)'] ?? 0) + 1;
       const topGroups = Object.entries(groups).sort((a, b) => b[1] - a[1]).slice(0, 20);
       return { total: out.reduce((a, b) => a + b.tris, 0), shadowTris: out.filter((o) => o.shadow).reduce((a, b) => a + b.tris, 0), top: out.slice(0, 25), meshCount: out.length, shadowMeshes: out.filter((o) => o.shadow).length, groups: topGroups };
+    },
+    /** Look-dev: the visible objects whose world position projects within r px of a screen point. */
+    near: (px: number, py: number, r = 60) => {
+      const out: { name: string; type: string; d: number; x: number; z: number }[] = [];
+      const cam = game.stage.camera;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const v = new THREE.Vector3();
+      game.stage.scene.traverseVisible((o) => {
+        o.getWorldPosition(v);
+        const wx = v.x;
+        const wz = v.z;
+        v.project(cam);
+        if (v.z > 1) return;
+        const sx = ((v.x + 1) / 2) * w;
+        const sy = ((1 - v.y) / 2) * h;
+        const d = Math.hypot(sx - px, sy - py);
+        if (d < r) out.push({ name: `${o.parent?.name ?? ''}/${o.name}`, type: o.type, d: Math.round(d), x: Math.round(wx), z: Math.round(wz) });
+      });
+      return out.sort((a, b) => a.d - b.d).slice(0, 30);
+    },
+    /** The player's wheel zoom (1 = default; 0.5 = all the way in, tilted to the horizon). */
+    zoom: (z: number) => {
+      game.stage.userZoom = z;
+    },
+    /** Look-dev: what the camera sees at a screen point (nearest hits first). */
+    pick: (px: number, py: number) => {
+      const ray = new THREE.Raycaster();
+      ray.setFromCamera(new THREE.Vector2((px / window.innerWidth) * 2 - 1, -(py / window.innerHeight) * 2 + 1), game.stage.camera);
+      return ray.intersectObjects(game.stage.scene.children, true).slice(0, 6).map((h) => {
+        const m = (h.object as THREE.Mesh).material as THREE.Material | undefined;
+        return { name: `${h.object.parent?.name ?? ''}/${h.object.name}`, type: h.object.type, mat: m?.type, matName: m?.name, d: Math.round(h.distance * 10) / 10, y: Math.round(h.point.y * 100) / 100 };
+      });
+    },
+    /** Look-dev: the current values of a named uniform on every material in the scene that has it. */
+    uniform: (name: string) => {
+      const out: { mesh: string; value: unknown }[] = [];
+      game.stage.scene.traverseVisible((o) => {
+        const m = (o as unknown as { material?: { uniforms?: Record<string, { value: unknown }> } }).material;
+        const u = m?.uniforms?.[name];
+        if (u) out.push({ mesh: `${o.parent?.name ?? ''}/${o.name}`, value: u.value });
+      });
+      return out;
     },
     /** Perf analysis: switch a costly feature off or on. */
     toggle: (what: string, on: boolean) => {

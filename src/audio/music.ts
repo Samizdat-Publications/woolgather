@@ -115,6 +115,8 @@ export class Music {
   /** Context time the recorded score took over (the synth tune stops being scheduled soon after). */
   private scoredAt = -1;
   private startedAt = 0;
+  /** The synthesised tune has played (so a later hand-over to the recordings fades it out). */
+  private tuneHeard = false;
   private strings: { osc: OscillatorNode; i: number }[] = [];
   private drones: { osc: OscillatorNode; i: number }[] = [];
   /** The voicing and shift the strings and drone are tuned to ('' until the first update). */
@@ -155,7 +157,8 @@ export class Music {
       o.start();
       this.drones.push({ osc: o, i });
     });
-    // Tension: tremolo strings (D minor triad) and a heartbeat scheduled with the beat.
+    // Tension: tremolo strings (D minor triad; D E A D over the recordings) and a heartbeat scheduled
+    // with the beat.
     this.stringsGain = ctx.createGain();
     this.stringsGain.gain.value = 0;
     const trem = ctx.createGain();
@@ -242,11 +245,15 @@ export class Music {
     for (const { osc, i } of this.drones) osc.frequency.setTargetAtTime(mtof(DRONE[i] + shift), t, 0.4);
   }
 
-  /** The synthesised tune and plucks: off once the recordings have taken over, and briefly at
-   * start-up while they load (so the two never overlap for a moment). */
+  /**
+   * The synthesised tune and plucks: held back at start-up while the recordings load (so the two never
+   * overlap), and off once they have taken over (after a short fade if the tune was already playing).
+   */
   private tuneOn(t: number) {
-    if (this.scoredAt >= 0) return t < this.scoredAt + 2.5;
-    return this.score.settled || t > this.startedAt + SCORE_WAIT;
+    if (this.score.ready) return this.tuneHeard && this.scoredAt >= 0 && t < this.scoredAt + 2.5;
+    const on = this.score.settled || t > this.startedAt + SCORE_WAIT;
+    if (on) this.tuneHeard = true;
+    return on;
   }
 
   dispose() {

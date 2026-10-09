@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "model": "music_v2_5",
+  "generated": "2026-10-09",
+  "tracks": {
+    "evening": {
+      "file": "evening.mp3",
+      "kind": "loop",
+      "loop": true,
+      "seconds": 76.7665,
+      "lead": 0.00327,
+      "lufs": -20,
+      "key": "D major",
+      "root": 2,
+      "mode": "major",
+      "bpm": 83.5,
+      "loopStart": 5.90948,
+      "loopEnd": 76.26646
+    },
+    "dusk": {
+      "file": "dusk.mp3",
+      "kind": "loop",
+      "loop": true,
+      "seconds": 57.0602,
+      "lead": 0.00519,
+      "lufs": -20,
+      "key": "D minor",
+      "root": 2,
+      "mode": "minor",
+      "bpm": 77,
+      "loopStart": 3.23918,
+      "loopEnd": 56.5602
+    },
+    "title": {
+      "file": "title.mp3",
+      "kind": "song",
+      "loop": true,
+      "seconds": 50.8,
+      "lead": 0.00646,
+      "lufs": -20,
+      "key": "D major",
+      "root": 2,
+      "mode": "major",
+      "bpm": 88,
+      "loopStart": 0,
+      "loopEnd": 50.3
+    },
+    "win": {
+      "file": "win.mp3",
+      "kind": "oneshot",
+      "loop": false,
+      "seconds": 6.74,
+      "lead": 0.01517,
+      "lufs": -18,
+      "key": "D major",
+      "root": 2,
+      "mode": "major"
+    }
+  }
+}

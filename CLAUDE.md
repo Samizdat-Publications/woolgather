@@ -49,8 +49,10 @@ Ctrl is deliberately unused: Ctrl+W closes the browser tab and cannot be interce
 - DOM/CSS overlay for all UI. Fonts: Fraunces (display) and Nunito (UI), both SIL Open Font
   License, bundled from npm `@fontsource-variable/*` (no runtime network fetch).
 - Audio: recorded sounds generated with the ElevenLabs Sound Effects API (`public/audio/`,
-  `tools/gen-sfx.mjs`, `docs/audio/SFX.md`), loaded by `src/audio/samples.ts`; Web Audio synthesis
-  is the fallback and still makes the chimes, stings and the adaptive tension layer of the music.
+  `tools/gen-sfx.mjs`, `docs/audio/SFX.md`), loaded by `src/audio/samples.ts`, and a recorded score
+  from the ElevenLabs Music API (`public/audio/music/`, `tools/gen-music.mjs`, `docs/audio/MUSIC.md`,
+  played by `src/audio/score.ts`). Web Audio synthesis is the fallback and still makes the chimes,
+  the lose sting and the adaptive tension layer over the score.
 - Assets: `blender_scripts/*.py` (one script per asset family) generate every model and export
   `.glb` to `public/assets/`. Shared helpers live in `blender_scripts/wg_lib.py`.
 - Levels: `level/*.json` (`src/game/leveldef.ts`) are the single source of truth. The ground,
@@ -989,3 +991,32 @@ Newest at the bottom. Record every non-obvious choice.
 - 2026-10-09: the Glenbrae Trial (evening 5) is a different kind of evening: no wolves, five ewes,
   three gates to take in order and a small pen, judged on points (a missed gate -15, a ewe left out
   -12, a slow round up to -10). It gives the season a skill evening with a score to beat.
+- 2026-10-09 (season, round r02): scores held at about 7 (Gemini video 7.38, stills 7.0; Claude
+  video 6.63, stills 7.13). Common complaints: the night watch was standing guard while a timer ran
+  out; the first evening ended (expert bot, 30 s) before any wolf or sunset; the mist was a blank
+  wall; the storm's flood read as cracked concrete and its heather as black lumps; the trial was a
+  plain mustard field with a jammed pen; a glowing yellow "orb" kept appearing near Pip. Fixed:
+  the night watch now has ewes that wander off into the dark (a marker and a warning name where; the
+  wolves go for them) and, at midnight, something crashes through the bracken and scatters the flock
+  three ways, so the watch is fetching and regathering, not waiting; wolves on the watch may go for a
+  sheep 6 m from Pip (8 elsewhere). Evening 1's flocks are further out (rocks and knoll) and its wolf
+  comes at 30 s. The mist leaves 28 m of clear air, never covers more than 80% (shapes show through)
+  and takes the evening's light. Floodwater is dark peat-brown with thin foam streaks, the sky does not
+  mirror in it, and autumn heather is rust instead of plum. The show field is mown in light and dark
+  stripes with short grass, a gold line marches across the next gate, the pen is a little bigger
+  (scale 0.74) and driven sheep bunch closer in any pen mouth, as they do on a bridge.
+- 2026-10-09: the "orb" was the wolves' eye-shine sprite: drawn at 75% by day, additive on sunlit
+  grass, the bloom made it a yellow ball that hid the wolf. It now fades in only as the light goes
+  (and is smaller). Found by playing with the bot and probing the scene at the bright spot
+  (`__WG.near`, `__WG.pick`, `__WG.uniform` test hooks). Warm ground ripples also fade in (a small ring
+  at full strength bloomed the same way).
+- 2026-10-09: the mouse wheel now zooms further in, and all the way in the camera tilts down from
+  48 to 15 degrees: a low view across the valley with Pip in the foreground, the answer to the
+  critics who wanted to see the sunset valley while playing. The herding view stays the default
+  (a low camera is no good for steering a flock); the critic capture rolls the wheel in for a few
+  seconds in evening 1 so the critics see it.
+- 2026-10-09: the recorded score (ElevenLabs Music API, `music_v2_5`, instrumental): an evening bed
+  (D major), a dusk bed (D minor) from mood 0.6 and for the whole night watch, a title piece and a
+  short win phrase, looped with crossfaded seams; the synthesised tension layer plays on top. The win
+  phrase replaces the synth win sting. 1,359 credits for 198 s. Check the ElevenLabs music terms for
+  the account's plan before the public site ships it.

@@ -233,23 +233,25 @@ function waterMaterial(ford: { x: number; z: number; r: number } | null) {
         vec3 bed = mix(vec3(0.16, 0.38, 0.36), vec3(0.34, 0.5, 0.42), gravel);
         float ripple = smoothstep(0.6, 0.95, sin(vWorld.y * 2.6 + vWorld.x * 0.8 - uTime * 2.2) * 0.5 + 0.5);
         col = mix(col, bed + ripple * 0.12, shallow * 0.8);
-        // A flooding stream runs brown and fast.
-        col = mix(col, vec3(0.42, 0.36, 0.27), uRain * 0.4);
-        // Whitewater: foam streaks running down a swollen stream.
-        col = mix(col, uFoam * 0.9, uRain * 0.45 * smoothstep(0.62, 0.8, vnoise(vec2(vUv.x * 4.0 - uTime * 1.6, vUv.y * 9.0))));
-        col = mix(col, uTint * (dot(col, LW) / max(dot(uTint, LW), 0.001)), uTintAmt);
+        // A flooding stream runs peat-brown and fast, with thin foam streaks racing down it (broad
+        // pale patches read as cracked concrete).
+        col = mix(col, vec3(0.13, 0.08, 0.036), uRain * 0.85);
+        float churn = vnoise(vec2(vUv.x * 3.0 - uTime * 2.6, vUv.y * 18.0)) * 0.65 + vnoise(vec2(vUv.x * 6.0 - uTime * 3.4, vUv.y * 31.0) + 5.0) * 0.35;
+        col = mix(col, vec3(0.62, 0.58, 0.5), uRain * 0.42 * smoothstep(0.7, 0.82, churn));
+        col = mix(col, uTint * (dot(col, LW) / max(dot(uTint, LW), 0.001)), uTintAmt * (1.0 - 0.6 * uRain));
         float flow = 1.0 + uRain * 1.4;
         float sheen = vnoise(vec2(vUv.x * 1.1 - uTime * 0.18 * flow, vUv.y * 9.0)) * 0.6 + vnoise(vec2(vUv.x * 3.2 - uTime * 0.3 * flow, vUv.y * 17.0) + 3.0) * 0.4;
         float refl = uReflect * (0.5 + 0.5 * smoothstep(0.3, 0.9, across)) * smoothstep(0.45, 0.8, sheen);
-        col = mix(col, uTint * 0.95, refl);
+        col = mix(col, uTint * 0.95, refl * (1.0 - 0.75 * uRain));
         float streak = smoothstep(0.6, 0.82, vnoise(vec2(vUv.x * 2.4 - uTime * 0.32 * flow, vUv.y * 6.5)));
-        col = mix(col, col * 1.3 + vec3(0.025, 0.03, 0.035), streak * (0.4 + 0.3 * uRain) * (1.0 - smoothstep(0.7, 0.95, across)));
+        col = mix(col, col * 1.3 + vec3(0.025, 0.03, 0.035), streak * (0.4 - 0.15 * uRain) * (1.0 - smoothstep(0.7, 0.95, across)));
         vec2 p = vec2(vUv.x * 3.0 - uTime * 0.55 * flow, vUv.y * 11.0);
         float n = vnoise(p) * 0.6 + vnoise(p * vec2(2.1, 1.7) + 7.0) * 0.4;
         float glint = smoothstep(0.8, 0.9, n) * (1.0 - smoothstep(0.6, 0.9, across)) * 0.7;
         col = mix(col, uFoam, smoothstep(0.93, 0.995, across) * (0.55 + 0.3 * uRain));
         col *= uLight;
-        float skyRefl = smoothstep(0.62, 0.9, sheen) * (0.7 + 0.3 * smoothstep(0.1, 0.8, across));
+        // Rain breaks up the mirror: a churned stream hardly shows the sky.
+        float skyRefl = smoothstep(0.62, 0.9, sheen) * (0.7 + 0.3 * smoothstep(0.1, 0.8, across)) * (1.0 - 0.85 * uRain);
         col = mix(col, uSky * uSkyLight, skyRefl * uSkyRefl);
         col += uSky * glint * uGlint;
         gl_FragColor = vec4(col, 1.0);
@@ -363,7 +365,7 @@ const SEASON_COLORS: Record<Season, Record<string, string>> = {
   heather: { heather: '#b26cb0', heather_b: '#9a5aa0' },
   autumn: {
     leaf_oak_a: '#b8722c', leaf_oak_b: '#cc8a36', leaf_birch: '#e0b440', leaf_birch_b: '#cf9a2e',
-    grass_blade: '#b0a866', grass_blade_b: '#c4b878', heather: '#8a5e66', heather_b: '#7a5260', heather_green: '#6a6440',
+    grass_blade: '#b0a866', grass_blade_b: '#c4b878', heather: '#ae8068', heather_b: '#9c7262', heather_green: '#7c7648',
     reed: '#a08a50', moss: '#7a7040', 'bush_#5c8a44': '#8c7a3a', bush_dark: '#6e5e30', flower_stem: '#8a8040',
   },
   winter: {
@@ -909,8 +911,8 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   su.uCloud.value = weather.cloud;
   w.sky.position.copy(camera.position);
   for (const m of w.glowMaterials) m.emissiveIntensity = 0.2 + 3.2 * mood.night;
-  // Just enough to keep grey stone grey by moonlight (brighter, the rocks read as sheep lying down).
-  for (const m of w.stoneMaterials) m.emissiveIntensity = 0.32 * mood.night;
+  // A trace only: with more, the round boulders glowed pale by moonlight and read as sheep.
+  for (const m of w.stoneMaterials) m.emissiveIntensity = 0.12 * mood.night;
   for (const l of w.lanternLights) l.intensity = 46 * (l.userData.gain ?? 1) * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
 
   // Trees standing between the camera and anything that matters open a window.

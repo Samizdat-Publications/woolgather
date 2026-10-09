@@ -11,7 +11,7 @@ import { INSET, WolfCam } from '../render/wolfcam';
 import { hudState, Indicators, type Marker } from '../ui/indicators';
 import { PerfOverlay } from '../ui/perf';
 import { Ui } from '../ui/ui';
-import { Actors } from '../world/actors';
+import { Actors, GroundDash } from '../world/actors';
 import { loadAssets, type Assets } from '../world/assets';
 import { GrassField } from '../world/grass';
 import { Life } from '../world/life';
@@ -124,12 +124,12 @@ export class Game {
     if (opts.difficulty) this.ui.setDifficulty(opts.difficulty);
     this.ui.onAction = (a, arg) => this.onUi(a, arg);
     this.ui.bindSound(this.audio.engine.settings, () => this.audio.engine.apply());
-    // The mouse wheel pulls the herding camera in or out a little.
+    // The mouse wheel pulls the herding camera in or out; well in, it tilts down to the horizon.
     window.addEventListener(
       'wheel',
       (e) => {
         if (this.mode !== 'playing') return;
-        this.stage.userZoom = Math.max(0.7, Math.min(1.35, this.stage.userZoom * (e.deltaY > 0 ? 1.06 : 1 / 1.06)));
+        this.stage.userZoom = Math.max(0.5, Math.min(1.35, this.stage.userZoom * (e.deltaY > 0 ? 1.06 : 1 / 1.06)));
       },
       { passive: true },
     );
@@ -648,6 +648,7 @@ export class Game {
     }
     this.stage.updateCamera(this.mode === 'paused' ? 0 : rawDt);
     this.updateMist(sim);
+    this.updateGateLine(sim);
     updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt, tgt.width, tgt.height, this.wx);
     if (sim && !this.cutaway && (this.mode === 'playing' || this.mode === 'paused')) {
       this.indicators.update(this.stage.camera, this.markers(sim));
@@ -712,6 +713,26 @@ export class Game {
   }
 
   /** Mist: the veil centred on Pip, its banks drifting with the ground under the camera. */
+  /** The trial's next gate: a gold line marching across between its posts. */
+  private gateLine: GroundDash | null = null;
+  private updateGateLine(sim: Sim | null) {
+    const L = this.level;
+    const on = !!sim && sim.trial && sim.gateIdx < L.gates.length && !this.cutaway;
+    if (!on) {
+      if (this.gateLine) this.gateLine.mesh.visible = false;
+      return;
+    }
+    if (!this.gateLine) {
+      this.gateLine = new GroundDash(0xffd27a, this.terrain, 9);
+      this.stage.scene.add(this.gateLine.mesh);
+    }
+    const g = L.gates[sim.gateIdx];
+    const t = this.clock;
+    this.gateLine.mesh.visible = true;
+    this.gateLine.place(g.ax, g.az, g.bx, g.bz, (t * 0.5) % 1, 0.45, 0.7, 0.7);
+    this.gateLine.mesh.material.opacity = 0.55 + 0.3 * Math.sin(t * 4);
+  }
+
   private updateMist(sim: Sim | null) {
     const amount = this.wx.mist;
     let cx = 0.5;
@@ -723,8 +744,8 @@ export class Game {
       cy = (tmpV.y + 1) / 2;
     }
     const f = this.stage.focus;
-    // About 22 m of clear air round Pip (the herding view is about 42 m tall at zoom 1).
-    this.stage.grade.setMist(amount, this.stage.mistColor, cx, cy, f.x * 0.045, -f.z * 0.045, sim ? 0.36 : 0.9);
+    // About 28 m of clear air round Pip (the herding view is about 42 m tall at zoom 1).
+    this.stage.grade.setMist(amount, this.stage.mistColor, cx, cy, f.x * 0.045, -f.z * 0.045, sim ? 0.46 : 0.9);
   }
 
   /** In mist, the map remembers where Pip last saw each sheep. */
@@ -1065,11 +1086,16 @@ export class Game {
       }
     }
     if (!anyVisible && nearest && !snatch) out.push({ id: 'stray', kind: 'sheep', x: nearest.x, y: h(nearest.x, nearest.z) + 1, z: nearest.z });
-    // In mist a bleat shows where it came from, for a moment.
-    for (const [id, b] of this.bleats) {
-      if (b.until < sim.elapsed) this.bleats.delete(id);
-      else out.push({ id: `bleat${id}`, kind: 'sheep', x: b.x, y: h(b.x, b.z) + 1.2, z: b.z, iconOnScreen: true });
+    if (sim.watch && !snatch) {
+      for (const s of sim.sheep) {
+        if (s.strayT > 0 && sim.isFree(s)) out.push({ id: `sw${s.id}`, kind: 'sheep', x: s.x, y: h(s.x, s.z) + 1.2, z: s.z, iconOnScreen: true });
+      }
     }
+    // In mist a bleat shows where it came from, for a moment (the two newest only, so the edge
+    // does not fill up with a column of icons).
+    for (const [id, b] of this.bleats) if (b.until < sim.elapsed) this.bleats.delete(id);
+    const recent = [...this.bleats].sort((a, b) => b[1].until - a[1].until).slice(0, 2);
+    for (const [id, b] of recent) out.push({ id: `bleat${id}`, kind: 'sheep', x: b.x, y: h(b.x, b.z) + 1.2, z: b.z, iconOnScreen: true });
     if (this.runs === 1 && sim.elapsed < 20 && (sim.rules.tutorial || !this.evening)) {
       const r = sim.dogThreatRadius;
       out.push({ id: 'reach', kind: 'note', x: d.x, y: h(d.x, d.z - r), z: d.z - r, labelOnScreen: "Pip's reach: sheep inside it move away", onScreenOnly: true });
@@ -1134,6 +1160,12 @@ export class Game {
         case 'spook':
           p.ripple(e.x, e.z, 0.8, 6, 0.35);
           break;
+        case 'scatter':
+          p.ripple(e.x, e.z, 1, 14, 0.7);
+          p.dust(e.x, e.z, 0, 0, 1.6);
+          this.stage.addShake(0.45);
+          this.hitStop = Math.max(this.hitStop, 0.1);
+          break;
         case 'ramYield':
           p.ripple(e.x, e.z, 1, 5, 0.4);
           break;
@@ -1195,6 +1227,12 @@ export class Game {
           break;
         case 'dawn':
           this.ui.toast('Dawn is breaking! The wolves slink back to the woods.', 'good');
+          break;
+        case 'stray':
+          this.ui.toast(`A ewe is wandering off ${this.level.placeName(e.tx, e.tz)}: turn her back before the wolves see her`, 'warn');
+          break;
+        case 'scatter':
+          this.ui.toast('Something big crashes through the bracken: the flock scatters! Gather them up', 'danger');
           break;
         case 'wolfSpawn': {
           const d = this.sim?.dog;

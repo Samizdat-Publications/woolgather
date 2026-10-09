@@ -182,7 +182,9 @@ export class GrassField {
     const s = new THREE.Vector3();
     const p = new THREE.Vector3();
     const up = new THREE.Vector3(0, 1, 0);
-    const density = opts.density * (winter ? 0.16 : 1);
+    // A show field is mown short: fewer, smaller tufts, so its stripes show.
+    const mown = !!level.def.trial;
+    const density = opts.density * (winter ? 0.16 : 1) * (mown ? 0.4 : 1);
     for (let tz = z0; tz < z1; tz += TILE) {
       for (let tx = x0; tx < x1; tx += TILE) {
         const spots: { x: number; z: number; y: number; r: number; s: number; c: THREE.Color }[] = [];
@@ -217,7 +219,7 @@ export class GrassField {
           if (hue < 0.25) c.multiply(DEEP);
           else if (hue > 0.85) c.lerp(SEED, 0.35);
           if (!winter) c.g *= 1.05;
-          spots.push({ x, z, y: terrain.ground(x, z) - 0.03, r: rng.next() * Math.PI * 2, s: (0.75 + rng.next() * 0.6) * (winter ? 0.8 : 1), c: c.clone() });
+          spots.push({ x, z, y: terrain.ground(x, z) - 0.03, r: rng.next() * Math.PI * 2, s: (0.75 + rng.next() * 0.6) * (winter ? 0.8 : 1) * (mown ? 0.65 : 1), c: c.clone() });
         }
         if (!spots.length) continue;
         const mesh = new THREE.InstancedMesh(this.geo, this.mat, spots.length);

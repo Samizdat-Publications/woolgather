@@ -227,8 +227,11 @@ export class GroundDash {
     this.mesh.renderOrder = 2;
   }
 
-  /** Dashes from (ax, az) to (bx, bz), shifted along by `phase` (0..1) so they march. */
-  place(ax: number, az: number, bx: number, bz: number, phase: number, width = 0.3) {
+  /**
+   * Dashes from (ax, az) to (bx, bz), shifted along by `phase` (0..1) so they march, leaving clear
+   * ground at both ends (by default under a wolf's ring and the sheep).
+   */
+  place(ax: number, az: number, bx: number, bz: number, phase: number, width = 0.3, padA = 3.4, padB = 1.4) {
     const pos = this.mesh.geometry.getAttribute('position') as THREE.BufferAttribute;
     const arr = pos.array as Float32Array;
     const len = Math.hypot(bx - ax, bz - az) || 1;
@@ -238,11 +241,10 @@ export class GroundDash {
     const pz = ux * width * 0.5;
     const step = len / this.n;
     for (let i = 0; i < this.n; i++) {
-      // Leave clear ground at both ends (under the wolf's ring and the sheep).
       let s0 = (i + phase) * step;
       let s1 = s0 + step * 0.5;
-      s0 = Math.min(Math.max(s0, 3.4), len - 1.4);
-      s1 = Math.min(Math.max(s1, 3.4), len - 1.4);
+      s0 = Math.min(Math.max(s0, padA), len - padB);
+      s1 = Math.min(Math.max(s1, padA), len - padB);
       const pts = [
         [ax + ux * s0 + px, az + uz * s0 + pz],
         [ax + ux * s0 - px, az + uz * s0 - pz],
@@ -626,7 +628,10 @@ export class Actors {
     });
 
     for (const m of this.eyeMats) m.emissiveIntensity = 0.6 + 3.5 * night;
-    this.glowMat.opacity = Math.min(1, 0.75 + 0.5 * night);
+    // Eye-shine only once the light goes: by day the additive glow on sunlit grass bloomed into a
+    // yellow ball that hid the wolf (players took it for a pickup).
+    this.glowMat.opacity = Math.min(1, Math.max(0, (night - 0.12) / 0.35));
+    this.glowMat.visible = this.glowMat.opacity > 0.01;
 
     const seen = new Set<number>();
     for (const w of sim.wolves) {
@@ -645,7 +650,7 @@ export class Actors {
         // every hour (pushing it above white made the tone mapping wash it to salmon).
         // Warm eye-shine that reads from the herding camera once the light goes.
         const glow = new THREE.Sprite(this.glowMat);
-        glow.scale.setScalar(0.55);
+        glow.scale.setScalar(0.42);
         glow.position.set(0, 0.07, 0.3); // heads face +Z: the eyes are in front, low on the face
         (r.head ?? r.root).add(glow);
         // While it stalks: a dashed line to the sheep it is after, and a pulsing ring on that sheep.

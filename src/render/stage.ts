@@ -169,8 +169,9 @@ export class Stage {
       m.keyColor.lerp(FLASH, W.flash);
       m.hemiIntensity += 2 * W.flash;
     }
-    // Mist colour: pale and pearly by day, a dim blue-grey under the moon.
-    this.mistColor.copy(m.fog).lerp(MIST, 0.85).multiplyScalar(0.82 - 0.5 * m.night).convertLinearToSRGB();
+    // Mist colour: pearly grey that takes the evening's own light (gold, then rose, then lilac), so
+    // it reads as lit air; dimmer under the moon.
+    this.mistColor.copy(m.fog).lerp(MIST, 0.55).multiplyScalar(0.84 - 0.5 * m.night).convertLinearToSRGB();
     this.grade.setFlash(W.flash);
     this.key.color.copy(m.keyColor);
     this.key.intensity = m.keyIntensity;
@@ -220,6 +221,10 @@ export class Stage {
 
   /** The player's own zoom (mouse wheel), on top of the automatic framing. */
   userZoom = 1;
+  /** How far the camera is tilted down towards the horizon (0 herding view .. 1 low view). */
+  get tilt() {
+    return this.titleShot ? 0 : THREE.MathUtils.smoothstep(1 - this.userZoom, 0.08, 0.5);
+  }
 
   setFocusGoal(x: number, y: number, z: number, zoom = 1) {
     this.focusGoal.set(x, y, z);
@@ -266,8 +271,13 @@ export class Stage {
       // Pull back quickly (a threat coming into the frame must be seen at once), push in gently.
       this.zoom = damp(this.zoom, this.zoomGoal, this.zoomGoal > this.zoom ? 3.2 : 1.2, dt);
       const o = CAMERA.offset;
-      this.camera.position.set(f.x + o.x * this.zoom, f.y + o.y * this.zoom, f.z + o.z * this.zoom);
-      const dist = Math.hypot(o.x, o.y, o.z) * this.zoom;
+      // Zoomed in with the wheel, the camera also tilts down towards the horizon (from about 48
+      // degrees to 15), so a player can watch the valley and the sky they are racing.
+      const tilt = this.tilt;
+      const len = Math.hypot(o.y, o.z);
+      const pitch = THREE.MathUtils.lerp(Math.atan2(o.y, o.z), THREE.MathUtils.degToRad(15), tilt);
+      this.camera.position.set(f.x + o.x * this.zoom, f.y + Math.sin(pitch) * len * this.zoom, f.z + Math.cos(pitch) * len * this.zoom);
+      const dist = len * this.zoom;
       this.fogShift = dist - 48.2;
       this.shakeT += dt;
       if (this.shake > 0.001) {
@@ -278,7 +288,7 @@ export class Stage {
         this.camera.position.z += Math.cos(this.shakeT * 47.3 + 0.4) * s;
         this.shake = Math.max(0, this.shake - dt * 2.4);
       }
-      this.camera.lookAt(f.x, f.y, f.z);
+      this.camera.lookAt(f.x, f.y + 3.5 * tilt, f.z - 4 * tilt);
     }
 
     // The key light rides along with the focus point. Its angle never drops below 26 degrees:
