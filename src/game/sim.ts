@@ -60,6 +60,8 @@ export interface Sheep extends Body {
   trotX: number;
   trotZ: number;
   trotT: number;
+  /** How long it has been driven steadily: a flock driven well settles into a quicker walk-on. */
+  driveT: number;
   /** Where this sheep last settled: undisturbed sheep graze around it instead of wandering off. */
   homeX: number;
   homeZ: number;
@@ -254,6 +256,7 @@ export class Sim {
         trotX: 0,
         trotZ: 0,
         trotT: 0,
+        driveT: 0,
         homeX: x,
         homeZ: z,
         stubborn: kind === 'ram' ? 1 : 0,
@@ -700,6 +703,9 @@ export class Sim {
         s.alertT = Math.max(s.alertT, 1.2 + fear * 2);
         const fl = Math.hypot(vx, vz);
         if (fl > 0.5) {
+          // Driven the same way as before: the walk-on builds; turned hard, it starts again.
+          const same = s.trotX * (vx / fl) + s.trotZ * (vz / fl);
+          s.driveT = same > 0.7 ? Math.min(6, s.driveT + dt) : s.driveT * 0.5;
           s.trotX = vx / fl;
           s.trotZ = vz / fl;
           s.trotT = SHEEP.trotTime;
@@ -707,8 +713,12 @@ export class Sim {
       } else if (s.trotT > 0) {
         s.trotT -= dt * (d.lying && dd < 24 ? 3 : 1);
         const k = clamp(s.trotT / SHEEP.trotTime, 0, 1);
-        vx += s.trotX * SHEEP.trotSpeed * k;
-        vz += s.trotZ * SHEEP.trotSpeed * k;
+        // A flock driven steadily for a few seconds trots on more briskly (up to about half again).
+        const walkOn = 1 + 0.45 * clamp((s.driveT - 1) / 3, 0, 1);
+        vx += s.trotX * SHEEP.trotSpeed * k * walkOn;
+        vz += s.trotZ * SHEEP.trotSpeed * k * walkOn;
+      } else {
+        s.driveT = Math.max(0, s.driveT - dt * 2);
       }
       s.alertT = Math.max(0, s.alertT - dt);
       const alert = s.alertT > 0;

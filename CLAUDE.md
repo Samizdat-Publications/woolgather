@@ -1052,3 +1052,7 @@ Newest at the bottom. Record every non-obvious choice.
   any key skips the sunset cutaway; evening 1's wolf comes at 13% (39 s); Old Angus is drawn at 3.05
   (from 2.75) in a darker fleece. Final checks: self-test 32/32 with no console errors, the bot
   wins all nine evenings with three stars, 124-141 fps at 1080p High, clean production build.
+- 2026-10-09: walk-on (round 2 and 3 critics: long drives behind a slow flock): a sheep driven the
+  same way for a few seconds trots on up to 45% faster between pushes (`driveT`); a hard turn
+  resets it. The bot still wins all nine evenings with three stars; its times are mixed (a wolf
+  rescue made the storm slower), so this is a feel change for human drives, not seen by a critic yet.
