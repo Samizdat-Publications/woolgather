@@ -159,7 +159,7 @@ export class WeatherFx {
       return g;
     };
     this.snowPts = new THREE.Points(mk(this.snow, [0.16, 0.3], ['#ffffff', '#f2f6ff']), pointsMat(flakeTexture(), false));
-    this.leafPts = new THREE.Points(mk(this.leaves, [0.4, 0.62], ['#d8842e', '#e8b040', '#c0602a', '#b8862c', '#9c4a24']), pointsMat(leafTexture(), true));
+    this.leafPts = new THREE.Points(mk(this.leaves, [0.4, 0.62], ['#f09a3a', '#f4c050', '#e0783a', '#e8a840', '#d06a30']), pointsMat(leafTexture(), true));
     for (const o of [this.snowPts, this.leafPts]) {
       o.frustumCulled = false;
       o.renderOrder = 5;

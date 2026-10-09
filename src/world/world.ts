@@ -234,7 +234,9 @@ function waterMaterial(ford: { x: number; z: number; r: number } | null) {
         float ripple = smoothstep(0.6, 0.95, sin(vWorld.y * 2.6 + vWorld.x * 0.8 - uTime * 2.2) * 0.5 + 0.5);
         col = mix(col, bed + ripple * 0.12, shallow * 0.8);
         // A flooding stream runs brown and fast.
-        col = mix(col, vec3(0.32, 0.27, 0.2), uRain * 0.35);
+        col = mix(col, vec3(0.42, 0.36, 0.27), uRain * 0.4);
+        // Whitewater: foam streaks running down a swollen stream.
+        col = mix(col, uFoam * 0.9, uRain * 0.45 * smoothstep(0.62, 0.8, vnoise(vec2(vUv.x * 4.0 - uTime * 1.6, vUv.y * 9.0))));
         col = mix(col, uTint * (dot(col, LW) / max(dot(uTint, LW), 0.001)), uTintAmt);
         float flow = 1.0 + uRain * 1.4;
         float sheen = vnoise(vec2(vUv.x * 1.1 - uTime * 0.18 * flow, vUv.y * 9.0)) * 0.6 + vnoise(vec2(vUv.x * 3.2 - uTime * 0.3 * flow, vUv.y * 17.0) + 3.0) * 0.4;
@@ -817,7 +819,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
     const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | THREE.MeshLambertMaterial[] | undefined;
     for (const mm of Array.isArray(m) ? m : m ? [m] : []) {
       if (!mm.isMeshLambertMaterial) continue;
-      if (mm !== groundMat && mm !== pathMat) weatherize(mm);
+      if (mm !== groundMat && mm !== pathMat && !/^(plank_|post_wood|beam)/.test(mm.name)) weatherize(mm);
       if (!mm.emissive) continue;
       if (mm.emissive.getHex() !== 0 && !stoneMaterials.includes(mm)) {
         if (!glowMaterials.includes(mm)) glowMaterials.push(mm);
@@ -907,7 +909,8 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   su.uCloud.value = weather.cloud;
   w.sky.position.copy(camera.position);
   for (const m of w.glowMaterials) m.emissiveIntensity = 0.2 + 3.2 * mood.night;
-  for (const m of w.stoneMaterials) m.emissiveIntensity = 0.75 * mood.night;
+  // Just enough to keep grey stone grey by moonlight (brighter, the rocks read as sheep lying down).
+  for (const m of w.stoneMaterials) m.emissiveIntensity = 0.32 * mood.night;
   for (const l of w.lanternLights) l.intensity = 46 * (l.userData.gain ?? 1) * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
 
   // Trees standing between the camera and anything that matters open a window.

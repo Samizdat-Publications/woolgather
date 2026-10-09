@@ -326,8 +326,11 @@ export class Minimap {
       // Bridges and fords are drawn on the map; their names would crowd the place names.
       if (p.kind === 'crossing') continue;
       const name = p.name.charAt(0) + p.name.slice(1).toLowerCase();
-      c.strokeText(name, this.px(p.x), this.pz(p.z));
-      c.fillText(name, this.px(p.x), this.pz(p.z));
+      const half = c.measureText(name).width / 2 + 3;
+      const lx = Math.max(half, Math.min(this.fullW - half, this.px(p.x)));
+      const ly = Math.max(12, Math.min(this.h - 4, this.pz(p.z)));
+      c.strokeText(name, lx, ly);
+      c.fillText(name, lx, ly);
     }
     c.restore();
   }

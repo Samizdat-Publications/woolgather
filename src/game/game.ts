@@ -96,6 +96,10 @@ export class Game {
    * watching them (a sim that is never steered and never ends).
    */
   private viewSim: Sim | null = null;
+  /** In mist: where sheep bleated lately (a sheep glyph shows there for a moment). */
+  private bleats = new Map<number, { x: number; z: number; until: number }>();
+  /** Tips already given this session (the basics are not repeated every evening). */
+  private tipsEver = new Set<string>();
   /** One-off messages already shown this evening (the ram's first butt, and so on). */
   private said = new Set<string>();
 
@@ -425,6 +429,7 @@ export class Game {
     this.stalkWarned.clear();
     this.said.clear();
     this.seen.clear();
+    this.bleats.clear();
     this.ui.minimap.memory = rules.weather === 'fog' ? this.seen : null;
     if (rules.weather === 'fog') for (const s of this.sim.sheep) if (s.state !== 'hidden') this.seen.set(s.id, { x: s.x, z: s.z, t: 0 });
     this.ui.minimap.refresh();
@@ -510,7 +515,7 @@ export class Game {
       cloud: w === 'storm' ? 0.85 : w === 'fog' ? 0.35 : w === 'snow' ? 0.3 : 0,
       mist: w === 'fog' ? (sim ? 0.95 : 0.6) : 0,
       snow: w === 'snow' ? 1 : 0,
-      leaves: r?.season === 'autumn' ? 1 : 0,
+      leaves: r?.season === 'autumn' && w !== 'storm' ? 1 : 0,
     };
     const k = 1 - Math.exp(-1.5 * rawDt);
     for (const key of Object.keys(want) as (keyof typeof want)[]) this.wx[key] += (want[key] - this.wx[key]) * k;
@@ -813,8 +818,8 @@ export class Game {
       minZ = Math.min(minZ, z);
       maxZ = Math.max(maxZ, z);
     };
-    // In mist the camera frames only what Pip can see.
-    const reachSheep = this.wx.mist > 0.5 ? 18 : 26;
+    // In mist the camera frames only what Pip can see; on a night watch the whole flock.
+    const reachSheep = this.wx.mist > 0.5 ? 18 : sim.watch ? 40 : 26;
     for (const s of sim.sheep) {
       if (s.state === 'lost' || s.state === 'folded' || s.state === 'hidden') continue;
       if ((s.x - d.x) ** 2 + (s.z - d.z) ** 2 > reachSheep * reachSheep) continue;
@@ -836,7 +841,7 @@ export class Game {
     };
     for (const w of sim.wolves) {
       if (w.state !== 'stalk' && w.state !== 'charge' && w.state !== 'drag') continue;
-      const reach = w.state === 'drag' ? 52 : 40;
+      const reach = w.state === 'drag' ? 52 : sim.watch ? 46 : 40;
       if ((w.x - d.x) ** 2 + (w.z - d.z) ** 2 > reach * reach) continue;
       growEss(w.x, w.z);
       growEss(w.x - 5, w.z - 6);
@@ -1004,6 +1009,11 @@ export class Game {
       }
     }
     if (!anyVisible && nearest && !snatch) out.push({ id: 'stray', kind: 'sheep', x: nearest.x, y: h(nearest.x, nearest.z) + 1, z: nearest.z });
+    // In mist a bleat shows where it came from, for a moment.
+    for (const [id, b] of this.bleats) {
+      if (b.until < sim.elapsed) this.bleats.delete(id);
+      else out.push({ id: `bleat${id}`, kind: 'sheep', x: b.x, y: h(b.x, b.z) + 1.2, z: b.z, iconOnScreen: true });
+    }
     if (this.runs === 1 && sim.elapsed < 20 && (sim.rules.tutorial || !this.evening)) {
       const r = sim.dogThreatRadius;
       out.push({ id: 'reach', kind: 'note', x: d.x, y: h(d.x, d.z - r), z: d.z - r, labelOnScreen: "Pip's reach: sheep inside it move away", onScreenOnly: true });
@@ -1053,6 +1063,7 @@ export class Game {
         case 'bleat': {
           const i = sim.sheep.findIndex((s) => s.id === e.id);
           if (i >= 0) this.actors.bleat(i);
+          if (sim.rules.weather === 'fog') this.bleats.set(e.id, { x: e.x, z: e.z, until: sim.elapsed + 1.8 });
           break;
         }
         case 'butt':
@@ -1063,6 +1074,9 @@ export class Game {
           break;
         case 'stamp':
           p.dust(e.x, e.z, 0, 0, 0.9);
+          break;
+        case 'spook':
+          p.ripple(e.x, e.z, 0.8, 6, 0.35);
           break;
         case 'ramYield':
           p.ripple(e.x, e.z, 1, 5, 0.4);
@@ -1250,7 +1264,9 @@ export class Game {
   /** Show a tutorial tip once, for `seconds` of play. */
   private tip(id: string, text: string, seconds: number, now: number) {
     if (this.tipsShown.has(id) || this.dragHint) return;
+    if (['ring', 'sprint', 'wolf'].includes(id) && this.tipsEver.has(id)) return;
     this.tipsShown.add(id);
+    this.tipsEver.add(id);
     this.ui.hint(text);
     this.tipUntil = now + seconds;
     this.tipId = id;

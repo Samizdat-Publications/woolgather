@@ -208,7 +208,7 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
       if (s.d < half + 1.6) c.lerp(C.wetMud, (1 - smoothstep(half + 0.2, half + 1.6, s.d)) * smoothstep(half - 1, half - 0.2, s.d) * 0.75);
       if (level.lochs.length) {
         const q = level.lochQuery(x, z);
-        if (q.d < 3) c.lerp(C.shingle, (1 - smoothstep(1.5, 3, q.d)) * 0.85);
+        if (q.d < 4) c.lerp(C.shingle, (1 - smoothstep(0.5, 4, q.d)) * 0.45);
         if (q.d < 0) c.lerp(C.lochBed, smoothstep(0, 4, -q.d));
       }
       const pd = pathDist(x, z);

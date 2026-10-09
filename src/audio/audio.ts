@@ -126,6 +126,9 @@ export class GameAudio {
         case 'dawn':
           this.sfx.sting('rescue');
           break;
+        case 'spook':
+          this.rec('flutter', this.where(e.x, e.z, 0.4), 0.9);
+          break;
         case 'folded':
           this.sfx.chime(e.count - 1);
           break;

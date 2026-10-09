@@ -166,7 +166,7 @@ export class Life {
     this.rabbitMesh = new THREE.InstancedMesh(merged, mat, RABBITS + 1);
     this.rabbitMesh.castShadow = true;
     this.rabbitMesh.frustumCulled = false;
-    const tailMesh = new THREE.InstancedMesh(tail, new THREE.MeshLambertMaterial({ color: '#f4efe6', flatShading: true }), RABBITS + 1);
+    const tailMesh = new THREE.InstancedMesh(tail, new THREE.MeshLambertMaterial({ color: '#b8ab98', flatShading: true }), RABBITS + 1);
     tailMesh.frustumCulled = false;
     this.tailMesh = tailMesh;
     this.root.add(this.rabbitMesh, tailMesh);

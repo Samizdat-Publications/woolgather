@@ -138,6 +138,13 @@ export const scenarios = {
       await page.keyboard.press('Enter');
       await frame();
       mark('evening', { id });
+      // A highlight: twenty seconds of the opening, then on to just before the wolves come out.
+      st = await play(20, []);
+      await page.evaluate(() => {
+        const s = window.__WG.state();
+        const ws = { lambing: 0.22, angus: 0.2, mist: 0.24, storm: 0.22, 'first-snow': 0.18 }[s.evening] ?? 0.2;
+        if (s.t < ws - 0.03) window.__WG.jumpTo(ws - 0.03);
+      });
       st = await play(seconds, [[name, cue]]);
     }
     // The night watch near its end: the sun coming up and the wolves going home.

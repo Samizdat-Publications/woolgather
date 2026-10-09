@@ -406,8 +406,9 @@ export class Particles {
             p.y += sin(uTime * 0.8 + phase * 0.7) * 0.35;
             vec4 mv = modelViewMatrix * vec4(p, 1.0);
             float blink = pow(max(0.0, sin(uTime * (0.9 + fract(phase) * 0.8) + phase)), 1.6);
-            vA = uNight * blink;
-            gl_PointSize = uScale * 0.5 / -mv.z * (0.75 + blink * 0.5);
+            // Small sparks, not orbs: a bigger, brighter glow bloomed into what read as a pickup.
+            vA = uNight * blink * 0.6;
+            gl_PointSize = uScale * 0.26 / -mv.z * (0.75 + blink * 0.5);
             gl_Position = projectionMatrix * mv;
           }`,
         fragmentShader: `

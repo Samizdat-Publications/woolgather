@@ -297,6 +297,7 @@ export class Actors {
   private sheepAnim: AnimState[] = [];
   private glowMat = new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffb040, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
   private marker: GroundRing;
+  private resolve: GroundRing;
   private zone: GroundRing;
   private zoneUnder: GroundRing;
   private zoneR = 10;
@@ -325,6 +326,9 @@ export class Actors {
     this.zoneUnder = new GroundRing(a.fx.get('thin_ring')!, 0x231c2b, terrain, 0.07);
     this.zone = new GroundRing(a.fx.get('dashed_ring')!, 0xfff4d6, terrain);
     this.root.add(this.zoneUnder.mesh, this.zone.mesh);
+    this.resolve = new GroundRing(a.fx.get('thin_ring')!, 0xffc04a, terrain, 0.09);
+    this.resolve.mesh.visible = false;
+    this.root.add(this.resolve.mesh);
     // The ring is brightest on the side facing the sheep inside its reach: it shows which way
     // they will be pushed, and stays quiet everywhere else.
     const ZF = this.zoneFocus;
@@ -381,6 +385,7 @@ export class Actors {
     const horn = new THREE.MeshLambertMaterial({ name: 'ram_horn', color: '#efe0b8', emissive: new THREE.Color(0x3a3020), flatShading: true });
     this.ramProto = withMaterials(a.sheep, { wool: ramWool });
     this.blackProto = withMaterials(a.sheep, { wool: blackWool });
+    addOutline(this.blackProto, 0xe8dcc4, 0.075, ['body', 'head']);
     const head = this.ramProto.getObjectByName('head');
     if (head) {
       for (const sx of [1, -1]) {
@@ -524,6 +529,17 @@ export class Actors {
       if (d.speed > 8 && !d.inWater) step(d.x, d.z, d.vx, d.vz, 1);
     }
     this.marker.place(d.x + Math.sin(d.facing) * 2.1, d.z + Math.cos(d.facing) * 2.1, 0.85, -d.facing);
+    // The ram's resolve: shown while he stands his ground near Pip, shrinking (and quickening) as
+    // the stare works, gone when he gives way.
+    const ram = sim.sheep.find((s) => s.kind === 'ram' && s.state !== 'folded' && s.state !== 'lost' && s.state !== 'hidden');
+    const standing = !!ram && ram.stubborn > 0.15 && ram.yieldT <= 0 && Math.hypot(ram.x - d.x, ram.z - d.z) < 18 && showRings;
+    this.resolve.mesh.visible = standing;
+    if (standing && ram) {
+      const k = Math.min(1, (ram.stubborn - 0.15) / 0.85);
+      const pulse = 0.5 + 0.5 * Math.sin(this.time * (4 + 8 * (1 - k)));
+      this.resolve.place(ram.x, ram.z, 2.4 + 2.6 * k, this.time * 0.5, 1.6);
+      this.resolve.mesh.material.opacity = 0.45 + 0.35 * pulse;
+    }
 
     this.zoneR += (sim.dogThreatRadius - this.zoneR) * (1 - Math.exp(-8 * dt));
     // The dashes creep round slowly, so the ring reads as Pip's and alive, not as a ground mark.
@@ -597,7 +613,8 @@ export class Actors {
       const grabbed = s.state === 'grabbed';
       // A snatched sheep hangs crosswise from the wolf's jaws by the scruff, rolled on its side so
       // its dark face and legs show.
-      r.root.position.set(s.x, h(s.x, s.z) + (grabbed ? 0.35 : 0), s.z);
+      const bounce = s.kind === 'lamb' && !grabbed && s.speed > 1.2 ? Math.abs(Math.sin(this.time * 9 + s.seed * 20)) * Math.min(0.55, 0.15 + s.speed * 0.06) : 0;
+      r.root.position.set(s.x, h(s.x, s.z) + (grabbed ? 0.35 : 0) + bounce, s.z);
       r.root.rotation.set(0, s.facing, grabbed ? 0.6 : 0);
       const st = this.sheepAnim[i];
       const before = st.steps;

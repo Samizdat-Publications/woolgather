@@ -566,7 +566,7 @@ export class Ui {
         for (let i = 1; i <= sim.total; i++) html += `<i class="pip ${i > sim.total - sim.lost ? 'lost' : 'home'}"></i>`;
         pips.innerHTML = html;
         const spareAll = sim.total - sim.target;
-        $('.goals', this.root).innerHTML = `<span class="${sim.lost === 0 ? 'got' : 'gone'}">★★★ none lost</span><span class="${sim.lost <= Math.floor(spareAll / 2) ? 'got' : 'gone'}">★★ ${Math.floor(spareAll / 2)}</span><span class="${sim.lost <= spareAll ? 'got' : 'gone'}">★ ${spareAll}</span>`;
+        $('.goals', this.root).innerHTML = `<span class="${sim.lost <= spareAll ? '' : 'gone'}">★ lose ${spareAll}</span><span class="${sim.lost <= Math.floor(spareAll / 2) ? '' : 'gone'}">★★ ${Math.floor(spareAll / 2)}</span><span class="${sim.lost === 0 ? '' : 'gone'}">★★★ none</span>`;
       } else {
         for (let i = 1; i <= sim.total; i++) {
           html += `<i class="pip ${i <= sim.folded ? 'home' : i > sim.total - sim.lost ? 'lost' : ''}"></i>`;

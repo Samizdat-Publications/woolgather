@@ -22,6 +22,8 @@ export interface Dog extends Body {
   moving: boolean;
   /** Seconds Pip is still reeling from a ram's butt (no control). */
   stunT: number;
+  /** Running over open ground with no sheep near (faster, and sprinting tires him less). */
+  loping: boolean;
 }
 
 export type SheepState = 'graze' | 'walk' | 'alert' | 'flee' | 'panic' | 'grabbed' | 'folded' | 'lost' | 'hidden';
@@ -105,6 +107,8 @@ export type SimEvent =
   | { type: 'lambFound'; x: number; z: number; id: number }
   | { type: 'thunder'; x: number; z: number }
   | { type: 'flood' }
+  /** Something in the dark startles part of the flock (night watch). */
+  | { type: 'spook'; x: number; z: number }
   /** A trial gate passed or missed. */
   | { type: 'gate'; index: number; name: string; passed: boolean; x: number; z: number };
 
@@ -149,6 +153,7 @@ export class Sim {
   private nextWolfT = 0;
   private wolfIds = 0;
   private thunderT = 0;
+  private spookT = 12;
   /**
    * One snatch at a time: while a wolf is dragging a sheep, or shortly after a snatch, the others
    * only stalk. One dog must always be able to answer every snatch.
@@ -183,6 +188,7 @@ export class Sim {
       inWater: false,
       moving: false,
       stunT: 0,
+      loping: false,
     };
 
     // The flock is placed from its own seed, so an evening starts the same way every time.
@@ -375,6 +381,11 @@ export class Sim {
     d.sprinting = !stunned && !!input?.sprint && mag > 0.1 && !d.creeping && !d.sprintLock && d.stamina > 0;
 
     let max = (d.creeping ? DOG.creepSpeed : d.sprinting ? DOG.sprintSpeed : DOG.walkSpeed) * P.speed;
+    // Crossing open ground with no sheep near, Pip lopes along faster (and sprints for longer):
+    // the long runs between flocks were dead time.
+    const lope = !d.creeping && this.nearestFree(d.x, d.z) > 30;
+    if (lope && !d.sprinting) max *= 1.22;
+    d.loping = lope;
     const wasWet = d.inWater;
     d.inWater = this.level.inWater(d.x, d.z);
     if (d.inWater) max *= this.level.inLoch(d.x, d.z) ? 0.42 : DOG.waterSpeedScale;
@@ -402,7 +413,7 @@ export class Sim {
     if (d.speed > 0.4 && !stunned) d.facing = dampAngle(d.facing, Math.atan2(d.vx, d.vz), 14, dt);
 
     if (d.sprinting) {
-      d.stamina = Math.max(0, d.stamina - DOG.staminaDrain * P.staminaDrain * dt);
+      d.stamina = Math.max(0, d.stamina - DOG.staminaDrain * P.staminaDrain * (d.loping ? 0.55 : 1) * dt);
       d.staminaDelay = DOG.staminaRegenDelay;
     } else if (d.staminaDelay > 0) {
       d.staminaDelay -= dt;
@@ -413,6 +424,17 @@ export class Sim {
     d.barkCd = Math.max(0, d.barkCd - dt);
     d.sinceBark += dt;
     if (!stunned && input?.pressed('bark') && d.barkCd <= 0) this.bark();
+  }
+
+  /** Distance to the nearest loose sheep (Infinity if none). */
+  nearestFree(x: number, z: number) {
+    let best = Infinity;
+    for (const s of this.sheep) {
+      if (!this.isFree(s)) continue;
+      const d = (s.x - x) ** 2 + (s.z - z) ** 2;
+      if (d < best) best = d;
+    }
+    return Math.sqrt(best);
   }
 
   get barkRadius() {
@@ -614,6 +636,11 @@ export class Sim {
       s.alertT = Math.max(0, s.alertT - dt);
       const alert = s.alertT > 0;
 
+      // On the approach to a crossing (in line with the deck): bunched tighter, and the water on
+      // either side of the deck no longer pushes them back off it.
+      const approach = this.onApproach(s);
+      const crowd = approach && (s.alertT > 0 || fear > 0.05);
+
       // Flocking with free neighbours (lambs mostly keep to their mothers instead).
       let n = 0;
       let cx = 0;
@@ -635,7 +662,8 @@ export class Sim {
         cz += o.z;
         ax += o.vx;
         az += o.vz;
-        const sepR = (SHEEP.separationRadius * (s.r + o.r)) / (2 * SHEEP.radius);
+        // Near a bridge or ford driven sheep crowd closer, so a bunch fits through the gap.
+        const sepR = ((SHEEP.separationRadius * (s.r + o.r)) / (2 * SHEEP.radius)) * (crowd ? 0.68 : 1);
         if (od < sepR) {
           const k = (1 - od / sepR) * SHEEP.separation;
           sx -= (ox / (od || 1)) * k;
@@ -763,7 +791,7 @@ export class Sim {
       if (alert || fear > 0.05) {
         s.homeX = s.x;
         s.homeZ = s.z;
-      } else {
+      } else if (!this.watch) {
         const hx = s.homeX - s.x;
         const hz = s.homeZ - s.z;
         const hd = Math.hypot(hx, hz);
@@ -787,10 +815,14 @@ export class Sim {
           const va = s.vx * c.ux + s.vz * c.uz;
           const onDeck = Math.abs(along) <= half;
           if (!onDeck && along * va >= 0) continue;
-          const lat = clamp(-across * (onDeck ? 1.2 : 0.8), -3, 3);
+          // Line up with the deck (stronger the closer to it) and keep moving along it: the flock
+          // files across instead of milling at the rails.
+          const near = 1 - clamp((Math.abs(along) - half) / 9, 0, 1);
+          const lat = clamp(-across * (onDeck ? 1.8 : 0.9 + 0.9 * near), -4, 4);
           const dir = Math.abs(va) > 0.2 ? Math.sign(va) : -Math.sign(along);
-          vx += -c.uz * lat + c.ux * dir * 1.3;
-          vz += c.ux * lat + c.uz * dir * 1.3;
+          const push = onDeck ? 2.6 : 1.4 + 1.2 * near;
+          vx += -c.uz * lat + c.ux * dir * push;
+          vz += c.ux * lat + c.uz * dir * push;
         }
       }
 
@@ -810,8 +842,10 @@ export class Sim {
           }
         }
         if (!s.grazing) {
-          vx += s.wanderX * SHEEP.grazeSpeed;
-          vz += s.wanderZ * SHEEP.grazeSpeed;
+          // On a night watch the sheep wander further: left alone the flock spreads out.
+          const g = this.watch ? 1.5 : 1;
+          vx += s.wanderX * SHEEP.grazeSpeed * g;
+          vz += s.wanderZ * SHEEP.grazeSpeed * g;
         }
       } else {
         s.grazing = false;
@@ -824,7 +858,7 @@ export class Sim {
       }
 
       // Look ahead for obstacles, water and the valley edge.
-      const av = this.avoidance(s, alert);
+      const av = this.avoidance(s, alert, this.onApproach(s, -0.3));
       vx += av.x;
       vz += av.z;
 
@@ -895,7 +929,20 @@ export class Sim {
     }
   }
 
-  private avoidance(s: Sheep, alert: boolean) {
+  /** In line with an open crossing's deck and within a few metres of it. */
+  private onApproach(s: Sheep, pad = 1.5) {
+    for (const c of this.level.crossings) {
+      if (c.ford && !c.ford.open) continue;
+      const dx = s.x - c.x;
+      const dz = s.z - c.z;
+      const along = dx * c.ux + dz * c.uz;
+      const across = -dx * c.uz + dz * c.ux;
+      if (Math.abs(along) < c.len / 2 + 8 && Math.abs(across) < c.w / 2 + pad) return true;
+    }
+    return false;
+  }
+
+  private avoidance(s: Sheep, alert: boolean, approach = false) {
     const L = this.level;
     let x = 0;
     let z = 0;
@@ -920,15 +967,16 @@ export class Sim {
       const dx = s.x - c.x;
       const dz = s.z - c.z;
       const dd = Math.hypot(dx, dz) || 1;
-      const reach = g.r + s.r + (g.tag === 'boundary' ? 3 : 1.6);
+      // Bridge rails only nudge (sheep slide along them instead of bouncing off the deck's end).
+      const reach = g.r + s.r + (g.tag === 'boundary' ? 3 : g.tag === 'rail' ? 0.5 : 1.6);
       if (dd > reach) continue;
       const k = 1 - (dd - g.r - s.r) / (reach - g.r - s.r);
-      const str = g.tag === 'boundary' ? 3 : 2;
+      const str = g.tag === 'boundary' ? 3 : g.tag === 'rail' ? 0.8 : 2;
       x += (dx / dd) * k * str;
       z += (dz / dd) * k * str;
     }
     // Water: sheep refuse to step in except on a bridge or at an open ford.
-    if (!L.crossingAt(s.x, s.z)) {
+    if (!L.crossingAt(s.x, s.z) && !approach) {
       const w = L.waterQuery(s.x, s.z);
       const reach = SHEEP.waterAvoid * (alert ? 0.7 : 1.2);
       const edge = w.edge - s.r;
@@ -1262,7 +1310,7 @@ export class Sim {
           }
         }
         const sheepToDog = Math.hypot(s.x - d.x, s.z - d.z);
-        const seenLongEnough = w.valleyT > (w.id === 0 ? 10 : 6);
+        const seenLongEnough = w.valleyT > (this.watch ? 3 : w.id === 0 ? 10 : 6);
         const mayCharge = !someoneDragging && this.snatchCd <= 0 && seenLongEnough;
         if (mayCharge && sd < WOLF.chargeRange && sheepToDog > 8) {
           w.state = 'charge';
@@ -1283,7 +1331,7 @@ export class Sim {
         tz = sz / sd;
         speed = WOLF.chargeSpeed * spd;
         if (sd < WOLF.grabRange + s.r && !this.wolves.some((o) => o !== w && o.state === 'drag')) {
-          this.snatchCd = 12;
+          this.snatchCd = this.watch ? 7 : 12;
           w.state = 'drag';
           w.stateT = 0;
           s.state = 'grabbed';
@@ -1396,6 +1444,31 @@ export class Sim {
       this.flooded = true;
       for (const f of this.level.fords) f.open = false;
       this.events.push({ type: 'flood' });
+    }
+    if (this.watch && this.t < 0.9) {
+      this.spookT -= dt;
+      if (this.spookT <= 0) {
+        this.spookT = this.rng.range(14, 22);
+        const free = this.sheep.filter((s) => this.isFree(s));
+        if (free.length) {
+          // An owl or a fox in the dark: the nearest few bolt the other way.
+          const s = this.rng.pick(free);
+          const a = this.rng.range(0, Math.PI * 2);
+          const x = s.x + Math.cos(a) * 7;
+          const z = s.z + Math.sin(a) * 7;
+          this.events.push({ type: 'spook', x, z });
+          for (const q of free) {
+            const dx = q.x - x;
+            const dz = q.z - z;
+            const dd = Math.hypot(dx, dz);
+            if (dd > 16 || q.kind === 'ram') continue;
+            q.panicT = 0.9 + (1 - dd / 16) * 0.6;
+            q.panicX = dx / (dd || 1);
+            q.panicZ = dz / (dd || 1);
+            q.alertT = 2;
+          }
+        }
+      }
     }
     if (r.thunder) {
       this.thunderT -= dt;

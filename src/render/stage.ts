@@ -12,7 +12,7 @@ const MOON_GLOW = new THREE.Color(0.62, 0.68, 0.95);
 const HAZE = new THREE.Vector3();
 const GREY = new THREE.Color('#9aa0aa');
 const FLASH = new THREE.Color('#e8eeff');
-const MIST = new THREE.Color('#c9ced6');
+const MIST = new THREE.Color('#aeb6c2');
 const SNOW_KEY = new THREE.Color('#f4f2ff');
 const SNOW_SKY = new THREE.Color('#9fb6e0');
 const SNOW_GROUND = new THREE.Color('#e4ecff');
@@ -170,7 +170,7 @@ export class Stage {
       m.hemiIntensity += 2 * W.flash;
     }
     // Mist colour: pale and pearly by day, a dim blue-grey under the moon.
-    this.mistColor.copy(m.fog).lerp(MIST, 0.55).multiplyScalar(1 - 0.55 * m.night).convertLinearToSRGB();
+    this.mistColor.copy(m.fog).lerp(MIST, 0.85).multiplyScalar(0.82 - 0.5 * m.night).convertLinearToSRGB();
     this.grade.setFlash(W.flash);
     this.key.color.copy(m.keyColor);
     this.key.intensity = m.keyIntensity;
