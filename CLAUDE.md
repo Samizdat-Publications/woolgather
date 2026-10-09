@@ -1117,3 +1117,8 @@ Newest at the bottom. Record every non-obvious choice.
   rotation), sheep squash and stretch on startles and pronks (legs counter-scaled), and turn their
   heads to watch Pip when he is near. The white-keep on wool is keyed on the key light's chroma,
   so the fleece stays white through the pink sunset. Control chips dim once used twice.
+- 2026-10-09 (Run 2, r05): the herding camera's resting distance came in 12% (`BASE_ZOOM` 0.98 ->
+  0.86; the framing still pulls back to fit a spread flock, a wolf or the fold). Three of four r05
+  reviews called the view too far and the animals tiny; the closer view also shows the machair's
+  flowers and sand. Camera advice has flip-flopped before, so the change is modest and the pitch is
+  unchanged.

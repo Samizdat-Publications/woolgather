@@ -1667,7 +1667,7 @@ const tmpV = new THREE.Vector3();
 /** Share of the grass field drawn at each graphics tier. */
 const GRASS_TIER: Record<Quality, number> = { high: 1, medium: 0.55, low: 0.2 };
 /** The herding camera's usual distance (1 = the configured offset). */
-const BASE_ZOOM = 0.98;
+const BASE_ZOOM = 0.86;
 const QUALITY_KEY = 'woolgather.quality';
 
 function loadQuality(): 'auto' | Quality {
