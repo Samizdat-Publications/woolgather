@@ -358,7 +358,7 @@ export class Ui {
     }).join('');
     $('.charm-shelf', this.root).innerHTML = `<div class="charm-title">Pip's charms <small>earned with stars · wear ${s >= SECOND_CHARM_STARS ? 'two' : 'one'} on any evening</small></div><div class="charm-row">${CHARMS.map((c) => `<span class="charm ${s >= c.stars ? 'got' : ''}"><b>${c.title}</b><small>${s >= c.stars ? c.text : `${c.stars} ★ to earn`}</small></span>`).join('')}</div>`;
     const done = Object.values(p.evenings).filter((e) => e.stars > 0).length;
-    $('.season-line', this.root).textContent = done ? `${done} of ${SEASON.length} evenings won · ${s} ★` : 'Eight evenings from midsummer to the first snow';
+    $('.season-line', this.root).textContent = done ? `${done} of ${SEASON.length} evenings won · ${s} ★` : `${['Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'][SEASON.length - 6] ?? SEASON.length} evenings from midsummer to the first snow`;
   }
 
   /** One evening's card: its story, the new thing, the goals, the ribbon and the charms. */
@@ -657,6 +657,15 @@ export class Ui {
     $('.goals', this.root).innerHTML = '<span>★ 50</span><span>★★ 70</span><span>★★★ 85 points</span>';
   }
 
+  /** The whole season in a row: each evening's stars, this one marked, locked ones dim. */
+  private seasonStrip(p: Progress, current: Evening) {
+    return `<div class="season-strip">${SEASON.map((e, i) => {
+      const st = p.evenings[e.id]?.stars ?? 0;
+      const open = unlocked(p, i);
+      return `<span class="ss ${e.id === current.id ? 'cur' : ''} ${open ? '' : 'locked'} ${st ? 'won' : ''}" title="${escapeHtml(e.title)}"><b>${e.num}</b><i>${'★'.repeat(st)}${'☆'.repeat(3 - st)}</i></span>`;
+    }).join('')}</div>`;
+  }
+
   clearToasts() {
     this.toastQueue.length = 0;
     this.toastT = 0;
@@ -738,6 +747,7 @@ export class Ui {
         ${sim.watch ? '' : row('Daylight left', sim.timeLeft > 0.5 ? fmtTime(sim.timeLeft) : 'none')}
       </div>
       ${losses ? `<div class="losses"><b>Taken by wolves:</b> ${sim.lost} (${escapeHtml(losses)})</div>` : ''}
+      ${ev ? this.seasonStrip(ctx.progress, ev) : ''}
       ${nextLine}${unlock}
       ${tip ? `<div class="tip"><b>Tip</b> ${keycaps(tip)}</div>` : ''}`;
     const btns: string[] = [];

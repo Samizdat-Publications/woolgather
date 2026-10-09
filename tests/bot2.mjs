@@ -553,6 +553,28 @@ export class HerdBot2 {
   groupGoal(g) {
     const nav = this.nav;
     const fold = nav.fold;
+    // Trial: take the next gate like a crossing: line the flock up on its side, then drive through.
+    const gt = this.st?.objective === 'trial' ? this.st.gate : null;
+    if (gt) {
+      const dx = gt.bx - gt.ax;
+      const dz = gt.bz - gt.az;
+      const l = Math.hypot(dx, dz) || 1;
+      const nx = -dz / l;
+      const nz = dx / l;
+      const side = Math.sign((g.c.x - gt.x) * nx + (g.c.z - gt.z) * nz) || 1;
+      if (!this.gateRun || this.gateRun.idx !== this.st.gateIdx) this.gateRun = { idx: this.st.gateIdx, s: side, stage: 'gather' };
+      const s = this.gateRun.s;
+      const ap = { x: gt.x + nx * s * 10, z: gt.z + nz * s * 10 };
+      const ex = { x: gt.x - nx * s * 14, z: gt.z - nz * s * 14 };
+      const da = dist(g.c, ap);
+      if (this.gateRun.stage === 'gather' && da < 5) this.gateRun.stage = 'cross';
+      else if (this.gateRun.stage === 'cross' && da > 18 && dist(g.c, ex) > 18) this.gateRun.stage = 'gather';
+      if (this.gateRun.stage === 'cross') return { p: ex, name: 'gate-through' };
+      if (da < 18 && nav.sheepLine(g.c, ap)) return { p: ap, name: 'gate-line-up' };
+      const fp = this.flockPathTo(g.c, ap);
+      return { p: nav.lookahead(fp, g.c, 14) ?? ap, name: 'gate-approach' };
+    }
+    this.gateRun = null;
     const l = nav.local(g.c);
     const W = nav.pen.halfW;
     const S = nav.pen.scale;
@@ -691,6 +713,7 @@ export class HerdBot2 {
 
   /** Returns {target, sprint, bark, creep, latch, why, cat, allowFold}. */
   decide(st) {
+    this.st = st;
     const dog = st.dog;
     const now = st.elapsed;
     if (dog.stunT > 0) return { target: null, why: 'stunned', cat: 'stunned' };

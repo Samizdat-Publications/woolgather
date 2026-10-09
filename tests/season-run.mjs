@@ -37,7 +37,7 @@ const opt = (name, def) => {
 };
 const flag = (name) => args.includes(`--${name}`);
 
-const ALL = ['long-light', 'far-bank', 'lambing', 'angus', 'night-watch', 'mist', 'storm', 'first-snow'];
+const ALL = ['long-light', 'far-bank', 'lambing', 'angus', 'show', 'night-watch', 'mist', 'storm', 'first-snow'];
 const evenings = (opt('evenings', ALL.join(',')) || '').split(',').filter(Boolean);
 const SCALE = Number(opt('scale', 2));
 const PORT = Number(opt('port', 0));

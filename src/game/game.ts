@@ -91,6 +91,11 @@ export class Game {
   private flashT = -1;
   /** In mist: where and when Pip last saw each sheep (the map only shows these). */
   private seen = new Map<number, { x: number; z: number; t: number }>();
+  /**
+   * The menus' backdrop: the evening's own flock grazing in the establishing shot, with Pip
+   * watching them (a sim that is never steered and never ends).
+   */
+  private viewSim: Sim | null = null;
   /** One-off messages already shown this evening (the ram's first butt, and so on). */
   private said = new Set<string>();
 
@@ -132,6 +137,7 @@ export class Game {
     this.loadPlace('hollow', 'summer');
     this.warmUp();
     this.ready = true;
+    if (this.mode === 'title') this.makeViewSim(classicRules('standard'));
     this.ui.renderSeason(this.progress);
   }
 
@@ -283,6 +289,56 @@ export class Game {
     const last = SEASON.find((e) => e.id === this.progress.last) ?? SEASON[0];
     this.loadPlace(last.rules.levelId, last.rules.season);
     this.menuRules = last.rules as Rules;
+    this.makeViewSim({ ...last.rules, id: 'view' });
+  }
+
+  /** A grazing flock and a watching Pip in the menu shot, between the camera and its focus. */
+  private makeViewSim(rules: Rules) {
+    if (!this.ready) return;
+    const L = this.level;
+    const sim = new Sim(L, { ...rules, objective: 'gather', wolfStart: null, thunder: undefined, floodAt: undefined, lostLamb: undefined, dayLength: 1e6 }, 7);
+    const ts = L.def.titleShot ?? { x: 0, z: 0, angle: 0.1 };
+    const a = ts.angle;
+    // Towards the camera from the focus, and across the view.
+    const fx = Math.cos(a);
+    const fz = Math.sin(a);
+    const px = -fz;
+    const pz = fx;
+    const ok = (x: number, z: number) => L.insideValley(x, z) && !L.inWater(x, z) && L.waterQuery(x, z).edge > 2 && !L.penAt(x, z, -3) && L.circles.every((c) => (c.x - x) ** 2 + (c.z - z) ** 2 > (c.r + 1.5) ** 2);
+    const rng = sim.rng;
+    let placed = 0;
+    for (const s of sim.sheep.slice(0, 9)) {
+      for (let k = 0; k < 30; k++) {
+        // Either side of the shot, where the menu card leaves the view open.
+        const along = rng.range(-2, 20);
+        const across = (placed % 2 ? 1 : -1) * rng.range(22, 34);
+        const x = ts.x + fx * along + px * across;
+        const z = ts.z + fz * along + pz * across;
+        if (!ok(x, z)) continue;
+        s.x = s.homeX = x;
+        s.z = s.homeZ = z;
+        placed++;
+        break;
+      }
+    }
+    // The rest of the flock stays out of shot.
+    for (const s of sim.sheep.slice(9)) s.state = 'hidden';
+    sim.sheep.forEach((s) => {
+      if (s.kind === 'lamb' && s.motherId >= 0) {
+        const m = sim.sheep.find((o) => o.id === s.motherId);
+        if (m && m.state !== 'hidden') {
+          s.x = m.x + 1.5;
+          s.z = m.z + 1;
+          s.state = 'graze';
+        }
+      }
+    });
+    const dx = ts.x + fx * 22 + px * 24;
+    const dz = ts.z + fz * 22 + pz * 24;
+    sim.dog.x = ok(dx, dz) ? dx : ts.x + fx * 40;
+    sim.dog.z = ok(dx, dz) ? dz : ts.z + fz * 40;
+    sim.dog.facing = Math.atan2(ts.x - sim.dog.x, ts.z - sim.dog.z);
+    this.viewSim = placed > 0 ? sim : null;
   }
 
   /** The card for one evening, over an establishing shot of its place in its season. */
@@ -293,6 +349,7 @@ export class Game {
     saveProgress(this.progress);
     this.loadPlace(ev.rules.levelId, ev.rules.season);
     this.menuRules = ev.rules as Rules;
+    this.makeViewSim({ ...ev.rules, id: 'view' });
     this.ui.renderIntro(ev, this.progress);
     this.setMode('menu');
     this.ui.show('intro');
@@ -338,7 +395,10 @@ export class Game {
     this.rules = null;
     this.evening = null;
     this.menuRules = null;
-    if (this.ready) this.loadPlace('hollow', 'summer');
+    if (this.ready) {
+      this.loadPlace('hollow', 'summer');
+      this.makeViewSim(classicRules('standard'));
+    }
     this.setMode('title');
     this.ui.show('title');
     this.ui.clearToasts();
@@ -352,6 +412,7 @@ export class Game {
     this.gateOpen = this.gateTarget = 1;
     this.endCardT = 0;
     const seed = this.opts.seed + this.runs - 1;
+    this.viewSim = null;
     this.sim = new Sim(this.level, rules, seed);
     this.ui.setRules(rules);
     this.audio.newDay(seed, rules);
@@ -515,9 +576,15 @@ export class Game {
       this.stage.render();
       return;
     }
-    this.actors.root.visible = !!sim;
+    const view = sim ? null : this.viewSim;
+    this.actors.root.visible = !!(sim ?? view);
     this.updateWeather(rawDt, sim);
     const mood = this.stage.applyMood(this.moodNow(sim));
+    if (view) {
+      view.update(rawDt, null);
+      view.elapsed = 5;
+      this.actors.sync(view, rawDt, mood, false);
+    }
     if (sim) {
       this.actors.sync(sim, this.mode === 'paused' ? 0 : rawDt, mood, this.mode === 'playing');
       this.ui.update(sim, this.mode === 'paused' ? 0 : dt, this.clock);
@@ -1397,6 +1464,10 @@ export class Game {
       sheep: s ? s.sheep.map((q) => ({ id: q.id, x: q.x, z: q.z, state: q.state, kind: q.kind, stubborn: q.stubborn, yieldT: q.yieldT, motherId: q.motherId })) : [],
       wolves: s ? s.wolves.filter((w) => w.state !== 'gone').map((w) => ({ id: w.id, x: w.x, z: w.z, state: w.state })) : [],
       dragFeasible: this.dragFeasible,
+      /** Trial: the next gate (posts a and b, middle x z) and the results so far. */
+      gateIdx: s?.gateIdx ?? 0,
+      gate: s && s.trial && s.gateIdx < this.level.gates.length ? this.level.gates[s.gateIdx] : null,
+      score: s?.trial ? s.trialScore() : null,
       progress: { stars: totalStars(this.progress), evenings: this.progress.evenings },
     };
   }
