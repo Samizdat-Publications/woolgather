@@ -1,7 +1,7 @@
 // Keyboard + gamepad, reduced to intents. Movement is screen relative: up = north = -Z.
 // Ctrl is deliberately unused: Ctrl+W closes the browser tab and cannot be intercepted.
 
-type Edge = 'bark' | 'pause' | 'latch' | 'confirm' | 'back' | 'mute' | 'any' | 'up' | 'down' | 'left' | 'right';
+type Edge = 'bark' | 'pause' | 'latch' | 'confirm' | 'back' | 'mute' | 'any' | 'up' | 'down' | 'left' | 'right' | 'fly';
 
 /** Menu directions from the keyboard (movement keys double as menu keys). */
 const NAV_KEYS: Record<string, Edge> = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
@@ -30,6 +30,7 @@ export class Input {
    * ("come bye", 1) or anticlockwise ("away", -1) as seen on screen; 0 = steer by hand.
    */
   flank = 0;
+  outrun = false;
   /** Last input device, so prompts can show the right glyphs. */
   device: 'keyboard' | 'gamepad' = 'keyboard';
 
@@ -59,6 +60,7 @@ export class Input {
       }
       if (e.code === 'Escape' || e.code === 'Backspace') this.edges.add('back');
       if (e.code === 'KeyM') this.edges.add('mute');
+      if (e.code === 'KeyF') this.edges.add('fly');
     });
     window.addEventListener('keyup', (e) => this.held.delete(e.code));
     window.addEventListener('blur', () => this.held.clear());
@@ -92,6 +94,8 @@ export class Input {
     let creep = this.held.has('KeyC');
     let lie = this.held.has('KeyQ');
     let flank = (this.held.has('KeyX') ? 1 : 0) - (this.held.has('KeyZ') ? 1 : 0);
+    // Both flank keys at once: the outrun (a charm).
+    let outrun = this.held.has('KeyX') && this.held.has('KeyZ');
 
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (const pad of pads) {
@@ -114,6 +118,7 @@ export class Input {
       if (pressed(1)) lie = true;
       if (pressed(15)) flank = 1;
       if (pressed(14)) flank = -1;
+      if (pressed(10)) outrun = true;
       if (edge(0) || edge(2)) this.edges.add('bark');
       if (edge(9)) this.edges.add('pause');
       if (edge(3)) this.edges.add('latch');
@@ -121,7 +126,10 @@ export class Input {
       if (edge(1)) this.edges.add('back');
       // Menu directions: the d-pad, or a flick of the stick.
       if (edge(12)) this.edges.add('up');
-      if (edge(13)) this.edges.add('down');
+      if (edge(13)) {
+        this.edges.add('down');
+        this.edges.add('fly');
+      }
       if (edge(14)) this.edges.add('left');
       if (edge(15)) this.edges.add('right');
       const flick = (v: number, prev: number) => (v > 0.6 && prev <= 0.6 ? 1 : v < -0.6 && prev >= -0.6 ? -1 : 0);
@@ -145,6 +153,7 @@ export class Input {
       creep = false;
       lie = false;
       flank = 0;
+      outrun = false;
     }
     this.moveX = mx;
     this.moveZ = mz;
@@ -152,6 +161,7 @@ export class Input {
     this.creep = creep;
     this.lie = lie;
     this.flank = flank;
+    this.outrun = outrun;
   }
 
   pressed(e: Edge) {

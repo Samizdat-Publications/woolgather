@@ -267,6 +267,15 @@ export class Minimap {
     for (const w of sim.wolves) {
       if (w.state === 'gone') continue;
       if (mem && Math.hypot(w.x - sim.dog.x, w.z - sim.dog.z) > 32 && w.state !== 'drag') continue;
+      if (w.role === 'flanker') {
+        // The wolf slipping round behind the flock: a pulsing ring, so it is not missed.
+        const k = (sim.elapsed * 1.4) % 1;
+        c.beginPath();
+        c.arc(this.px(w.x), this.pz(w.z), 6 + k * 9, 0, Math.PI * 2);
+        c.strokeStyle = `rgba(255, 90, 60, ${(0.9 * (1 - k)).toFixed(2)})`;
+        c.lineWidth = 2;
+        c.stroke();
+      }
       c.save();
       c.translate(this.px(w.x), this.pz(w.z));
       c.rotate(Math.PI / 4);

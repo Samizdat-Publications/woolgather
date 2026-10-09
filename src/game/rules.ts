@@ -64,6 +64,17 @@ export interface Rules {
   dogStart?: [number, number];
   /** Fixed seed for the flock's placement (evenings look the same each time you play them). */
   seed?: number;
+  /**
+   * Wolves hunt in pairs: a second wolf that comes out while one stalks Pip's flock circles round
+   * to the far side while the first shows itself and feints. 'gentle' gives the player more time.
+   */
+  pack?: 'gentle' | 'full';
+  /** Fly, the old dog, comes along (a charm; never at the trial, where one dog runs). */
+  fly?: boolean;
+  /** Pip can run an outrun to the far side of a flock (a charm). */
+  outrun?: boolean;
+  /** Trial judged strictly (Wolf Moon's championship course): missed gates and a slow round cost more. */
+  strict?: boolean;
 }
 
 /** The classic 1.0 evening in Hollow Valley at one of the three difficulties. */

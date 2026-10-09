@@ -408,9 +408,35 @@ export class Actors {
     this.sheepInst = new RigInstancer(a.sheep, 32);
     this.ramInst = new RigInstancer(this.ramProto, 2);
     this.blackInst = new RigInstancer(this.blackProto, 3);
-    this.wolfInst = new RigInstancer(a.wolf, 6);
+    this.wolfInst = new RigInstancer(a.wolf, 10);
     this.root.add(this.sheepInst.group, this.ramInst.group, this.blackInst.group, this.wolfInst.group);
+    // Fly, Pip's mother (a charm): the same collie in red and white, a touch smaller and greyer
+    // in the face, so she never passes for Pip. Hidden unless the evening has her.
+    const flyMats: Record<string, THREE.MeshLambertMaterial> = {};
+    for (const [name, col] of [
+      ['coat_black', '#8a4226'],
+      ['coat_tan', '#d8b08a'],
+    ] as const) {
+      const src = this.charMats.find((m) => m.name === name);
+      if (!src) continue;
+      const c = src.clone();
+      c.name = `fly_${name}`;
+      c.color.set(col);
+      this.patchChar(c, false, this.rim);
+      flyMats[name] = c;
+    }
+    this.flyDog = rig(withMaterials(a.collie, flyMats), SCALE.dog * 0.92);
+    addOutline(this.flyDog.root, 0x1c2030, 0.032);
+    this.flyDog.root.visible = false;
+    this.root.add(this.flyDog.root);
+    // Where Fly holds the sheep off: a soft warm ring while she lies down or runs to her spot.
+    this.flyRing = new GroundRing(a.fx.get('thin_ring')!, 0xffc89a, terrain, 0.07);
+    this.flyRing.mesh.visible = false;
+    this.root.add(this.flyRing.mesh);
   }
+  private flyDog: Rig;
+  private flyRing: GroundRing;
+  private flyAnim = new AnimState();
 
   /**
    * Character materials get two touches in their shader: white wool and coat (and the wolves'
@@ -532,6 +558,20 @@ export class Actors {
       if (d.speed > 8 && !d.inWater) step(d.x, d.z, d.vx, d.vz, 1);
     }
     this.marker.place(d.x + Math.sin(d.facing) * 2.1, d.z + Math.cos(d.facing) * 2.1, 0.85, -d.facing);
+    const fly = sim.fly;
+    this.flyDog.root.visible = !!fly;
+    if (fly) {
+      const fr = this.flyDog.root;
+      fr.position.set(fly.x, h(fly.x, fly.z), fly.z);
+      fr.rotation.y = fly.facing;
+      animateDog(this.flyDog, this.flyAnim, fly, dt, this.time, null);
+    }
+    const flyR = sim.flyReach;
+    this.flyRing.mesh.visible = !!fly && flyR > 0 && showRings;
+    if (fly && flyR > 0) {
+      this.flyRing.place(fly.x, fly.z, flyR, this.time * 0.2, 1);
+      this.flyRing.mesh.material.opacity = fly.mode === 'down' ? 0.55 : 0.3;
+    }
     // The ram's resolve: shown while he stands his ground near Pip, shrinking (and quickening) as
     // the stare works, gone when he gives way.
     const ram = sim.sheep.find((s) => s.kind === 'ram' && s.state !== 'folded' && s.state !== 'lost' && s.state !== 'hidden');

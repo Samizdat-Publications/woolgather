@@ -31,3 +31,27 @@ Resume notes for the second 24-hour run (plan: `docs/RUN2-PLAN.md`). Newest at t
   The average bot is 1.1-1.9x the expert's time (two tuning passes, then timeboxed) and still wins
   every evening, nearly all with three stars: the evenings have a lot of slack and the wolves
   rarely cost a sheep. That is the "no pressure" complaint in numbers.
+
+## Phase 2: pressure and depth
+
+- Stewart (mid-run): he plays like the expert bot and found 1.0 "kid game easy". New balance rule:
+  the expert bot should have a fight (win most, not always with three stars), the average bot
+  should win only some of the time. `src/game/tuning.ts` is one knob for the whole season.
+- Wolf pack (`Rules.pack`, `Wolf.role`): a second wolf that comes out while one stalks Pip's flock
+  pairs with it; the bait prowls in view on Pip's side and feints (a flag on the stalk state, not a
+  new state, so markers, camera and HUD treat it as stalking); the flanker circles outside the
+  sheep's fear radius to the far side and charges once Pip has committed to the bait. Tells: a
+  call-and-answer howl, a "Two wolves!" toast with an arrow, a growl from the flanker's side when
+  it is in place, a pulsing ring on the minimap, a one-time tip. Pack on from Old Angus.
+- Lone wolves prefer prey within 100 m of Pip (the control critic saw a 250 m snatch nobody could
+  answer).
+- Wolf Moon: per evening at three stars; `moonRules` overlay; own record under `moon`; moon stars
+  count toward charms; tier switch on the intro card, a moon badge on the map.
+- Charms with verbs: The Outrun (7 stars, hold Z and X) and Old Fly (16 stars, F: Pip's mother lies
+  down where he stands and holds it; F again calls her back; not at the trial). A third charm slot
+  at 30 stars.
+- Trial stars: 90 / 75 / 55 points (were 85 / 70 / 50).
+- Control round r04b (today's build, average-bot footage, Claude critics only): stills 7.13 (r04
+  7.00), video 7.25 (r04 6.63). The footage change alone lifts the Claude means a little.
+- Balance pass 2 (seed 11 and 23): expert 7 of 9 (lost storm and first snow, far off), average 8
+  of 17. Pass 3 eases storm and first snow and tightens the evenings the average bot won easily.

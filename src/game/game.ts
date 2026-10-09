@@ -1,3 +1,4 @@
+import { tuned } from './tuning';
 import * as THREE from 'three';
 import hollowDef from '../../level/hollow.json';
 import lochDef from '../../level/loch.json';
@@ -25,7 +26,7 @@ import { Input } from './input';
 import { Level } from './level';
 import type { LevelDef } from './leveldef';
 import { classicRules, type Rules } from './rules';
-import { dailyEvening, loadProgress, perksFor, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type Progress } from './season';
+import { dailyEvening, loadProgress, moonOpen, moonRules, perksFor, verbsFor, THIRD_CHARM_STARS, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type EveningRecord, type Progress } from './season';
 import { Sim, type SimEvent } from './sim';
 
 // Top-level state machine: title -> (season map -> evening card) or classic -> playing <-> paused
@@ -256,6 +257,13 @@ export class Game {
       case 'charm':
         if (arg) this.toggleCharm(arg);
         break;
+      case 'tier':
+        // The intro card's switch between the evening and its Wolf Moon.
+        if (this.evening) {
+          this.moon = arg === 'moon' && moonOpen(this.progress, this.evening);
+          this.ui.renderIntro(this.evening, this.progress, this.moon);
+        }
+        break;
       case 'next': {
         const i = this.evening ? SEASON.indexOf(this.evening) : -1;
         const next = i >= 0 ? SEASON[i + 1] : undefined;
@@ -284,7 +292,8 @@ export class Game {
   }
 
   private eveningRules(ev: Evening): Rules {
-    return { ...ev.rules, id: ev.id, perks: perksFor(this.progress.charms) };
+    const r: Rules = { ...ev.rules, id: ev.id, perks: perksFor(this.progress.charms), ...verbsFor(this.progress.charms) };
+    return tuned(this.moon && moonOpen(this.progress, ev) ? moonRules(r) : r);
   }
 
   /** Wear or take off a charm (one slot, two once enough stars are earned). */
@@ -293,7 +302,7 @@ export class Game {
     const stars = totalStars(p);
     const c = CHARMS.find((q) => q.id === id);
     if (!c || stars < c.stars) return;
-    const slots = stars >= SECOND_CHARM_STARS ? 2 : 1;
+    const slots = stars >= THIRD_CHARM_STARS ? 3 : stars >= SECOND_CHARM_STARS ? 2 : 1;
     if (p.charms.includes(id)) p.charms = p.charms.filter((q) => q !== id);
     else {
       p.charms.push(id);
@@ -365,20 +374,23 @@ export class Game {
   }
 
   /** The card for one evening, over an establishing shot of its place in its season. */
-  private openEvening(ev: Evening) {
+  private openEvening(ev: Evening, moon = false) {
     this.sim = null;
     this.evening = ev;
+    this.moon = moon && moonOpen(this.progress, ev);
     this.progress.last = ev.id;
     saveProgress(this.progress);
     this.loadPlace(ev.rules.levelId, ev.rules.season);
     this.menuRules = ev.rules as Rules;
     this.makeViewSim({ ...ev.rules, id: 'view' });
-    this.ui.renderIntro(ev, this.progress);
+    this.ui.renderIntro(ev, this.progress, this.moon);
     this.setMode('menu');
     this.ui.show('intro');
   }
   /** Weather and light for the menu's establishing shot. */
   private menuRules: Rules | null = null;
+  /** The evening is being played as its Wolf Moon. */
+  private moon = false;
 
   /**
    * Enter (or the gamepad's A) on a menu: a focused button is the player's choice (Enter clicks
@@ -772,18 +784,21 @@ export class Game {
       ribbon = ev.ribbon.check(sim);
       const p = this.progress;
       const before = totalStars(p);
-      const prev = p.evenings[ev.id];
+      const whole = p.evenings[ev.id];
+      // A Wolf Moon win is kept in its own record; the evening's record (and its moon) survive.
+      const prev: EveningRecord | undefined = this.moon ? whole?.moon : whole;
       firstWin = !prev || prev.stars === 0;
       const time = !sim.watch && !sim.trial ? Math.round(sim.elapsed) : undefined;
       const score = sim.trial ? sim.trialScore() : undefined;
       newBest = (time !== undefined && prev?.time !== undefined && time < prev.time) || (score !== undefined && prev?.score !== undefined && score > prev.score);
-      p.evenings[ev.id] = {
+      const rec: EveningRecord = {
         stars: Math.max(prev?.stars ?? 0, o.stars),
         ribbon: (prev?.ribbon ?? false) || ribbon,
         best: Math.max(prev?.best ?? 0, sim.folded),
         time: time === undefined ? prev?.time : Math.min(prev?.time ?? Infinity, time),
         score: score === undefined ? prev?.score : Math.max(prev?.score ?? 0, score),
       };
+      p.evenings[ev.id] = this.moon ? { ...(whole ?? { stars: 0, ribbon: false }), moon: rec } : { ...whole, ...rec };
       saveProgress(p);
       const after = totalStars(p);
       unlocked = CHARMS.filter((c) => c.stars > before && c.stars <= after).map((c) => c.title);
@@ -795,8 +810,9 @@ export class Game {
       firstWin,
       next: ev && i >= 0 && o.kind === 'win' ? (SEASON[i + 1] ?? null) : null,
       unlocked,
-      seasonDone: !!ev && o.kind === 'win' && i === SEASON.length - 1,
+      seasonDone: !!ev && o.kind === 'win' && i === SEASON.length - 1 && !this.moon,
       newBest,
+      moon: this.moon,
       progress: this.progress,
     });
   }
@@ -1146,6 +1162,7 @@ export class Game {
           break;
         }
         case 'charge':
+        case 'feint':
           p.dust(e.x, e.z, 0, 0, 1.3);
           break;
         case 'bleat': {
@@ -1246,6 +1263,13 @@ export class Game {
           if (Math.hypot(e.tx - d.x, e.tz - d.z) >= 26) this.ui.toast(`A wolf is after the sheep ${this.level.placeName(e.tx, e.tz)}!`, 'warn');
           break;
         }
+        case 'fly':
+          if (e.down) this.once('flyDown', () => this.ui.toast('Fly lies down and holds that spot: the sheep keep off her. F again calls her back', 'good'));
+          break;
+        case 'pack':
+          // Fair warning: the second wolf is named the moment it pairs up, with where it is.
+          this.ui.toast(`Two wolves! One shows itself, the other is circling round behind the flock ${this.arrowTo(e.fx, e.fz)}`, 'warn');
+          break;
         case 'grab':
           this.stage.addShake(0.35);
           break;
@@ -1365,7 +1389,7 @@ export class Game {
   /** Show a tutorial tip once, for `seconds` of play. */
   private tip(id: string, text: string, seconds: number, now: number) {
     if (this.tipsShown.has(id) || this.dragHint) return;
-    if (['ring', 'sprint', 'wolf', 'lie'].includes(id) && this.tipsEver.has(id)) return;
+    if (['ring', 'sprint', 'wolf', 'lie', 'pack'].includes(id) && this.tipsEver.has(id)) return;
     this.tipsShown.add(id);
     this.tipsEver.add(id);
     this.ui.hint(text);
@@ -1481,8 +1505,11 @@ export class Game {
     if (sim.wolves.some((w) => (w.state === 'stalk' || w.state === 'charge') && Math.hypot(w.x - d.x, w.z - d.z) < 30 && this.onScreen(w.x, w.z))) {
       this.tip('wolf', 'Wolves run from Pip: run at one or bark (Space) to drive it off', 7, t);
     }
+    if (sim.wolves.some((w) => w.role === 'flanker' && w.state === 'stalk')) {
+      this.tip('pack', 'Wolves hunt in pairs: while you chase the one in plain sight, its mate circles round. Guard the far side of the flock', 10, t);
+    }
     const wolfAbout = sim.wolves.some((w) => (w.state === 'stalk' || w.state === 'charge' || w.state === 'drag') && Math.hypot(w.x - d.x, w.z - d.z) < 40);
-    if (this.tipUntil > 0 && (t > this.tipUntil || (this.tipId === 'wolf' && !wolfAbout))) {
+    if (this.tipUntil > 0 && (t > this.tipUntil || ((this.tipId === 'wolf' || this.tipId === 'pack') && !wolfAbout))) {
       this.tipUntil = 0;
       this.ui.hint('');
     }
@@ -1494,11 +1521,11 @@ export class Game {
   titleMood: number | null = null;
 
   /** Test hook: open an evening's card, or start it at once. */
-  testEvening(id: string, begin: boolean) {
+  testEvening(id: string, begin: boolean, moon = false) {
     // 'daily' is today's evening; 'daily-YYYY-MM-DD' that day's.
     const ev = id.startsWith('daily') ? dailyEvening(id.length > 6 ? new Date(`${id.slice(6)}T12:00:00`) : new Date()) : SEASON.find((e) => e.id === id);
     if (!ev) return false;
-    this.openEvening(ev);
+    this.openEvening(ev, moon);
     if (begin) this.newDay(this.eveningRules(ev));
     return true;
   }
@@ -1509,8 +1536,9 @@ export class Game {
     this.newDay(classicRules(d));
   }
 
-  testProgress(what: 'reset' | 'all') {
-    this.progress = what === 'reset' ? { evenings: {}, charms: [] } : { evenings: Object.fromEntries(SEASON.map((e) => [e.id, { stars: 2, ribbon: false }])), charms: [] };
+  testProgress(what: 'reset' | 'all' | 'moon') {
+    // 'moon': every evening won with three stars, so every Wolf Moon is open.
+    this.progress = what === 'reset' ? { evenings: {}, charms: [] } : { evenings: Object.fromEntries(SEASON.map((e) => [e.id, { stars: what === 'moon' ? 3 : 2, ribbon: false }])), charms: [] };
     saveProgress(this.progress);
     this.ui.renderSeason(this.progress);
     return totalStars(this.progress);
@@ -1594,7 +1622,7 @@ export class Game {
               // On screen: what a player can see (the average-skill bot only reacts to these).
               tmpV.set(w.x, this.terrain.height(w.x, w.z) + 0.8, w.z).project(this.stage.camera);
               const onScreen = tmpV.z < 1 && Math.abs(tmpV.x) < 0.97 && Math.abs(tmpV.y) < 0.95;
-              return { id: w.id, x: w.x, z: w.z, state: w.state, target: w.target?.id ?? -1, onScreen };
+              return { id: w.id, x: w.x, z: w.z, state: w.state, target: w.target?.id ?? -1, onScreen, role: w.role, mate: w.mate, feint: w.feintT > 0 };
             })
         : [],
       dragFeasible: this.dragFeasible,

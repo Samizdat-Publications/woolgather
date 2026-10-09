@@ -144,6 +144,7 @@ history.
 | `characters.py` | `collie.glb`, `sheep.glb`, `wolf.glb` | Rigid-part characters with pivots at joints (body, head, tail, 4 legs, ears) for procedural animation |
 | `nature.py` | `nature.glb` | pine A/B, oak, birch, bush, 3 rocks, grass tuft, 3 flowers, reeds, log, stump |
 | `structures.py` | `structures.glb` | stone fold with gate, guide fences, farmhouse, bridge, dry-stone wall segment, fence segment, lantern post, hay bale, trough, stepping stones, signpost |
+| `landmarks.py` | `landmarks.glb` | crags A/B (schist outcrop, granite tor), scree fan, standing stone, cairn, ruined shieling, stell wall arc (quarter ring, origin at the ring's centre), jetty (origin at the landward end, runs out along game +Z), clinker rowing boat, trial judges' box with saltire flag, snow pole, peat hag, cotton grass. Previews in `docs/assets/landmarks/` |
 | `terrain.py` | `terrain.glb`, `water.glb`, `terrain_height.bin` | valley ground mesh (vertex colours), stream surface ribbon, heightfield for gameplay |
 | `fx.py` | `fx.glb` | sky dome, bark shockwave ring, soft ring, thick danger ring, moon, heart, wool tuft, dust puff, splash drop |
 

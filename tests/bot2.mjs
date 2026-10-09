@@ -818,11 +818,17 @@ export class HerdBot2 {
       // A first-time player runs at the wolf they can see nearest to Pip.
       threat = hunting.filter((w) => nearSheep(w) < 22 && dist(w, dog) < 45).sort((a, b) => dist(a, dog) - dist(b, dog))[0];
     } else if (!threat) {
-      if (watch) {
+      // A pack: the wolf circling behind the flock is the real danger; a bait wolf showing itself
+      // and feinting is ignored unless it charges for real.
+      threat = hunting.filter((w) => w.role === 'flanker' && nearSheep(w) < 32).sort((a, b) => nearSheep(a) - nearSheep(b))[0];
+      const real = hunting.filter((w) => w.role !== 'bait' || w.state === 'charge');
+      if (threat) {
+        // handled below
+      } else if (watch) {
         // Every wolf that comes near the flock is met, the one closest to a sheep first.
-        threat = hunting.filter((w) => nearSheep(w) < 40).sort((a, b) => nearSheep(a) - nearSheep(b))[0];
+        threat = real.filter((w) => nearSheep(w) < 40).sort((a, b) => nearSheep(a) - nearSheep(b))[0];
       } else {
-        threat = hunting.filter((w) => nearSheep(w) < 16 && dist(w, dog) < 45).sort((a, b) => dist(a, dog) - dist(b, dog))[0];
+        threat = real.filter((w) => nearSheep(w) < 16 && dist(w, dog) < 45).sort((a, b) => dist(a, dog) - dist(b, dog))[0];
       }
     }
     if (threat) {

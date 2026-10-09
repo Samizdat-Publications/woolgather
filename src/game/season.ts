@@ -34,12 +34,12 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'hollow',
       objective: 'gather',
-      dayLength: 300,
-      target: 6,
-      wolfStart: 0.13,
+      dayLength: 140,
+      target: 7,
+      wolfStart: 0.12,
       maxWolves: 1,
-      wolfRespawn: [30, 40],
-      wolfSpeedScale: 0.85,
+      wolfRespawn: [20, 28],
+      wolfSpeedScale: 1,
       flock: [
         { at: 'rocks', ewes: 4 },
         { at: 'knoll', ewes: 4 },
@@ -62,12 +62,12 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'hollow',
       objective: 'gather',
-      dayLength: 330,
-      target: 8,
-      wolfStart: 0.22,
-      maxWolves: 1,
-      wolfRespawn: [22, 30],
-      wolfSpeedScale: 0.9,
+      dayLength: 205,
+      target: 9,
+      wolfStart: 0.2,
+      maxWolves: 2,
+      wolfRespawn: [16, 22],
+      wolfSpeedScale: 1,
       flock: [
         { at: 'hillside', ewes: 5 },
         { at: 'farbank-south', ewes: 3 },
@@ -90,12 +90,12 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'loch',
       objective: 'gather',
-      dayLength: 380,
-      target: 11,
-      wolfStart: 0.22,
+      dayLength: 235,
+      target: 13,
+      wolfStart: 0.2,
       maxWolves: 2,
-      wolfRespawn: [18, 24],
-      wolfSpeedScale: 0.95,
+      wolfRespawn: [14, 20],
+      wolfSpeedScale: 1,
       flock: [
         { at: 'north-hill', ewes: 3, lambs: 3 },
         { at: 'promontory', ewes: 3, lambs: 3 },
@@ -119,12 +119,13 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'corrie',
       objective: 'gather',
-      dayLength: 400,
-      target: 9,
-      wolfStart: 0.2,
+      dayLength: 230,
+      target: 10,
+      wolfStart: 0.18,
       maxWolves: 2,
-      wolfRespawn: [16, 22],
-      wolfSpeedScale: 1,
+      pack: 'gentle',
+      wolfRespawn: [14, 20],
+      wolfSpeedScale: 1.02,
       flock: [
         { at: 'tarnside', ewes: 4, ram: true },
         { at: 'east-shelf', ewes: 4 },
@@ -151,7 +152,7 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'show',
       objective: 'trial',
-      dayLength: 300,
+      dayLength: 160,
       target: 5,
       wolfStart: null,
       maxWolves: 0,
@@ -176,10 +177,11 @@ export const SEASON: Evening[] = [
       levelId: 'loch',
       objective: 'watch',
       dayLength: 240,
-      target: 9,
+      target: 11,
       wolfStart: 0.03,
-      maxWolves: 4,
-      wolfRespawn: [6, 9],
+      maxWolves: 6,
+      pack: 'full',
+      wolfRespawn: [4, 7],
       wolfSpeedScale: 1,
       flock: [{ at: 'promontory', ewes: 9, lambs: 3 }],
       dogStart: [-8, 36],
@@ -200,11 +202,11 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'pass',
       objective: 'gather',
-      dayLength: 480,
-      target: 10,
-      wolfStart: 0.24,
+      dayLength: 370,
+      target: 11,
+      wolfStart: 0.2,
       maxWolves: 2,
-      wolfRespawn: [16, 22],
+      wolfRespawn: [14, 20],
       wolfSpeedScale: 1,
       flock: [
         { at: 'west-fold', ewes: 5, black: 1 },
@@ -228,11 +230,12 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'hollow',
       objective: 'gather',
-      dayLength: 390,
-      target: 10,
-      wolfStart: 0.22,
-      maxWolves: 2,
-      wolfRespawn: [16, 22],
+      dayLength: 300,
+      target: 11,
+      wolfStart: 0.2,
+      maxWolves: 3,
+      pack: 'full',
+      wolfRespawn: [12, 18],
       wolfSpeedScale: 1,
       flock: [
         { at: 'farbank-north', ewes: 4 },
@@ -259,12 +262,13 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'pass',
       objective: 'gather',
-      dayLength: 520,
-      target: 11,
-      wolfStart: 0.18,
+      dayLength: 440,
+      target: 12,
+      wolfStart: 0.16,
       maxWolves: 3,
+      pack: 'full',
       wolfRespawn: [12, 16],
-      wolfSpeedScale: 1.06,
+      wolfSpeedScale: 1.08,
       flock: [
         { at: 'west-fold', ewes: 5, ram: true },
         { at: 'west-moor', ewes: 4, black: 1 },
@@ -285,17 +289,29 @@ export interface Charm {
   /** Total stars needed to unlock it. */
   stars: number;
   perks: Partial<Perks>;
+  /** A charm that adds something to do, not a number: Fly the old dog, or the outrun. */
+  verb?: 'fly' | 'outrun';
 }
 
 export const CHARMS: Charm[] = [
   { id: 'swift', title: 'Swift Paws', text: 'Pip runs 8% faster.', stars: 2, perks: { speed: 1.08 } },
   { id: 'wind', title: 'Second Wind', text: 'Sprinting tires Pip 30% less.', stars: 5, perks: { staminaDrain: 0.7 } },
   { id: 'gruff', title: 'Gruff Bark', text: 'Barks carry 30% further and come back sooner.', stars: 9, perks: { barkRadius: 1.3, barkCooldown: 0.85 } },
+  { id: 'outrun', title: 'The Outrun', text: 'Hold Z and X together: Pip runs wide round to the far side of the nearest loose flock.', stars: 7, perks: {}, verb: 'outrun' },
   { id: 'eye', title: 'Steady Eye', text: 'Rams give way faster; creeping is calmer still.', stars: 13, perks: { eye: 1.7, creep: 0.8 } },
+  { id: 'fly', title: 'Old Fly', text: "Pip's mother comes along. Press F: she lies down where Pip stands and holds it (sheep keep off, wolves stay away). F again calls her back.", stars: 16, perks: {}, verb: 'fly' },
 ];
+
+/** The verb charms a set of worn charms brings (Fly, the outrun). */
+export function verbsFor(ids: string[]) {
+  const v = new Set(ids.map((id) => CHARMS.find((c) => c.id === id)?.verb).filter(Boolean));
+  return { fly: v.has('fly'), outrun: v.has('outrun') };
+}
 
 /** Two charms may be worn once this many stars are earned. */
 export const SECOND_CHARM_STARS = 12;
+/** And three once this many (Wolf Moon stars count). */
+export const THIRD_CHARM_STARS = 30;
 
 export function perksFor(ids: string[]): Perks {
   const p = { ...NO_PERKS };
@@ -309,9 +325,18 @@ export function perksFor(ids: string[]): Perks {
 
 // ---------------------------------------------------------------- progress (saved in the browser)
 
+/** best: most sheep home; time: fastest win in seconds (gather); score: best trial points. */
+export interface EveningRecord {
+  stars: number;
+  ribbon: boolean;
+  best?: number;
+  time?: number;
+  score?: number;
+}
+
 export interface Progress {
-  /** best: most sheep home; time: fastest win in seconds (gather); score: best trial points. */
-  evenings: Record<string, { stars: number; ribbon: boolean; best?: number; time?: number; score?: number }>;
+  /** Each evening's record; `moon` is its Wolf Moon record, kept apart. */
+  evenings: Record<string, EveningRecord & { moon?: EveningRecord }>;
   charms: string[];
   /** The last evening played (the season map opens on it). */
   last?: string;
@@ -342,8 +367,40 @@ export function saveProgress(p: Progress) {
 
 /** The season's own evenings (today's evening keeps its best apart and earns no charms). */
 const seasonRecords = (p: Progress) => Object.entries(p.evenings).filter(([id]) => !id.startsWith('daily-')).map(([, e]) => e);
+/** Every star earned, Wolf Moon stars included (charms are bought with these). */
 export function totalStars(p: Progress) {
-  return seasonRecords(p).reduce((a, e) => a + e.stars, 0);
+  return seasonRecords(p).reduce((a, e) => a + e.stars + (e.moon?.stars ?? 0), 0);
+}
+export function moonStars(p: Progress) {
+  return seasonRecords(p).reduce((a, e) => a + (e.moon?.stars ?? 0), 0);
+}
+
+// ---------------------------------------------------------------- Wolf Moon
+
+/** An evening's Wolf Moon opens once it has three stars (the season's own evenings only). */
+export function moonOpen(p: Progress, ev: Evening) {
+  return !ev.id.startsWith('daily') && SEASON.includes(ev) && (p.evenings[ev.id]?.stars ?? 0) >= 3;
+}
+
+/**
+ * The Wolf Moon: the same evening, harder. A shorter evening, the wolves out sooner, one more of
+ * them, hunting as a full pack, and one more sheep needed. The trial becomes a championship course
+ * (less time, judged strictly); the night watch a longer night.
+ */
+export function moonRules<R extends Omit<Rules, 'id' | 'perks'>>(r: R): R {
+  const total = r.flock.reduce((a, g) => a + g.ewes + (g.lambs ?? 0) + (g.ram ? 1 : 0) + (g.black ?? 0), 0) + (r.lostLamb ? 1 : 0);
+  if (r.objective === 'trial') return { ...r, dayLength: Math.round(r.dayLength * 0.8), strict: true };
+  if (r.objective === 'watch') return { ...r, dayLength: Math.round(r.dayLength * 1.25), maxWolves: r.maxWolves + 1, wolfRespawn: [r.wolfRespawn[0] * 0.8, r.wolfRespawn[1] * 0.8], pack: 'full', target: Math.min(total - 1, r.target + 1) };
+  return {
+    ...r,
+    dayLength: Math.round(r.dayLength * 0.88),
+    wolfStart: r.wolfStart === null ? null : r.wolfStart * 0.75,
+    maxWolves: r.maxWolves + 1,
+    wolfRespawn: [r.wolfRespawn[0] * 0.75, r.wolfRespawn[1] * 0.75],
+    wolfSpeedScale: r.wolfSpeedScale * 1.05,
+    pack: 'full',
+    target: Math.min(total, r.target + 1),
+  };
 }
 export function totalRibbons(p: Progress) {
   return seasonRecords(p).filter((e) => e.ribbon).length;
@@ -415,12 +472,13 @@ export function dailyEvening(date = new Date()): Evening {
     rules: {
       levelId: where.levelId,
       objective: 'gather',
-      dayLength: 300 + 75 * n + where.extra + (weather === 'fog' || weather === 'snow' ? 60 : 0),
-      target: Math.round(total * 0.72),
-      wolfStart: rng.range(0.16, 0.24),
+      dayLength: Math.round(140 + 55 * n + where.extra * 0.6 + (weather === 'fog' || weather === 'snow' ? 40 : 0)),
+      target: Math.round(total * 0.82),
+      wolfStart: rng.range(0.16, 0.22),
       maxWolves: n,
-      wolfRespawn: [22, 34],
-      wolfSpeedScale: 0.95,
+      pack: n >= 3 ? 'gentle' : undefined,
+      wolfRespawn: [14, 22],
+      wolfSpeedScale: 1,
       flock,
       weather,
       season,

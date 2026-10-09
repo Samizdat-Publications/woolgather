@@ -28,7 +28,19 @@ export interface Dog extends Body {
   lying: boolean;
   /** Flanking round a flock: 1 clockwise ("come bye"), -1 anticlockwise ("away"), 0 not. */
   flanking: number;
+  /** Running the outrun (a charm). */
+  outrunning?: boolean;
 }
+
+/** Fly, the old dog: at Pip's heel, running to a spot, or lying there holding it. */
+export interface Helper extends Dog {
+  mode: 'heel' | 'go' | 'down';
+  tx: number;
+  tz: number;
+}
+
+/** How far sheep keep off Fly while she lies holding a spot (and while she runs to it). */
+export const FLY = { holdR: 6.5, runR: 8.5, wolfR: 8, speed: 9.5, heelSpeed: 12 };
 
 export type SheepState = 'graze' | 'walk' | 'alert' | 'flee' | 'panic' | 'grabbed' | 'folded' | 'lost' | 'hidden';
 export type SheepKind = 'ewe' | 'lamb' | 'ram' | 'black';
@@ -80,6 +92,8 @@ export interface Sheep extends Body {
 }
 
 export type WolfState = 'stalk' | 'charge' | 'drag' | 'flee' | 'gone';
+/** In a pack: the bait shows itself on Pip's side and feints; the flanker circles to the far side. */
+export type WolfRole = 'lone' | 'bait' | 'flanker';
 
 export interface Wolf extends Body {
   id: number;
@@ -92,6 +106,14 @@ export interface Wolf extends Body {
   inWater: boolean;
   /** Seconds this wolf has been inside the valley: it must be seen approaching before it charges. */
   valleyT: number;
+  role: WolfRole;
+  /** The other wolf of its pair (wolf id), or -1. */
+  mate: number;
+  /** Bait: seconds left of a feint (a short rush at the flock that breaks off), and until the next. */
+  feintT: number;
+  feintCd: number;
+  /** Flanker: seconds spent in position on the far side of the flock. */
+  posT: number;
 }
 
 export type SimEvent =
@@ -124,7 +146,15 @@ export type SimEvent =
   /** Night watch, midnight: something big crashes through the bracken and the flock scatters. */
   | { type: 'scatter'; x: number; z: number }
   /** A trial gate passed or missed. */
-  | { type: 'gate'; index: number; name: string; passed: boolean; x: number; z: number };
+  | { type: 'gate'; index: number; name: string; passed: boolean; x: number; z: number }
+  /** Two wolves pair up: the bait (x, z) howls; the flanker (fx, fz) slips round to the far side. */
+  | { type: 'pack'; x: number; z: number; id: number; fx: number; fz: number; fid: number }
+  /** The bait wolf rushes the flock and breaks off. */
+  | { type: 'feint'; x: number; z: number; id: number }
+  /** The flanker is in position behind the flock: a low growl from that side. */
+  | { type: 'growl'; x: number; z: number; id: number }
+  /** Pip sends Fly to lie down where he stands (down) or calls her back to heel. */
+  | { type: 'fly'; x: number; z: number; down: boolean };
 
 export type Outcome =
   | { kind: 'win'; reason: 'all-home' | 'nightfall' | 'latched' | 'dawn' | 'trial'; stars: number }
@@ -139,6 +169,8 @@ export class Sim {
   readonly perks: Perks;
   readonly rng: Rng;
   readonly dog: Dog;
+  /** Fly, the old dog (a charm), or null. */
+  readonly fly: Helper | null;
   readonly sheep: Sheep[] = [];
   readonly wolves: Wolf[] = [];
   readonly events: SimEvent[] = [];
@@ -208,6 +240,7 @@ export class Sim {
       lying: false,
       flanking: 0,
     };
+    this.fly = rules.fly && rules.objective !== 'trial' ? { ...this.dog, x: dx - 2, z: dz + 2.5, r: DOG.radius, mode: 'heel', tx: dx, tz: dz } : null;
 
     // The flock is placed from its own seed, so an evening starts the same way every time.
     const place = new Rng(rules.seed ?? seed);
@@ -308,8 +341,10 @@ export class Sim {
   trialScore() {
     const missed = this.gateResults.filter((g) => g === 'missed').length + (this.outcome ? this.gateResults.filter((g) => g === null).length : 0);
     const out = this.outcome ? this.total - this.folded : 0;
-    const slow = Math.max(0, (this.elapsed - 0.6 * this.rules.dayLength) / (0.4 * this.rules.dayLength)) * 10;
-    return Math.max(0, Math.round(100 - 15 * missed - 12 * out - slow));
+    const strict = !!this.rules.strict;
+    const from = strict ? 0.45 : 0.6;
+    const slow = Math.max(0, (this.elapsed - from * this.rules.dayLength) / ((1 - from) * this.rules.dayLength)) * (strict ? 15 : 10);
+    return Math.max(0, Math.round(100 - (strict ? 20 : 15) * missed - 12 * out - slow));
   }
 
   /** Did the step from (px, pz) to (x, z) go between the posts of trial gate i? */
@@ -381,6 +416,7 @@ export class Sim {
     if (this.outcome) return;
     this.elapsed += dt;
     this.updateDog(dt, input);
+    if (this.fly) this.updateFly(this.fly, dt, input);
     this.updateSheep(dt);
     this.updateWolves(dt);
     this.updateWeather(dt);
@@ -435,6 +471,122 @@ export class Sim {
     return { x: tx / tl, z: tz / tl };
   }
 
+  /**
+   * Fly: F (d-pad down) sends her to the spot where Pip stands, where she lies down and holds it:
+   * sheep keep off her and wolves will not come near. F again calls her back to heel, where she
+   * moves nothing.
+   */
+  private updateFly(f: Helper, dt: number, input: Input | null) {
+    const d = this.dog;
+    if (input?.pressed('fly')) {
+      if (f.mode === 'heel') {
+        f.mode = 'go';
+        f.tx = d.x;
+        f.tz = d.z;
+      } else f.mode = 'heel';
+      this.events.push({ type: 'fly', x: f.x, z: f.z, down: f.mode === 'go' });
+    }
+    let tx = f.tx;
+    let tz = f.tz;
+    let max = FLY.speed;
+    if (f.mode === 'heel') {
+      // A step behind Pip's shoulder.
+      tx = d.x - Math.sin(d.facing) * 2.6 + Math.cos(d.facing) * 1.2;
+      tz = d.z - Math.cos(d.facing) * 2.6 - Math.sin(d.facing) * 1.2;
+      max = FLY.heelSpeed;
+    }
+    const dx = tx - f.x;
+    const dz = tz - f.z;
+    const dl = Math.hypot(dx, dz);
+    if (f.mode === 'go' && dl < 0.8) f.mode = 'down';
+    f.lying = f.mode === 'down';
+    const want = f.mode === 'down' || dl < 0.6 ? 0 : Math.min(max, dl * 3);
+    const ux = dl > 0.01 ? dx / dl : 0;
+    const uz = dl > 0.01 ? dz / dl : 0;
+    const k = 1 - Math.exp(-8 * dt);
+    f.vx = lerp(f.vx, ux * want, k);
+    f.vz = lerp(f.vz, uz * want, k);
+    f.x += f.vx * dt;
+    f.z += f.vz * dt;
+    collideStatic(this.level, f, { boundary: true, gate: false });
+    f.speed = Math.hypot(f.vx, f.vz);
+    f.moving = f.speed > 0.3;
+    if (f.speed > 0.4) f.facing = dampAngle(f.facing, Math.atan2(f.vx, f.vz), 10, dt);
+    else if (f.mode === 'down') f.facing = dampAngle(f.facing, Math.atan2(d.x - f.x, d.z - f.z), 2, dt);
+    f.inWater = this.level.inWater(f.x, f.z);
+  }
+
+  /** Fly's hold on the sheep: the radius they keep off her, or 0 while she is at heel. */
+  get flyReach() {
+    const f = this.fly;
+    if (!f || f.mode === 'heel') return 0;
+    return f.mode === 'down' ? FLY.holdR : FLY.runR;
+  }
+
+  /**
+   * The outrun: a wide, pear-shaped run out to the far side of a flock (from the fold), to stop
+   * behind it ready to bring it home. It goes for the nearest flock more than 20 m away (the one
+   * Pip is not already working), else the nearest; it keeps outside the flock's flight zone on the
+   * way, and stops on arrival. Null when there is nothing to run out to (or Pip is there).
+   */
+  private outrunDir() {
+    const d = this.dog;
+    let best: Sheep | null = null;
+    let bd = Infinity;
+    let near: Sheep | null = null;
+    let nd = Infinity;
+    for (const s of this.sheep) {
+      if (!this.isFree(s)) continue;
+      const dd = Math.hypot(s.x - d.x, s.z - d.z);
+      if (dd < nd) {
+        nd = dd;
+        near = s;
+      }
+      if (dd > 20 && dd < bd) {
+        bd = dd;
+        best = s;
+      }
+    }
+    const pick = best ?? near;
+    if (!pick) return null;
+    const f = this.flockAround(pick);
+    const m = this.level.fold.mouth;
+    const ax = f.cx - m.x;
+    const az = f.cz - m.z;
+    const al = Math.hypot(ax, az) || 1;
+    const R = f.spread + SHEEP.threatRadiusSprint + 2;
+    const tx = f.cx + (ax / al) * R;
+    const tz = f.cz + (az / al) * R;
+    const toT = Math.hypot(tx - d.x, tz - d.z);
+    if (toT < 2.5) return null;
+    const rx = d.x - f.cx;
+    const rz = d.z - f.cz;
+    const r = Math.hypot(rx, rz) || 1;
+    if (r < R + 8) {
+      // Close in: run round the flock towards the far side, holding the radius.
+      const cur = Math.atan2(rz, rx);
+      let da = Math.atan2(tz - f.cz, tx - f.cx) - cur;
+      da = Math.atan2(Math.sin(da), Math.cos(da));
+      if (Math.abs(da) < 0.2) return { x: (tx - d.x) / toT, z: (tz - d.z) / toT };
+      const dir = Math.sign(da);
+      const radial = clamp((R - r) / 4, -1, 1);
+      const ox = (-rz / r) * dir + (rx / r) * radial * 1.3;
+      const oz = (rx / r) * dir + (rz / r) * radial * 1.3;
+      const ol = Math.hypot(ox, oz) || 1;
+      return { x: ox / ol, z: oz / ol };
+    }
+    // Far out: head for the shoulder of the flock on the way round (never straight through it).
+    const cur = Math.atan2(rz, rx);
+    let da = Math.atan2(tz - f.cz, tx - f.cx) - cur;
+    da = Math.atan2(Math.sin(da), Math.cos(da));
+    const side = Math.sign(da) || 1;
+    const sa = cur + side * Math.min(Math.abs(da), Math.asin(Math.min(1, (R + 4) / r)) + 0.2);
+    const sx = f.cx + Math.cos(sa) * (R + 4);
+    const sz = f.cz + Math.sin(sa) * (R + 4);
+    const sl = Math.hypot(sx - d.x, sz - d.z) || 1;
+    return { x: (sx - d.x) / sl, z: (sz - d.z) / sl };
+  }
+
   private updateDog(dt: number, input: Input | null) {
     const d = this.dog;
     const P = this.perks;
@@ -444,7 +596,15 @@ export class Sim {
     let mx = stunned || d.lying ? 0 : (input?.moveX ?? 0);
     let mz = stunned || d.lying ? 0 : (input?.moveZ ?? 0);
     d.flanking = 0;
-    if (!stunned && !d.lying && input?.flank) {
+    let outrun = false;
+    if (!stunned && !d.lying && input?.outrun && this.rules.outrun) {
+      const o = this.outrunDir();
+      if (o) {
+        mx = o.x;
+        mz = o.z;
+        outrun = true;
+      }
+    } else if (!stunned && !d.lying && input?.flank) {
       const f = this.flankDir(input.flank);
       if (f) {
         mx = f.x;
@@ -456,7 +616,8 @@ export class Sim {
     d.creeping = !stunned && !d.lying && !!input?.creep;
     if (d.stamina <= 0) d.sprintLock = true;
     else if (d.stamina > 33) d.sprintLock = false;
-    d.sprinting = !stunned && !!input?.sprint && mag > 0.1 && !d.creeping && !d.sprintLock && d.stamina > 0;
+    d.sprinting = !stunned && (!!input?.sprint || (outrun && mag > 0.5)) && mag > 0.1 && !d.creeping && !d.sprintLock && d.stamina > 0;
+    d.outrunning = outrun;
 
     let max = (d.creeping ? DOG.creepSpeed : d.sprinting ? DOG.sprintSpeed : DOG.walkSpeed) * P.speed;
     // Crossing open ground with no sheep near, Pip lopes along faster (and sprints for longer):
@@ -665,6 +826,20 @@ export class Sim {
         vx += (ddx / (dd || 1)) * sp;
         vz += (ddz / (dd || 1)) * sp;
         fear = Math.max(fear, w);
+      }
+      const fr = this.flyReach;
+      if (fr > 0 && this.fly && !orphan) {
+        // Fly holding a spot: the sheep give her room, as they would a dog lying at a gate.
+        const fx = s.x - this.fly.x;
+        const fz = s.z - this.fly.z;
+        const fd = Math.hypot(fx, fz);
+        if (fd < fr) {
+          const w = 1 - fd / fr;
+          const sp = lerp(2.4, SHEEP.fleeSpeed, Math.pow(w, 0.7));
+          vx += (fx / (fd || 1)) * sp;
+          vz += (fz / (fd || 1)) * sp;
+          fear = Math.max(fear, w * 0.8);
+        }
       }
       for (const w of this.wolves) {
         if (w.state === 'gone' || w.state === 'flee') continue;
@@ -1293,7 +1468,9 @@ export class Sim {
       if (this.wolves.some((w) => w.target === s && w.state !== 'gone' && w.state !== 'flee')) continue;
       const toDog = Math.hypot(s.x - d.x, s.z - d.z);
       const toWolf = Math.hypot(s.x - fromX, s.z - fromZ);
-      let score = toDog * 1.2 - toWolf * 0.6 + (this.level.inFold(s.x, s.z, -6) ? -40 : 0);
+      // Far from Pip is easy prey, but past about 100 m a snatch cannot be answered at all, and a
+      // loss nobody could have stopped is not a challenge, so those sheep score much lower.
+      let score = Math.min(toDog, 100) * 1.2 - Math.max(0, toDog - 100) * 1.5 - toWolf * 0.6 + (this.level.inFold(s.x, s.z, -6) ? -40 : 0);
       // Lambs are the easy prey; a sheep at the ram's side is not.
       if (s.kind === 'lamb') score += 18;
       if (s.kind === 'black') score += 6;
@@ -1324,12 +1501,30 @@ export class Sim {
       }
     }
     if (!s) return;
+    // A pack: a lone wolf already stalking Pip's flock calls a second one, which goes for the far
+    // side of the same flock while the first shows itself.
+    const bait = this.rules.pack && !first ? this.wolves.find((o) => o.state === 'stalk' && o.role === 'lone' && o.target && o.valleyT > 2 && Math.hypot(o.target.x - d.x, o.target.z - d.z) < 45) : undefined;
+    let flock: { cx: number; cz: number } | null = null;
+    if (bait?.target) {
+      flock = this.flockAround(bait.target);
+      // The sheep on the far side of that flock from the bait.
+      let far = -Infinity;
+      for (const q of this.sheep) {
+        if (!this.isFree(q) || q.kind === 'ram' || (q.x - bait.target.x) ** 2 + (q.z - bait.target.z) ** 2 > 16 * 16) continue;
+        const dd = Math.hypot(q.x - bait.x, q.z - bait.z);
+        if (dd > far) {
+          far = dd;
+          s = q;
+        }
+      }
+    }
     let den = this.level.dens[0];
     let bd = Infinity;
     for (const dn of this.level.dens) {
       const toDog = Math.hypot(dn[0] - d.x, dn[1] - d.z);
       if (toDog < 30) continue;
-      const dd = Math.hypot(dn[0] - s.x, dn[1] - s.z);
+      // A flanker leaves from the den furthest round the far side of the flock from its mate.
+      const dd = bait && flock ? -((dn[0] - flock.cx) * (flock.cx - bait.x) + (dn[1] - flock.cz) * (flock.cz - bait.z)) / (Math.hypot(dn[0] - flock.cx, dn[1] - flock.cz) || 1) : Math.hypot(dn[0] - s.x, dn[1] - s.z);
       if (dd < bd) {
         bd = dd;
         den = dn;
@@ -1350,11 +1545,47 @@ export class Sim {
       stateT: 0,
       inWater: false,
       valleyT: 0,
+      role: bait ? 'flanker' : 'lone',
+      mate: bait ? bait.id : -1,
+      feintT: 0,
+      feintCd: 0,
+      posT: 0,
     };
     const slot = this.wolves.findIndex((o) => o.state === 'gone');
     if (slot >= 0) this.wolves[slot] = w;
     else this.wolves.push(w);
     this.events.push({ type: 'wolfSpawn', x: w.x, z: w.z, id: w.id, tx: s.x, tz: s.z });
+    if (bait) {
+      bait.role = 'bait';
+      bait.mate = w.id;
+      bait.feintCd = 2;
+      this.events.push({ type: 'pack', x: bait.x, z: bait.z, id: bait.id, fx: w.x, fz: w.z, fid: w.id });
+    }
+  }
+
+  /** The middle and spread of the free sheep within 16 m of a sheep (its flock, roughly). */
+  private flockAround(s: Sheep) {
+    let cx = 0;
+    let cz = 0;
+    let n = 0;
+    for (const q of this.sheep) {
+      if (!this.isFree(q) || (q.x - s.x) ** 2 + (q.z - s.z) ** 2 > 16 * 16) continue;
+      cx += q.x;
+      cz += q.z;
+      n++;
+    }
+    cx /= n || 1;
+    cz /= n || 1;
+    let spread = 0;
+    for (const q of this.sheep) if (this.isFree(q) && (q.x - s.x) ** 2 + (q.z - s.z) ** 2 <= 16 * 16) spread = Math.max(spread, Math.hypot(q.x - cx, q.z - cz));
+    return { cx, cz, spread };
+  }
+
+  /** A wolf's pack mate, if it is still hunting. */
+  private mateOf(w: Wolf) {
+    if (w.mate < 0) return null;
+    const m = this.wolves.find((o) => o.id === w.mate);
+    return m && (m.state === 'stalk' || m.state === 'charge') ? m : null;
   }
 
   private scareWolf(w: Wolf) {
@@ -1378,6 +1609,7 @@ export class Sim {
     w.state = 'flee';
     w.stateT = 0;
     w.target = null;
+    w.feintT = 0;
     this.events.push({ type: 'wolfScared', x: w.x, z: w.z, id: w.id });
   }
 
@@ -1442,6 +1674,8 @@ export class Sim {
         this.events.push({ type: 'butt', x: (w.x + ram.x) / 2, z: (w.z + ram.z) / 2, wolf: true });
       }
       if (dawn && (w.state === 'stalk' || w.state === 'charge')) this.scareWolf(w);
+      const fly = this.fly && this.fly.mode !== 'heel' ? this.fly : null;
+      if (fly && w.state !== 'flee' && w.state !== 'drag' && Math.hypot(w.x - fly.x, w.z - fly.z) < DOG.wolfScareTouch + 0.6) this.scareWolf(w);
 
       let tx = 0;
       let tz = 0;
@@ -1461,6 +1695,13 @@ export class Sim {
       const dogD = Math.hypot(dogDx, dogDz) || 1;
 
       if (w.state !== 'flee' && this.level.insideValley(w.x, w.z)) w.valleyT += dt;
+      // A pack breaks up when one of the pair stops hunting.
+      if (w.role !== 'lone' && (w.state === 'stalk' || w.state === 'charge') && !this.mateOf(w)) {
+        w.role = 'lone';
+        w.mate = -1;
+        w.feintT = 0;
+      }
+      w.feintCd = Math.max(0, w.feintCd - dt);
       if (w.state === 'stalk' && w.target) {
         const s = w.target;
         const sx = s.x - w.x;
@@ -1469,8 +1710,12 @@ export class Sim {
         tx = sx / sd;
         tz = sz / sd;
         speed = WOLF.stalkSpeed * spd;
-        if (dogD < WOLF.dogWaryRadius) {
-          const k = 1 - dogD / WOLF.dogWaryRadius;
+        const gentle = this.rules.pack !== 'full';
+        const mate = this.mateOf(w);
+        // The bait is brazen: it lets Pip come closer before it gives ground.
+        const wary = w.role === 'bait' ? WOLF.dogWaryRadius * 0.6 : WOLF.dogWaryRadius;
+        if (dogD < wary) {
+          const k = 1 - dogD / wary;
           tx += (dogDx / dogD) * k * 2.2;
           tz += (dogDz / dogD) * k * 2.2;
         }
@@ -1484,14 +1729,108 @@ export class Sim {
             tz += (rz / rd) * (1 - rd / 9) * 2;
           }
         }
-        const sheepToDog = Math.hypot(s.x - d.x, s.z - d.z);
+        if (fly) {
+          // Wolves give the old dog a wide berth.
+          const fx = w.x - fly.x;
+          const fz = w.z - fly.z;
+          const fd = Math.hypot(fx, fz) || 1;
+          if (fd < FLY.wolfR) {
+            tx += (fx / fd) * (1 - fd / FLY.wolfR) * 2.4;
+            tz += (fz / fd) * (1 - fd / FLY.wolfR) * 2.4;
+          }
+        }
+        const sheepToDog = Math.min(Math.hypot(s.x - d.x, s.z - d.z), fly ? Math.hypot(s.x - fly.x, s.z - fly.z) + 1 : Infinity);
         const seenLongEnough = w.valleyT > (this.watch ? 3 : w.id === 0 ? 10 : 6);
-        const mayCharge = !someoneDragging && this.snatchCd <= 0 && seenLongEnough;
-        if (mayCharge && sd < WOLF.chargeRange && sheepToDog > (this.watch ? 6 : 8)) {
+        let mayCharge = !someoneDragging && this.snatchCd <= 0 && seenLongEnough;
+        let range: number = WOLF.chargeRange;
+        let lurk = true;
+        if (w.role === 'bait' && mate) {
+          // Shows itself on Pip's side and rushes the flock now and then; it only strikes for
+          // real if Pip ignores it altogether.
+          lurk = false;
+          mayCharge = mayCharge && dogD > 24;
+          if (w.feintT > 0) {
+            w.feintT -= dt;
+            speed = WOLF.chargeSpeed * spd * 0.8;
+            if (sd < 6) w.feintT = 0;
+          } else if (sd < WOLF.lurkRange) {
+            // Prowl back and forth in plain view, about 13 m off the flock.
+            const k = (13 - sd) / 13;
+            const side = Math.sin(this.elapsed * 0.7 + w.id) > 0 ? 1 : -1;
+            tx = (sx / sd) * -k * 1.5 + (-sz / sd) * 0.7 * side;
+            tz = (sz / sd) * -k * 1.5 + (sx / sd) * 0.7 * side;
+            speed = WOLF.stalkSpeed * spd * 0.7;
+            if (w.feintCd <= 0 && dogD < 32 && !mayCharge) {
+              w.feintT = 1.1;
+              w.feintCd = gentle ? this.rng.range(7, 10) : this.rng.range(4, 7);
+              this.events.push({ type: 'feint', x: w.x, z: w.z, id: w.id });
+            }
+          }
+        } else if (w.role === 'flanker' && mate) {
+          // Circle round outside the sheep's fear of wolves to the side of the flock away from the
+          // bait, then wait there for Pip to commit to the bait.
+          lurk = false;
+          const f = this.flockAround(s);
+          const ax = f.cx - mate.x;
+          const az = f.cz - mate.z;
+          const al = Math.hypot(ax, az) || 1;
+          const R = f.spread + 15;
+          const gx = f.cx + (ax / al) * R;
+          const gz = f.cz + (az / al) * R;
+          const rx = w.x - f.cx;
+          const rz = w.z - f.cz;
+          const rl = Math.hypot(rx, rz) || 1;
+          const cur = Math.atan2(rz, rx);
+          const want = Math.atan2(gz - f.cz, gx - f.cx);
+          let da = want - cur;
+          while (da > Math.PI) da -= Math.PI * 2;
+          while (da < -Math.PI) da += Math.PI * 2;
+          const toGoal = Math.hypot(gx - w.x, gz - w.z);
+          if (toGoal < 4) {
+            w.posT += dt;
+            if (w.posT - dt <= 0) this.events.push({ type: 'growl', x: w.x, z: w.z, id: w.id });
+            tx = (gx - w.x) * 0.2;
+            tz = (gz - w.z) * 0.2;
+            speed = WOLF.stalkSpeed * spd * 0.3;
+          } else {
+            // Round the flock (never through it), holding the radius.
+            const dir = Math.sign(da) || 1;
+            const radial = clamp((R - rl) / 4, -1, 1);
+            tx = (-rz / rl) * dir * (Math.abs(da) > 0.25 ? 1 : 0.3) + (rx / rl) * radial * 1.3 + ((gx - w.x) / (toGoal || 1)) * (Math.abs(da) > 0.25 ? 0 : 1);
+            tz = (rx / rl) * dir * (Math.abs(da) > 0.25 ? 1 : 0.3) + (rz / rl) * radial * 1.3 + ((gz - w.z) / (toGoal || 1)) * (Math.abs(da) > 0.25 ? 0 : 1);
+            speed = WOLF.stalkSpeed * spd * 1.15;
+            if (dogD < WOLF.dogWaryRadius) {
+              const k = 1 - dogD / WOLF.dogWaryRadius;
+              tx += (dogDx / dogD) * k * 2.2;
+              tz += (dogDz / dogD) * k * 2.2;
+            }
+          }
+          // Pip has gone to the bait: he is further from this side of the flock than from it.
+          const dogToBait = Math.hypot(d.x - mate.x, d.z - mate.z);
+          const committed = sheepToDog > (gentle ? 20 : 16) && dogToBait < sheepToDog;
+          mayCharge = mayCharge && w.posT > (gentle ? 3 : 1.2) && committed;
+          range = R + 2;
+          if (mayCharge) {
+            // Go for whichever sheep of the flock is nearest.
+            let nd = Infinity;
+            for (const q of this.sheep) {
+              if (!this.isFree(q) || q.kind === 'ram' || (q.x - f.cx) ** 2 + (q.z - f.cz) ** 2 > (f.spread + 2) ** 2) continue;
+              const dd = Math.hypot(q.x - w.x, q.z - w.z);
+              if (dd < nd && Math.hypot(q.x - d.x, q.z - d.z) > 8) {
+                nd = dd;
+                w.target = q;
+              }
+            }
+          }
+        }
+        const tgt = w.target ?? s;
+        const td = Math.hypot(tgt.x - w.x, tgt.z - w.z);
+        if (mayCharge && td < range && Math.hypot(tgt.x - d.x, tgt.z - d.z) > (this.watch ? 6 : 8)) {
           w.state = 'charge';
           w.stateT = 0;
+          w.feintT = 0;
           this.events.push({ type: 'charge', x: w.x, z: w.z, id: w.id });
-        } else if (!mayCharge && sd < WOLF.lurkRange) {
+        } else if (lurk && !mayCharge && sd < WOLF.lurkRange) {
           const k = (WOLF.lurkRange - sd) / WOLF.lurkRange;
           tx = -(sx / sd) * k * 2 + (-sz / sd) * 0.6;
           tz = -(sz / sd) * k * 2 + (sx / sd) * 0.6;
@@ -1513,9 +1852,10 @@ export class Sim {
           s.stateT = 0;
           s.panicT = 0;
           this.events.push({ type: 'grab', x: s.x, z: s.z, id: s.id });
-        } else if (dogD < 7 || w.stateT > 4) {
+        } else if (dogD < 7 || w.stateT > (w.role === 'flanker' ? 5 : 4)) {
           w.state = 'stalk';
           w.stateT = 0;
+          w.posT = 0;
         }
       } else if (w.state === 'drag' && w.target) {
         const den = this.level.nearestDen(w.x, w.z);
@@ -1700,7 +2040,7 @@ export class Sim {
         const pen = this.free === 0;
         this.outcome = { kind: 'win', reason: 'trial', stars: 0 };
         const score = this.trialScore();
-        const stars = score >= 85 ? 3 : score >= 70 ? 2 : score >= 50 ? 1 : 0;
+        const stars = score >= 90 ? 3 : score >= 75 ? 2 : score >= 55 ? 1 : 0;
         this.outcome = null;
         this.finish(stars > 0 ? { kind: 'win', reason: pen ? 'trial' : 'nightfall', stars } : { kind: 'lose', reason: 'judges' });
       }
@@ -1736,7 +2076,7 @@ export class Sim {
   stars() {
     if (this.trial) {
       const sc = this.trialScore();
-      return sc >= 85 ? 3 : sc >= 70 ? 2 : 1;
+      return sc >= 90 ? 3 : sc >= 75 ? 2 : 1;
     }
     if (this.watch) {
       if (this.lost === 0) return 3;

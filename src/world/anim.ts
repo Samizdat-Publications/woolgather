@@ -166,7 +166,9 @@ export function animateWolf(r: Rig, st: AnimState, w: Wolf, dt: number, time: nu
   const p = rest(r, st);
   const fwd = w.vx * Math.sin(w.facing) + w.vz * Math.cos(w.facing);
   gait(r, st, fwd, dt, 1.05, 5.5, 9.5, 0.85);
-  const stalking = w.state === 'stalk';
+  // A bait wolf's feint looks like the real thing for a moment.
+  const charging = w.state === 'charge' || w.feintT > 0;
+  const stalking = w.state === 'stalk' && !charging;
   const dragging = w.state === 'drag';
   const fleeing = w.state === 'flee';
   // A stalking wolf slinks: belly low, legs folded, head level with its back.
@@ -176,13 +178,13 @@ export function animateWolf(r: Rig, st: AnimState, w: Wolf, dt: number, time: nu
   r.body.rotation.x = st.gallop * 0.14 * Math.sin(TAU * st.phase) - (dragging ? 0.1 : 0);
   if (r.head) {
     // Low and forward when stalking, braced down gripping the prey while dragging.
-    const want = stalking ? 0.38 : dragging ? 0.5 : w.state === 'charge' ? 0.12 : 0;
+    const want = stalking ? 0.38 : dragging ? 0.5 : charging ? 0.12 : 0;
     r.head.rotation.x = damp(r.head.rotation.x, want, 6, dt) + (dragging ? 0.05 * Math.sin(time * 9) : 0);
   }
-  for (const e of r.ears) e.rotation.x = damp(e.rotation.x, w.state === 'charge' || fleeing ? -0.6 : stalking ? 0.15 : 0, 8, dt);
+  for (const e of r.ears) e.rotation.x = damp(e.rotation.x, charging || fleeing ? -0.6 : stalking ? 0.15 : 0, 8, dt);
   if (r.tail) {
     // Level when hunting, streaming at the charge, tucked between the legs in flight.
-    const want = fleeing ? -0.75 : stalking ? -0.3 : w.state === 'charge' ? 0.25 : -0.1;
+    const want = fleeing ? -0.75 : stalking ? -0.3 : charging ? 0.25 : -0.1;
     r.tail.rotation.x = damp(r.tail.rotation.x, want, 6, dt);
     r.tail.rotation.y = 0.12 * Math.sin(TAU * st.phase) + (stalking ? 0.08 * Math.sin(time * 1.3 + st.seed) : 0);
   }

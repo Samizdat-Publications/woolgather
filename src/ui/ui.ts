@@ -2,7 +2,7 @@ import type { AudioSettings } from '../audio/engine';
 import { DIFFICULTIES, DOG, type Difficulty } from '../game/config';
 import type { Level } from '../game/level';
 import type { Rules } from '../game/rules';
-import { CHARMS, SECOND_CHARM_STARS, SEASON, dailyEvening, totalRibbons, totalStars, unlocked, type Evening, type Progress } from '../game/season';
+import { CHARMS, SECOND_CHARM_STARS, THIRD_CHARM_STARS, SEASON, dailyEvening, moonOpen, moonRules, moonStars, totalRibbons, totalStars, unlocked, type Evening, type Progress } from '../game/season';
 import type { Outcome, Sim } from '../game/sim';
 import { dawnTime, moodTime, SUN_MOON_SWAP } from '../render/daycycle';
 import { MARKER_ICONS } from './indicators';
@@ -53,6 +53,8 @@ export interface EndContext {
   progress: Progress;
   /** Beat this evening's best time (or trial score). */
   newBest?: boolean;
+  /** Played as its Wolf Moon. */
+  moon?: boolean;
 }
 
 export class Ui {
@@ -85,6 +87,8 @@ export class Ui {
           <div class="creep-pip"><span>Creep <kbd>C</kbd></span></div>
           <div class="creep-pip lie-pip"><span>Lie down <kbd>Q</kbd></span></div>
           <div class="creep-pip flank-pip"><span>Flank <kbd>Z</kbd><kbd>X</kbd></span></div>
+          <div class="creep-pip outrun-pip" hidden><span>Outrun <kbd>Z</kbd>+<kbd>X</kbd></span></div>
+          <div class="creep-pip fly-pip" hidden><span>Fly <kbd>F</kbd></span></div>
           <div class="bark-pip"><div class="bark-fill"></div><span>Bark <kbd>Space</kbd></span></div>
         </div>
         <div class="hud-hint"></div>
@@ -349,7 +353,9 @@ export class Ui {
   /** The season map: eight evenings with their stars and ribbons, and the charms. */
   renderSeason(p: Progress) {
     const s = totalStars(p);
-    $('.season-tally', this.root).innerHTML = `<div class="tally"><span class="tally-n">${s}</span><span class="tally-of">/ ${SEASON.length * 3} ★</span></div><div class="tally"><span class="tally-n">${totalRibbons(p)}</span><span class="tally-of">/ ${SEASON.length} ribbons</span></div>`;
+    const ms = moonStars(p);
+    const anyMoon = SEASON.some((e) => moonOpen(p, e));
+    $('.season-tally', this.root).innerHTML = `<div class="tally"><span class="tally-n">${s - ms}</span><span class="tally-of">/ ${SEASON.length * 3} ★</span></div><div class="tally"><span class="tally-n">${totalRibbons(p)}</span><span class="tally-of">/ ${SEASON.length} ribbons</span></div>${anyMoon ? `<div class="tally moon-tally"><span class="tally-n">${ms}</span><span class="tally-of">/ ${SEASON.length * 3} ☾ Wolf Moon</span></div>` : ''}`;
     const firstOpen = SEASON.findIndex((e, i) => unlocked(p, i) && !(p.evenings[e.id]?.stars));
     const focusId = p.last ?? SEASON[Math.max(0, firstOpen)].id;
     $('.season-grid', this.root).innerHTML = SEASON.map((e, i) => {
@@ -362,9 +368,10 @@ export class Ui {
         <b class="ev-title">${e.title}</b>
         <span class="ev-place">${e.place}</span>
         <span class="ev-foot">${open ? `<span class="ev-stars">${stars(rec?.stars ?? 0)}</span>${RIBBON(!!rec?.ribbon)}` : `${LOCK}<span class="ev-lock">Win evening ${e.num - 1} to open</span>`}</span>
+        ${moonOpen(p, e) ? `<span class="ev-moon" title="Wolf Moon">☾ <span class="ev-stars">${stars(rec?.moon?.stars ?? 0)}</span></span>` : ''}
       </button>`;
     }).join('') + this.dailyCard(p, focusId);
-    $('.charm-shelf', this.root).innerHTML = `<div class="charm-title">Pip's charms <small>earned with stars · wear ${s >= SECOND_CHARM_STARS ? 'two' : 'one'} on any evening</small></div><div class="charm-row">${CHARMS.map((c) => `<span class="charm ${s >= c.stars ? 'got' : ''}"><b>${c.title}</b><small>${s >= c.stars ? c.text : `${c.stars} ★ to earn`}</small></span>`).join('')}</div>`;
+    $('.charm-shelf', this.root).innerHTML = `<div class="charm-title">Pip's charms <small>earned with stars · wear ${s >= THIRD_CHARM_STARS ? 'three' : s >= SECOND_CHARM_STARS ? 'two' : 'one'} on any evening</small></div><div class="charm-row">${CHARMS.map((c) => `<span class="charm ${s >= c.stars ? 'got' : ''}"><b>${c.title}</b><small>${s >= c.stars ? c.text : `${c.stars} ★ to earn`}</small></span>`).join('')}</div>`;
     const done = SEASON.filter((e) => (p.evenings[e.id]?.stars ?? 0) > 0).length;
     const complete = done === SEASON.length;
     $('.season-card .kicker', this.root).textContent = complete ? 'The season is complete' : 'A year on the hill farm';
@@ -386,27 +393,31 @@ export class Ui {
       </button>`;
   }
 
-  renderIntro(e: Evening, p: Progress) {
-    const r = e.rules;
+  renderIntro(e: Evening, p: Progress, moon = false) {
+    const r = moon ? moonRules(e.rules) : e.rules;
+    $('.intro-card', this.root).classList.toggle('moon', moon);
+    const tier = moonOpen(p, e)
+      ? `<div class="tier-switch"><button class="tier ${moon ? '' : 'on'}" data-act="tier" data-arg="evening">The evening</button><button class="tier ${moon ? 'on' : ''}" data-act="tier" data-arg="moon">☾ Wolf Moon</button></div>${moon ? '<p class="tier-note">Under the Wolf Moon: a shorter evening, the wolves out sooner and hunting as a pack, and one more sheep needed.</p>' : ''}`
+      : '';
     const total = r.flock.reduce((a, g) => a + g.ewes + (g.lambs ?? 0) + (g.ram ? 1 : 0) + (g.black ?? 0), 0) + (r.lostLamb ? 1 : 0);
     $('.intro-kicker', this.root).textContent = `${e.num ? `Evening ${e.num}` : 'Today'} · ${e.when} · ${e.place}`;
     $('.intro-title', this.root).textContent = e.title;
     $('.intro-story', this.root).textContent = e.story;
     $('.intro-new', this.root).innerHTML = e.newThing ? `<div class="new-label">New tonight: ${escapeHtml(e.newThing.title)}</div><p>${keycaps(e.newThing.text)}</p>` : '';
-    const rec = p.evenings[e.id];
+    const rec = moon ? p.evenings[e.id]?.moon : p.evenings[e.id];
     const two = Math.ceil((r.target + total) / 2);
     const goals =
       r.objective === 'trial'
-        ? '<span>★ 50 points</span><span>★★ 70</span><span>★★★ 85</span>'
+        ? '<span>★ 55 points</span><span>★★ 75</span><span>★★★ 90</span>'
         : r.objective === 'watch'
         ? `<span>★ lose no more than ${total - r.target}</span><span>★★ lose ${Math.floor((total - r.target) / 2)} or fewer</span><span>★★★ lose none</span>`
         : `<span>★ ${r.target} of ${total} home</span><span>★★ ${two}</span><span>★★★ all ${total}</span>`;
-    $('.intro-goals', this.root).innerHTML = `<div class="goal-row">${goals}</div><div class="ribbon-row">${RIBBON(!!rec?.ribbon)}<span>${escapeHtml(e.ribbon.title)}</span></div>${rec?.stars ? `<div class="best">Your best: ${stars(rec.stars)}${rec.time ? ` · home in ${fmtTime(rec.time)}` : ''}${rec.score !== undefined ? ` · ${rec.score} points` : ''}</div>` : ''}`;
+    $('.intro-goals', this.root).innerHTML = `${tier}<div class="goal-row">${goals}</div><div class="ribbon-row">${RIBBON(!!rec?.ribbon)}<span>${escapeHtml(e.ribbon.title)}</span></div>${rec?.stars ? `<div class="best">Your best: ${stars(rec.stars)}${rec.time ? ` · home in ${fmtTime(rec.time)}` : ''}${rec.score !== undefined ? ` · ${rec.score} points` : ''}</div>` : ''}`;
     const s = totalStars(p);
-    const slots = s >= SECOND_CHARM_STARS ? 2 : 1;
+    const slots = s >= THIRD_CHARM_STARS ? 3 : s >= SECOND_CHARM_STARS ? 2 : 1;
     const got = CHARMS.filter((c) => s >= c.stars);
     $('.intro-charms', this.root).innerHTML = got.length
-      ? `<div class="charm-title">Wear ${slots === 2 ? 'two charms' : 'a charm'}</div><div class="charm-row">${got.map((c) => `<button class="charm pick ${p.charms.includes(c.id) ? 'on' : ''}" data-act="charm" data-arg="${c.id}"><b>${c.title}</b><small>${c.text}</small></button>`).join('')}</div>`
+      ? `<div class="charm-title">Wear ${slots === 3 ? 'three charms' : slots === 2 ? 'two charms' : 'a charm'}${e.rules.objective === 'trial' && p.charms.includes('fly') ? ' · Fly sits out the trial: one dog per run' : ''}</div><div class="charm-row">${got.map((c) => `<button class="charm pick ${p.charms.includes(c.id) ? 'on' : ''}" data-act="charm" data-arg="${c.id}"><b>${c.title}</b><small>${c.text}</small></button>`).join('')}</div>`
       : '';
   }
 
@@ -642,6 +653,12 @@ export class Ui {
     $('.creep-pip', this.root).classList.toggle('on', d.creeping);
     $('.lie-pip', this.root).classList.toggle('on', d.lying);
     $('.flank-pip', this.root).classList.toggle('on', d.flanking !== 0);
+    const outrunPip = $('.outrun-pip', this.root);
+    outrunPip.hidden = !r.outrun;
+    outrunPip.classList.toggle('on', !!d.outrunning);
+    const flyPip = $('.fly-pip', this.root);
+    flyPip.hidden = !sim.fly;
+    flyPip.classList.toggle('on', !!sim.fly && sim.fly.mode !== 'heel');
     const bark = $('.bark-pip', this.root);
     bark.classList.toggle('ready', d.barkCd <= 0);
     const reach = sim.barkRadius + 4;
@@ -680,7 +697,7 @@ export class Ui {
       })
       .concat(`<span class="course ${sim.gateIdx >= gates.length ? 'now' : ''}">Pen ${sim.folded}/${sim.total}</span>`)
       .join('');
-    $('.goals', this.root).innerHTML = '<span>★ 50</span><span>★★ 70</span><span>★★★ 85 points</span>';
+    $('.goals', this.root).innerHTML = '<span>★ 55</span><span>★★ 75</span><span>★★★ 90 points</span>';
   }
 
   /** The whole season in a row: each evening's stars, this one marked, locked ones dim. */
@@ -709,7 +726,7 @@ export class Ui {
     screen.classList.toggle('lose', !win);
     const ev = ctx.evening;
     const kicker = sim.trial ? 'The judges' : win ? (sim.watch ? 'Dawn' : "Day's end") : o.reason === 'wolves' ? 'Too many lost' : 'Nightfall';
-    $('.end-kicker', this.root).textContent = ev ? `${kicker} · ${ev.num ? `Evening ${ev.num}: ` : ''}${ev.title}` : `${kicker} · ${DIFFICULTIES[this.difficulty].label}`;
+    $('.end-kicker', this.root).textContent = ev ? `${kicker} · ${ev.num ? `Evening ${ev.num}: ` : ''}${ev.title}${ctx.moon ? ' · ☾ Wolf Moon' : ''}` : `${kicker} · ${DIFFICULTIES[this.difficulty].label}`;
     let tip = '';
     if (sim.trial) {
       const sc = sim.trialScore();

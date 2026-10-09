@@ -148,6 +148,26 @@ export class GameAudio {
         case 'wolfSpawn':
           if (!this.rec('howl', this.where(e.x, e.z, 0.45), 0.8, true)) this.sfx.howl(this.where(e.x, e.z, 0.45));
           break;
+        case 'pack':
+          // The bait calls; a beat later its mate answers from the far side.
+          if (!this.rec('howl', this.where(e.x, e.z, 0.5), 0.85, true)) this.sfx.howl(this.where(e.x, e.z, 0.5), true);
+          window.setTimeout(() => {
+            if (!this.rec('howl', this.where(e.fx, e.fz, 0.4), 0.7, true, 0.92)) this.sfx.howl(this.where(e.fx, e.fz, 0.4));
+          }, 900);
+          break;
+        case 'growl': {
+          // The flanker in position: low, from its side, never too quiet to hear.
+          const w = this.where(e.x, e.z, 0.45);
+          if (!this.rec('growl', w, 0.75, false, 0.8)) this.sfx.growl(w);
+          break;
+        }
+        case 'fly':
+          // Pip's mother answers with a short, deeper bark.
+          if (!this.rec('bark', this.where(e.x, e.z, 0.5), 0.7, false, 0.82)) this.sfx.bark(this.where(e.x, e.z, 0.5));
+          break;
+        case 'feint':
+          if (this.where(e.x, e.z).level > 0.3 && !this.rec('growl', this.where(e.x, e.z), 0.6, false, 1.1)) this.sfx.growl(this.where(e.x, e.z));
+          break;
         case 'charge':
           if (this.where(e.x, e.z).level > 0.35 && !this.rec('growl', this.where(e.x, e.z), 0.9)) this.sfx.growl(this.where(e.x, e.z));
           break;

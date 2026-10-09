@@ -1,0 +1,74 @@
+{
+  "critic": "claude-video",
+  "mode": "contact sheets",
+  "model": "claude-opus (blind subagent)",
+  "first_impression": "This is a genuinely pretty little game: chunky low-poly sheep, a crisp black and white collie, and evenings that go from honey-gold to rose to violet to moonlit blue. It looks like Dorfromantik met Untitled Goose Game in the Highlands, and the season map with nine named evenings tells me there is an actual campaign here, not a tech demo. My worry is that under all the weather it is the same circle-the-flock-and-push loop every time, and a couple of evenings (the mist, the storm flood) look more muddy than moody.",
+  "scores": {
+    "visual_appeal": 8,
+    "readability": 6,
+    "game_feel": 7,
+    "fun_factor": 7,
+    "variety": 8,
+    "sense_of_progression": 8,
+    "want_to_keep_playing": 7,
+    "would_wishlist": 7
+  },
+  "best_things": [
+    "The light tells the story: the first evening goes from flat gold (00:10) to a sunset cutaway over black pines (00:50) to a rose valley (00:52-01:00), the corrie turns purple heather at dusk (06:00-06:30), and the night watch ends with the flock bunched by the burn as the sky turns pink at dawn (13:02-13:40), which is a lovely payoff.",
+    "Every evening adds one visible new thing and it shows on screen: a show-field trial with a bunting crowd and red and white hurdles (01:10), lambs and a lost lamb (02:45, 04:27), Old Angus the ram with huge gold curled horns and a name tag (04:57-05:37), mist, a rainstorm with autumn trees (08:42), a snow pass with black sheep and an icy blue burn (10:47-12:35), and a blue moonlit night watch (12:37).",
+    "The wolf snatch moments are proper drama: red banner with distance and seconds to save it, a little close-up inset of the wolf dragging the sheep, the toothed red ring round the wolf, then a green 'Sheep rescued!' (06:20-06:30), and the season map plus result cards (01:02, 13:42) with stars, ribbons and charms give me a reason to play the next evening."
+  ],
+  "worst_problems": [
+    {
+      "problem": "The mist evening is a washed-out beige-lilac fog over the whole screen for most of its run; sheep become grey ghost blobs and Pip is the only thing with contrast, so for a viewer it reads as a broken render more than atmosphere.",
+      "where": "07:00-08:37 (worst at 07:20, 07:40, 08:20)",
+      "severity": "major",
+      "suggestion": "Keep the fog as banks with clear pockets and let the sheep keep their white and dark faces inside the clear area; right now I cannot tell a sheep from a rock from a fog puff."
+    },
+    {
+      "problem": "Huge black shapes block a big chunk of the view: a dark hill or tree fills the bottom half of the screen while the camera is low, hiding the wolf and the sheep right when a wolf is stalking the flock.",
+      "where": "07:45, 07:47, 10:22",
+      "severity": "major",
+      "suggestion": "Fade or cut away anything between the camera and Pip; I should never lose half the screen to a black slab during a wolf warning."
+    },
+    {
+      "problem": "Some snatches look impossible to answer: the mist evening asks me to save a sheep 250 m away with 33 seconds left, and the storm one just says too far to save it and a sheep is dragged into the woods. Losing sheep I never had a chance to save would annoy me.",
+      "where": "08:30-08:37, 10:10-10:22",
+      "severity": "major",
+      "suggestion": "Have wolves go for sheep near where I am working, or warn me earlier, so every loss feels like my mistake rather than the game rolling dice behind my back."
+    },
+    {
+      "problem": "The storm's flooded burn looks like a wet asphalt road with white lane markings, not water; I honestly thought a road had appeared in the valley.",
+      "where": "09:50-10:37",
+      "severity": "minor",
+      "suggestion": "Make floodwater brown and churning with foam along the banks and some splash where it hits rocks, so it reads as a river in spate."
+    },
+    {
+      "problem": "The HUD is busy and tiny: a counter with a row of little dots and star numbers top-left, a timer bar, a minimap, a row of key chips along the bottom, a hint line, plus floating house, sheep-bubble and wolf icons along every edge. In the mist and snow there are four or five icons hugging the left and right edges at once.",
+      "where": "07:05, 07:37, 08:22, 11:30-12:35, and the counter on every gameplay frame",
+      "severity": "minor",
+      "suggestion": "Bigger, fewer HUD elements; hide the key chips after the first evening and only show edge icons for things I actually need to go to."
+    }
+  ],
+  "boredom_points": [
+    "The Glenbrae trial (01:10-02:40) is a long stretch of walking behind five sheep across an olive lawn from gate to gate; nothing threatens them and the camera just follows. Fine for a skill round, but it drags on video.",
+    "The mist evening (07:00-08:37) is a minute and a half of jogging through fog with sheep that barely show; there is nothing to look at.",
+    "The core loop never changes shape: swing round behind a flock, push it to the fold, repeat. By the snow evening (11:00-12:35) it is the same drive over a bridge as in Lambing Time, just white.",
+    "The first evening is won in about 50 seconds (00:10-01:02) before the wolves do anything, so the opening sells the cosy part and none of the tension."
+  ],
+  "confusions": [
+    "What the row of tiny dots and the three star numbers in the top-left counter mean; it is unreadable at a glance.",
+    "The round white icons with a sheep or bubble in them stacked on the left edge in the mist and snow (07:05, 07:37, 12:00): bleats, lost sheep, or flocks?",
+    "The orange house icon that hovers on the screen edge; I assume it points to the fold, but it sits there all evening even when the fold is on screen.",
+    "Why the night watch jumps from deep blue moonlight (13:00) straight to pink dawn (13:02) in the same evening: is that the montage cutting or the game snapping the light?",
+    "The bright white flash around Pip when he wades into the loch (05:45); it looks like a glitch rather than a splash."
+  ],
+  "wish_list": [
+    "Proper whistle commands or a handler you can play as, with the dog obeying calls, for a sheepdog-trial mode with real judges' scores.",
+    "More shapes of objective: shedding one marked sheep out of the flock, penning in a tiny pen, loading a trailer, crossing a ford against a current.",
+    "A photo mode, since the sunset cutaways and the low view are screenshot bait.",
+    "Customising Pip (coat colour, collar) and naming the flock, plus a farm you can see grow over the season.",
+    "Co-op with two dogs working the same flock."
+  ],
+  "one_line_review": "A gorgeous, cosy sheepdog season where the weather and the wolves change every evening, but the herding loop underneath barely does, and the mist and storm evenings look muddier than they should."
+}

@@ -185,6 +185,11 @@ async function playEvening(id) {
         if (e.type !== 'bark' && e.type !== 'stamp') events.push(e);
       }
       if (st.mode === 'ended' || st.outcome) break;
+      if (!st.dog) {
+        // The evening is still starting.
+        await sleep(50);
+        continue;
+      }
       if (st.elapsed > CAP_MIN * 60 || Date.now() > realCap) {
         rec.outcome = { kind: 'cap', reason: `stopped at ${st.elapsed.toFixed(0)} s` };
         break;

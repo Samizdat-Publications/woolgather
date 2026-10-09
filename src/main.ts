@@ -159,11 +159,11 @@ function exposeTestHooks() {
       game.stage.snapTo(x, game.terrain.height(x, z), z);
     },
     /** Season: open an evening's card (unlocking the season if asked), or begin it at once. */
-    evening: (id: string, begin = false) => game.testEvening(id, begin),
+    evening: (id: string, begin = false, moon = false) => game.testEvening(id, begin, moon),
     /** Classic evening at a difficulty. */
     classic: (d: Difficulty) => game.testClassic(d),
     /** Season progress: wipe it, or mark every evening won (to test the map and charms). */
-    progress: (what: 'reset' | 'all') => game.testProgress(what),
+    progress: (what: 'reset' | 'all' | 'moon') => game.testProgress(what),
     /**
      * Walkability for the bot's path planner on a 2 m grid over the level: 0 open ground, 1 water
      * (sheep refuse it), 2 solid (walls, rocks, buildings, outside the valley), 3 a crossing.
