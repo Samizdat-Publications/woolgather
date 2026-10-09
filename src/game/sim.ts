@@ -24,6 +24,8 @@ export interface Dog extends Body {
   stunT: number;
   /** Running over open ground with no sheep near (faster, and sprinting tires him less). */
   loping: boolean;
+  /** Lying down: flat and still; the flock stops and settles. */
+  lying: boolean;
 }
 
 export type SheepState = 'graze' | 'walk' | 'alert' | 'flee' | 'panic' | 'grabbed' | 'folded' | 'lost' | 'hidden';
@@ -189,6 +191,7 @@ export class Sim {
       moving: false,
       stunT: 0,
       loping: false,
+      lying: false,
     };
 
     // The flock is placed from its own seed, so an evening starts the same way every time.
@@ -372,10 +375,11 @@ export class Sim {
     const P = this.perks;
     const stunned = d.stunT > 0;
     d.stunT = Math.max(0, d.stunT - dt);
-    const mx = stunned ? 0 : (input?.moveX ?? 0);
-    const mz = stunned ? 0 : (input?.moveZ ?? 0);
+    d.lying = !stunned && !!input?.lie;
+    const mx = stunned || d.lying ? 0 : (input?.moveX ?? 0);
+    const mz = stunned || d.lying ? 0 : (input?.moveZ ?? 0);
     const mag = Math.hypot(mx, mz);
-    d.creeping = !stunned && !!input?.creep;
+    d.creeping = !stunned && !d.lying && !!input?.creep;
     if (d.stamina <= 0) d.sprintLock = true;
     else if (d.stamina > 33) d.sprintLock = false;
     d.sprinting = !stunned && !!input?.sprint && mag > 0.1 && !d.creeping && !d.sprintLock && d.stamina > 0;
@@ -397,7 +401,7 @@ export class Sim {
     const dvz = tvz - d.vz;
     const dl = Math.hypot(dvx, dvz);
     // Knocked back by the ram: Pip slides to a stop instead of steering.
-    const step = (stunned ? 18 : DOG.accel) * dt * (mag < 0.05 ? 1.4 : 1);
+    const step = (stunned ? 18 : DOG.accel) * dt * (mag < 0.05 ? (d.lying ? 2.2 : 1.4) : 1);
     if (dl <= step) {
       d.vx = tvx;
       d.vz = tvz;
@@ -498,7 +502,9 @@ export class Sim {
     const L = this.level;
     const d = this.dog;
     const flock = this.sheep;
-    const dogR = d.creeping
+    const dogR = d.lying
+      ? 3.2
+      : d.creeping
       ? SHEEP.threatRadiusCreep * this.perks.creep
       : d.sprinting
         ? SHEEP.threatRadiusSprint
@@ -549,10 +555,10 @@ export class Sim {
         const dd = Math.hypot(ddx, ddz);
         if (stubborn) {
           if (dd < RAM_EYE_RANGE && d.speed < 3.2) {
-            s.stubborn -= dt * (d.creeping ? 0.3 : 0.2) * this.perks.eye;
+            s.stubborn -= dt * (d.lying ? 0.42 : d.creeping ? 0.3 : 0.2) * this.perks.eye;
             if (s.stubborn <= 0.15) this.ramYields(s);
           }
-          if (dd < RAM_BUTT_RANGE + d.r && !d.creeping && s.buttCd <= 0 && d.stunT <= 0) {
+          if (dd < RAM_BUTT_RANGE + d.r && !d.creeping && !d.lying && s.buttCd <= 0 && d.stunT <= 0) {
             // Butt: Pip is thrown back and loses control for a moment.
             const nx = ddx / (dd || 1);
             const nz = ddz / (dd || 1);
@@ -628,7 +634,7 @@ export class Sim {
           s.trotT = SHEEP.trotTime;
         }
       } else if (s.trotT > 0) {
-        s.trotT -= dt;
+        s.trotT -= dt * (d.lying && dd < 24 ? 3 : 1);
         const k = clamp(s.trotT / SHEEP.trotTime, 0, 1);
         vx += s.trotX * SHEEP.trotSpeed * k;
         vz += s.trotZ * SHEEP.trotSpeed * k;

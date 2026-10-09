@@ -22,7 +22,7 @@ const escapeHtml = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '
 
 /** Plain text with key names drawn as key caps: "(Space)", "Shift", "Hold C to creep". */
 export function keycaps(text: string) {
-  return escapeHtml(text).replace(/\((Shift|Space|Enter|Esc|WASD|C|M)\)|\b(Shift|Space|Enter|Esc|WASD)\b|\b(C|M)(?= to )/g, (_m, a, b, c) => `<kbd>${a ?? b ?? c}</kbd>`);
+  return escapeHtml(text).replace(/\((Shift|Space|Enter|Esc|WASD|C|M|Q)\)|\b(Shift|Space|Enter|Esc|WASD)\b|\b(C|M|Q)(?= to )/g, (_m, a, b, c) => `<kbd>${a ?? b ?? c}</kbd>`);
 }
 
 /** A small sheep for the flock counter. */
@@ -83,6 +83,7 @@ export class Ui {
         <div class="hud-dog">
           <div class="meter"><span class="meter-label">Stamina <kbd>Shift</kbd></span><div class="stamina"><div class="stamina-fill"></div></div></div>
           <div class="creep-pip"><span>Creep <kbd>C</kbd></span></div>
+          <div class="creep-pip lie-pip"><span>Lie down <kbd>Q</kbd></span></div>
           <div class="bark-pip"><div class="bark-fill"></div><span>Bark <kbd>Space</kbd></span></div>
         </div>
         <div class="hud-hint"></div>
@@ -107,7 +108,7 @@ export class Ui {
             <button class="btn" data-act="classic">Classic evening</button>
             <button class="btn" data-act="howto">How to play</button>
           </div>
-          <div class="keys-line"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>C</kbd> creep · <kbd>Space</kbd> bark · <kbd>Esc</kbd> pause · <kbd>M</kbd> sound</div>
+          <div class="keys-line"><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint · <kbd>C</kbd> creep · <kbd>Q</kbd> lie down · <kbd>Space</kbd> bark · <kbd>Esc</kbd> pause</div>
         </div>
       </div>
 
@@ -184,12 +185,13 @@ export class Ui {
               <dt><kbd>WASD</kbd> <kbd>&uarr;&darr;&larr;&rarr;</kbd></dt><dd>move Pip</dd>
               <dt><kbd>Shift</kbd></dt><dd>sprint (uses stamina)</dd>
               <dt><kbd>C</kbd></dt><dd>hold to creep: sheep stay calm until you are close</dd>
+              <dt><kbd>Q</kbd></dt><dd>hold to lie down: Pip drops flat and the flock stops</dd>
               <dt><kbd>Space</kbd></dt><dd>bark: startles sheep, scares wolves off, moves a stubborn ram</dd>
               <dt><kbd>Enter</kbd></dt><dd>latch the gate once enough sheep are home</dd>
               <dt><kbd>Esc</kbd></dt><dd>pause</dd>
               <dt><kbd>M</kbd></dt><dd>sound on or off</dd>
             </dl>
-            <div class="pad-line"><b>Gamepad:</b> left stick moves, RT sprints, LT creeps, A barks, Y latches, Start pauses.</div>
+            <div class="pad-line"><b>Gamepad:</b> left stick moves, RT sprints, LT creeps, B lies down, A barks, Y latches, Start pauses.</div>
           </div>
           <div>
             <h3>Herding</h3>
@@ -618,6 +620,7 @@ export class Ui {
     st.style.width = `${(d.stamina / DOG.staminaMax) * 100}%`;
     st.classList.toggle('tired', d.sprintLock);
     $('.creep-pip', this.root).classList.toggle('on', d.creeping);
+    $('.lie-pip', this.root).classList.toggle('on', d.lying);
     const bark = $('.bark-pip', this.root);
     bark.classList.toggle('ready', d.barkCd <= 0);
     const reach = sim.barkRadius + 4;

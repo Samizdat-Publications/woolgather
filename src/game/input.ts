@@ -23,6 +23,8 @@ export class Input {
   moveZ = 0;
   sprint = false;
   creep = false;
+  /** Lie down (held): Pip drops flat and the flock stops. */
+  lie = false;
   /** Last input device, so prompts can show the right glyphs. */
   device: 'keyboard' | 'gamepad' = 'keyboard';
 
@@ -83,6 +85,7 @@ export class Input {
     }
     let sprint = this.held.has('ShiftLeft') || this.held.has('ShiftRight');
     let creep = this.held.has('KeyC');
+    let lie = this.held.has('KeyQ');
 
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (const pad of pads) {
@@ -102,6 +105,7 @@ export class Input {
       }
       if (pressed(7) || pressed(5)) sprint = true;
       if (pressed(6) || pressed(4)) creep = true;
+      if (pressed(1)) lie = true;
       if (edge(0) || edge(2)) this.edges.add('bark');
       if (edge(9)) this.edges.add('pause');
       if (edge(3)) this.edges.add('latch');
@@ -131,11 +135,13 @@ export class Input {
       mz = 0;
       sprint = false;
       creep = false;
+      lie = false;
     }
     this.moveX = mx;
     this.moveZ = mz;
     this.sprint = sprint;
     this.creep = creep;
+    this.lie = lie;
   }
 
   pressed(e: Edge) {

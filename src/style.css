@@ -416,3 +416,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .ss.cur { border-color: var(--gold); background: rgba(242, 180, 90, 0.14); }
 .ss.cur b { color: var(--wool); }
 .ss.locked { opacity: 0.4; }
+/* The tip sits to the right of the meters (with the lie-down chip they reached the middle). */
+.hud-hint { left: 470px; right: 16px; transform: none; margin: 0 auto; width: fit-content; max-width: calc(100vw - 486px); }
+.lie-pip.on { color: #cfe8ff; border-color: rgba(143, 208, 255, 0.8); background: rgba(143, 208, 255, 0.16); }
+.creep-pip, .bark-pip { padding: 5px 8px; }

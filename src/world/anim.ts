@@ -95,14 +95,17 @@ export function animateDog(r: Rig, st: AnimState, d: Dog, dt: number, time: numb
   df = Math.atan2(Math.sin(df), Math.cos(df));
   st.prevFacing = d.facing;
   st.turn = damp(st.turn, dt > 0 ? df / dt : 0, 10, dt);
-  st.crouch = damp(st.crouch, d.creeping ? 1 : 0, 8, dt);
+  // Creeping crouches; lying down drops him flat (legs folded under).
+  st.crouch = damp(st.crouch, d.lying ? 2.1 : d.creeping ? 1 : 0, d.lying ? 12 : 8, dt);
   const s = d.speed;
-  const trotBob = st.amp * (1 - st.gallop) * 0.035 * Math.abs(Math.sin(TAU * st.phase));
-  const galBob = st.gallop * 0.05 * Math.sin(TAU * st.phase + 1.2);
+  // A springy trot and a bounding gallop (with too little bob he glided over the grass).
+  const trotBob = st.amp * (1 - st.gallop) * 0.065 * Math.abs(Math.sin(TAU * st.phase));
+  const galBob = st.gallop * 0.1 * Math.sin(TAU * st.phase + 1.2);
   // Bark: a quick upward jerk of the head and a little hop.
   const bark = d.sinceBark < 0.35 ? Math.sin((d.sinceBark / 0.35) * Math.PI) : 0;
   crouch(r, p, st.crouch, trotBob + galBob + bark * 0.03);
-  r.body.rotation.x = st.gallop * 0.12 * Math.sin(TAU * st.phase) - bark * 0.08;
+  // The body rocks with the gallop and leans into the run.
+  r.body.rotation.x = st.gallop * 0.2 * Math.sin(TAU * st.phase) - bark * 0.08 + clamp(s / 12, 0, 1) * 0.07 * (1 - st.crouch);
   r.body.rotation.z = clamp(-st.turn * 0.05, -0.22, 0.22) * clamp(s / 6, 0, 1);
   if (r.head) {
     // Eye on the flock: the head turns towards the sheep Pip is working.

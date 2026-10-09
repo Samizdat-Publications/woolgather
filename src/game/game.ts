@@ -1312,7 +1312,7 @@ export class Game {
   /** Show a tutorial tip once, for `seconds` of play. */
   private tip(id: string, text: string, seconds: number, now: number) {
     if (this.tipsShown.has(id) || this.dragHint) return;
-    if (['ring', 'sprint', 'wolf'].includes(id) && this.tipsEver.has(id)) return;
+    if (['ring', 'sprint', 'wolf', 'lie'].includes(id) && this.tipsEver.has(id)) return;
     this.tipsShown.add(id);
     this.tipsEver.add(id);
     this.ui.hint(text);
@@ -1412,6 +1412,13 @@ export class Game {
     }
     if (!wolvesOut && nearest < 22 && !sim.watch) {
       if (t > 20 || this.runs > 1) this.tip('ring', 'Hold C to creep: the dashed ring shrinks and the sheep stay calmer', 9, t);
+    }
+    // Lying down: taught the first time a driven flock nears a gate or a crossing.
+    if (!sim.watch) {
+      const L = this.level;
+      const marks = [L.fold.mouth, ...L.bridges, ...L.fords];
+      const near = sim.sheep.some((s) => (s.state === 'flee' || s.state === 'alert') && marks.some((m) => (m.x - s.x) ** 2 + (m.z - s.z) ** 2 < 14 * 14));
+      if (near && t > 15) this.tip('lie', 'Flock running wide of the gate? Hold Q to lie down: the sheep stop and settle', 8, t);
     }
     // Angus: explain the stare the first time Pip squares up to him.
     const ram = sim.sheep.find((s) => s.kind === 'ram' && s.state !== 'folded' && s.state !== 'lost');
@@ -1524,7 +1531,7 @@ export class Game {
       total: s?.total ?? 0,
       target: s?.target ?? 0,
       fords: this.level.fords.map((f) => f.open),
-      dog: s ? { x: s.dog.x, z: s.dog.z, vx: s.dog.vx, vz: s.dog.vz, stamina: s.dog.stamina, barkCd: s.dog.barkCd, stunT: s.dog.stunT } : null,
+      dog: s ? { x: s.dog.x, z: s.dog.z, vx: s.dog.vx, vz: s.dog.vz, stamina: s.dog.stamina, barkCd: s.dog.barkCd, stunT: s.dog.stunT, lying: s.dog.lying, r: s.dogThreatRadius } : null,
       sheep: s ? s.sheep.map((q) => ({ id: q.id, x: q.x, z: q.z, state: q.state, kind: q.kind, stubborn: q.stubborn, yieldT: q.yieldT, motherId: q.motherId })) : [],
       wolves: s ? s.wolves.filter((w) => w.state !== 'gone').map((w) => ({ id: w.id, x: w.x, z: w.z, state: w.state })) : [],
       dragFeasible: this.dragFeasible,
