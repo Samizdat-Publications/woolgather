@@ -11,3 +11,4 @@ site-dist/
 .wrangler/
 .env
 .env.*
+.claude/data/
