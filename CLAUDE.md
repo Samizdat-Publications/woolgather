@@ -35,10 +35,11 @@ away before they drag a sheep into the trees. Night falls in violet and moonligh
 | Sprint (uses stamina) | Shift | RT / RB |
 | Creep (sheep stay calm until close) | C (hold) | LT / LB |
 | Lie down (the flock stops; the strongest stare against a ram) | Q (hold) | B |
+| Flank: run round the nearest flock ("away" / "come bye") | Z / X (hold) | D-pad left / right |
 | Bark (startles sheep, scares wolves) | Space or B | A / X |
 | Latch the gate (only once target is met) | Enter | Y |
 | Pause | Esc or P | Start |
-| Zoom the herding camera a little | Mouse wheel | |
+| Zoom; all the way in, a low tilted view across the valley | Mouse wheel | |
 
 Ctrl is deliberately unused: Ctrl+W closes the browser tab and cannot be intercepted.
 
@@ -104,8 +105,11 @@ session is using it; wait and retry rather than touching the shared scene.
 
 ### Test hooks
 
-`?test=1` exposes `window.__WG` (state snapshot, time scale, seed, `evening(id, begin)`,
-`classic(d)`, `progress('reset'|'all')`, `navGrid()`) for the bots and tests.
+`?test=1` exposes `window.__WG` (state snapshot, time scale, seed, `evening(id, begin)` (also
+`'daily'` or `'daily-YYYY-MM-DD'`), `classic(d)`, `progress('reset'|'all')`, `navGrid()`, `zoom(z)`)
+for the bots and tests, and look-dev probes: `near(px, py)` (objects whose origin projects near a
+screen point), `pick(px, py)` (what the camera sees there), `uniform(name)` (a shader uniform's
+value on every material that has it).
 `?seed=N` fixes the RNG. `?diff=gentle|standard|hard` preselects difficulty. `?fps=1` shows a
 frame-time overlay. `?nocutaway` skips the sunset cutaway. None of these change gameplay unless used.
 
@@ -1020,3 +1024,20 @@ Newest at the bottom. Record every non-obvious choice.
   short win phrase, looped with crossfaded seams; the synthesised tension layer plays on top. The win
   phrase replaces the synth win sting. 1,359 credits for 198 s. Check the ElevenLabs music terms for
   the account's plan before the public site ships it.
+- 2026-10-09: flank commands, the critics' most wished-for feature ("whistles", "come bye and
+  away"). The player is the dog, so there is no handler to whistle: holding Z or X (d-pad left or
+  right) makes Pip run round the nearest flock (the sheep within 14 m of the nearest one) clockwise
+  or anticlockwise as seen on screen, easing out to the flock's spread plus his moving reach plus
+  2 m, so the run turns the flock's head without pushing it. Sprint still works while flanking.
+  It is taught on the Far Bank's card, where the far flock needs an outrun.
+- 2026-10-09: today's evening, for a reason to come back (asked for in both rounds): one evening a
+  day made from the date (hashed into an Rng): a place (Hollow Valley, Loch Ailsa, the corrie, the
+  pass), the real season of the calendar (spring brings lambs, December to February snow), weather
+  that suits the place, two or three flocks, sometimes a ram or a black sheep, a ribbon. It sits in
+  the season map's spare slot once evening 1 is won; its record is kept under `daily-YYYY-MM-DD`
+  and earns no stars toward charms. The bot wins six sampled dates (spring, summer, autumn, winter).
+- 2026-10-09: each place has its own ground (`ground` in the level file, over the season's
+  palette): a greener machair at Loch Ailsa, a tawny moor in the corrie; the stills critic saw "the
+  same olive lawn" in most daytime evenings. Old Angus has a greyer fleece and flat curled horns that
+  show from above (upright, they were edge-on to the camera), and is named over his head for his
+  evening's first 30 s.
