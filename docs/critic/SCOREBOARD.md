@@ -5,17 +5,38 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
 
 | Round | Critic | Look | Read | Feel | Fun | Variety | Progress | Keep playing | Wishlist | Mean |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| r00-baseline | claude-stills | 7 | 6 | 6 | 6 | 4 | 3 | 5 | 6 | 5.38 |
+| r00-baseline | claude-video | 7 | 6 | 6 | 6 | 4 | 3 | 5 | 5 | 5.25 |
 | r00-baseline | gemini-pro-video | 7 | 9 | 4 | 5 | 3 | 2 | 3 | 4 | 4.63 |
 | r00-baseline | gemini-stills | 7 | 8 | 5 | 6 | 3 | 2 | 3 | 4 | 4.75 |
 | r00-baseline | gemini | 7 | 8 | 6 | 6 | 4 | 3 | 5 | 5 | 5.50 |
+| r01-season | claude-stills | 7 | 7 | 6 | 7 | 6 | 7 | 7 | 7 | 6.75 |
+| r01-season | claude-video | 7 | 6 | 6 | 6 | 7 | 8 | 6 | 7 | 6.63 |
+| r01-season | gemini-stills | 7 | 9 | 6 | 7 | 8 | 8 | 7 | 7 | 7.38 |
+| r01-season | gemini | 7 | 8 | 6 | 7 | 8 | 7 | 7 | 8 | 7.25 |
 
 ## One-line reviews
 
 ### r00-baseline
 
+- **claude-stills**: A gorgeous golden-hour sheepdog game with a clear HUD and properly scary wolves, but the camera keeps showing me pine trees instead of sheep and there's only one valley to master: wishlisted, buying on sale.
+  - worst problem (major): The camera spends huge parts of the screen on dark pine forest, and the flock is almost never in view. In herding-early.jpg the whole bottom half is towering pines that even cut off Pip's dashed ring; in sunset.jpg and snatch.jpg the left 40 percent is a murky black-purple tree wall. In three of the five gameplay shots there's not a single sheep on screen, in a game about herding sheep.
+- **claude-video**: Gorgeous golden-hour sheepdog game with a genuinely tense wolf rescue, but the herding is too easy, one valley is all there is, and I watched the dog stare at a wall for over a minute: wishlist, not a 10 dollar buy yet.
+  - worst problem (major): For roughly 80 seconds Pip hovers in the same corner by a log or wall line at the forest edge with no sheep on screen, turning back and forth, while a sheep marker sits on the left edge the whole time. It looks like he is either stuck behind that wall or the player has no idea how to get round it. Nothing happens in the video for a third of its length.
 - **gemini-pro-video**: A relaxing but ultimately shallow herding game that runs out of tricks after the first day.
   - worst problem (major): Walking across the map takes forever and is incredibly boring. I spent a minute and a half just holding 'W' with nothing happening.
 - **gemini-stills**: A gorgeous, cozy 15-minute prototype with great dusk vibes, but desperately needs a campaign and multiple maps before asking for ten bucks.
   - worst problem (major): Zero content depth or meta-progression beyond replaying the same single pasture on three difficulty presets.
 - **gemini**: A gorgeous, cozy herding concept with tense wolf encounters that currently feels more like a 10-minute game jam prototype than a complete purchase.
   - worst problem (major): Sheep cluster and refuse to cross narrow bottlenecks like the bridge, freezing in place while you awkwardly nudge them from behind.
+
+### r01-season
+
+- **claude-stills**: A handsome, cosy sheepdog game with real flock behaviour, cute readable sheep and a smart season of twists, held back by too many evenings on the same olive lawn and a first evening with no wolves; a likely buy at 10 dollars if the later nights deliver the tension.
+  - worst problem (major): In the Night Watch evening the threat is where I can barely see it: the wolf with its red ring sits at the very bottom edge, half under the stamina panel and behind big black pine silhouettes, while Pip is a tiny grey speck in a navy field.
+- **claude-video**: A gorgeous, cosy herding game with a real season of evenings to work through, but in this footage the sunset and wolves barely show up, so most evenings are a calm jog across a mustard lawn.
+  - worst problem (major): The sunset and wolves, the whole source of tension, basically never happen. Evening 1 ends with 4:00 of daylight left and no wolf in sight, every montage clip finishes or cuts with the 'wolves come out in' timer still running (02:39, 04:09, 07:15, 08:48), and the only wolves in ten minutes are two tiny red-ringed silhouettes at the very edge of the screen in the night watch (09:06, 09:30) that nothing ever happens with.
+- **gemini-stills**: A surprisingly smart, cozy sheepdog puzzle game that turns Highland herding into a tight seasonal campaign, even if the low-poly world feels a bit stiff.
+  - worst problem (major): Narrow chokepoints like wooden bridges look primed for frustrating AI pathfinding snags where sheep get stuck on railing corners.
+- **gemini**: A cozy, clever pastoral puzzler that nails sheepdog mechanics far better than expected, despite slightly floaty paws and bridge traffic jams.
+  - worst problem (major): Sheep pathfinding chokes badly at narrow crossings, turning the bridge sequence into an annoying micro-nudging stalemate where sheep bunch up and refuse to cross.

@@ -20,7 +20,12 @@ away before they drag a sheep into the trees. Night falls in violet and moonligh
   or night falls with the target met, or you latch the gate early once the target is met.
 - Lose: night falls before the target is met, or wolves take so many sheep that the target is
   no longer reachable.
-- One valley, one continuous sunset (about 5-6 minutes), three difficulty presets.
+- **The Season** (branch `season`, Woolgather 2): nine evenings on one hill farm from midsummer to
+  the first snow, over five places (Hollow Valley, Loch Ailsa, Crannach Corrie, Glenbrae Show Field,
+  The High Pass), each adding one thing: crossings, lambs and a lost lamb, Old Angus the ram, a
+  sheepdog trial (gates in order, judged on points), a night watch until dawn, mist, a storm with a
+  flood, first snow. Stars plus one ribbon per evening, charms (perks) bought with stars, best times.
+- **Classic evening**: the 1.0 game in Hollow Valley at Gentle, Standard or Hard.
 
 ## Controls
 
@@ -29,9 +34,11 @@ away before they drag a sheep into the trees. Night falls in violet and moonligh
 | Move (screen-relative) | WASD / Arrow keys | Left stick |
 | Sprint (uses stamina) | Shift | RT / RB |
 | Creep (sheep stay calm until close) | C (hold) | LT / LB |
+| Lie down (the flock stops; the strongest stare against a ram) | Q (hold) | B |
 | Bark (startles sheep, scares wolves) | Space or B | A / X |
 | Latch the gate (only once target is met) | Enter | Y |
 | Pause | Esc or P | Start |
+| Zoom the herding camera a little | Mouse wheel | |
 
 Ctrl is deliberately unused: Ctrl+W closes the browser tab and cannot be intercepted.
 
@@ -41,11 +48,17 @@ Ctrl is deliberately unused: Ctrl+W closes the browser tab and cannot be interce
 - All gameplay simulation is 2D on the XZ plane; Y comes from the terrain heightfield.
 - DOM/CSS overlay for all UI. Fonts: Fraunces (display) and Nunito (UI), both SIL Open Font
   License, bundled from npm `@fontsource-variable/*` (no runtime network fetch).
-- Audio: 100% Web Audio synthesis (no audio files). Music is a procedural folk loop.
+- Audio: recorded sounds generated with the ElevenLabs Sound Effects API (`public/audio/`,
+  `tools/gen-sfx.mjs`, `docs/audio/SFX.md`), loaded by `src/audio/samples.ts`; Web Audio synthesis
+  is the fallback and still makes the chimes, stings and the adaptive tension layer of the music.
 - Assets: `blender_scripts/*.py` (one script per asset family) generate every model and export
   `.glb` to `public/assets/`. Shared helpers live in `blender_scripts/wg_lib.py`.
-- Level layout: `level/valley.json` is the single source of truth, read by both the Blender
-  terrain script and the game.
+- Levels: `level/*.json` (`src/game/leveldef.ts`) are the single source of truth. The ground,
+  water, tracks and sheep trods are generated at load time in TypeScript (`src/world/terraingen.ts`),
+  per level and per season; Blender only makes the props and animals. `level/valley.json` is kept
+  for the Blender scripts (fold, bridge and farmhouse dimensions) and the 1.0 bot.
+- Rules: `src/game/rules.ts` (one evening's rules), `src/game/season.ts` (the nine evenings, charms,
+  saved progress in localStorage `woolgather.season.v1`).
 
 ### Commands
 
@@ -54,6 +67,15 @@ Ctrl is deliberately unused: Ctrl+W closes the browser tab and cannot be interce
   `BLENDER_PATH`). During development the scripts are run through the Blender MCP.
 - `npm run playtest` runs the Playwright self-test (scripted input, screenshots, console log)
   against a running dev server. Screenshots land in `test-results/`.
+- `node tests/season-run.mjs [--evenings a,b] [--parallel 3]` builds and plays every season evening
+  with `tests/bot2.mjs` (a level-agnostic A* herding bot, `docs/BOT2.md`) and reports the results.
+- `node tests/perf-season.mjs --dist <build>` measures fps, draw calls and triangles per evening.
+- `node tests/shot.mjs "<step>" ...` quick screenshots of the dev server (see the file for steps).
+- Critic system (`docs/critic/README.md`): `node tests/critic/capture.mjs --dist <build> --label rNN
+  --scenario season`, then `node tests/critic/round.mjs --label rNN --blurb "..."` (contact sheets,
+  Gemini video and stills critics with `GEMINI_API_KEY` from `.env.local`, scoreboard), then the two
+  blind Claude critics (subagents that may read only the sheets or the stills). Scores in
+  `docs/critic/SCOREBOARD.md`.
 - `npm run film -- --shoot hero|day|night [--nobuild]` films the production build at 60 fps on a
   virtual clock; `npm run media` cuts `site/media/` and the README GIFs (`docs/media/`) from it.
 - `npm run site` builds the public site into `site-dist/` (landing page at `/`, the game at `/play/`);
@@ -80,9 +102,10 @@ session is using it; wait and retry rather than touching the shared scene.
 
 ### Test hooks
 
-`?test=1` exposes `window.__WG` (state snapshot, time scale, seed) for the Playwright bot.
+`?test=1` exposes `window.__WG` (state snapshot, time scale, seed, `evening(id, begin)`,
+`classic(d)`, `progress('reset'|'all')`, `navGrid()`) for the bots and tests.
 `?seed=N` fixes the RNG. `?diff=gentle|standard|hard` preselects difficulty. `?fps=1` shows a
-frame-time overlay. None of these change gameplay unless used.
+frame-time overlay. `?nocutaway` skips the sunset cutaway. None of these change gameplay unless used.
 
 ## Milestones (in order, do not skip ahead)
 
@@ -104,7 +127,9 @@ Progress screenshots (user request): after every self-test round, save the telli
 (committed, captioned in `docs/progress/PROGRESS.md`). They feed the README later.
 
 Status: released as 1.0.0 (tag `v1.0.0`; all five milestones closed at `m5-polish`) and live at
-https://woolgather.pages.dev (the game at /play/). The DECISIONS log below has the history.
+https://woolgather.pages.dev (the game at /play/). Woolgather 2 ("The Season") is on branch
+`season`, not merged or deployed (see `docs/OVERNIGHT-REPORT.md`). The DECISIONS log below has the
+history.
 
 ## Asset list
 
@@ -950,3 +975,17 @@ Newest at the bottom. Record every non-obvious choice.
 - 2026-10-09: sound: 32 recorded sounds generated with the ElevenLabs Sound Effects API (765
   credits; `tools/gen-sfx.mjs`, `docs/audio/SFX.md`), loaded by `audio/samples.ts`; the 1.0
   synthesis stays as the fallback and still makes the music, chimes and stings.
+- 2026-10-09 (season, rounds r01-r02): the first season round lifted every critic: Gemini video
+  5.5 -> 7.25, Gemini stills 4.75 -> 7.38, Claude video 5.25 -> 6.6, Claude stills 5.4 -> 6.75
+  (variety 4 -> 7-8, progression 3 -> 7-8). Their common complaints then: the sunset and wolves
+  rarely seen (an expert finished first), the same olive lawn in many evenings, a bridge jam, a
+  dull night watch, a flat beige mist, glowing "orbs" (white rabbit tails and fireflies blooming).
+  Fixed: wolves and the sunset earlier; a sunset cutaway (a three-second low shot into the western
+  sky when the wolves come out); a fifth place, Crannach Corrie, so Hollow Valley no longer hosts
+  four evenings; sheep trods (narrow worn tracks) and grass that thins to the water; a bridge
+  funnel that keeps the flock moving along the deck (the water beside the deck no longer pushes
+  sheep off it); a night watch where the flock drifts and gets spooked and wolves come often; a
+  cool grey mist where bleats show where they came from; lie down (Q) from the critics' wish list.
+- 2026-10-09: the Glenbrae Trial (evening 5) is a different kind of evening: no wolves, five ewes,
+  three gates to take in order and a small pen, judged on points (a missed gate -15, a ewe left out
+  -12, a slow round up to -10). It gives the season a skill evening with a score to beat.

@@ -744,7 +744,9 @@ export class Ui {
     const row = (label: string, value: string) => `<div class="row"><span>${label}</span><b>${value}</b></div>`;
     const ribbon = ev ? `<div class="end-ribbon ${ctx.ribbon ? 'on' : ''}">${RIBBON(ctx.ribbon)}<span>${ctx.ribbon ? 'Ribbon won: ' : 'Ribbon: '}${escapeHtml(ev.ribbon.title)}</span></div>` : '';
     const unlock = ctx.unlocked.length ? `<div class="end-unlock">New charm${ctx.unlocked.length > 1 ? 's' : ''}: <b>${ctx.unlocked.map(escapeHtml).join(', ')}</b></div>` : '';
-    const bestLine = ctx.newBest ? '<div class="end-unlock">A new best for this evening!</div>' : '';
+    const bestLine =
+      (ctx.newBest ? '<div class="end-unlock">A new best for this evening!</div>' : '') +
+      (ctx.seasonDone ? `<div class="end-unlock">The whole season: <b>${totalStars(ctx.progress)} of ${SEASON.length * 3} ★</b> and <b>${totalRibbons(ctx.progress)} of ${SEASON.length}</b> ribbons. Thank you for herding.</div>` : '');
     const nextLine = ctx.next && ctx.firstWin ? `<div class="end-unlock">Evening ${ctx.next.num} is open: <b>${escapeHtml(ctx.next.title)}</b></div>` : '';
     statsEl.innerHTML = `
       ${starHtml ? `<div class="stars">${starHtml}</div><div class="star-legend">${legend}</div>` : ''}

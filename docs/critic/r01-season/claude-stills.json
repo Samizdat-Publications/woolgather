@@ -1,0 +1,67 @@
+{
+  "critic": "claude-stills",
+  "first_impression": "The title screen and the stitched felt menus are lovely, like a warm storybook, and the hook (herd them home before dark) is clear before I press a key. In play it is a bright top-down lawn with very cute chunky sheep and a dog I can always find. The season map gave me a reason to see the next evening right away.",
+  "scores": { "visual_appeal": 7, "readability": 7, "game_feel": 6, "fun_factor": 7, "variety": 6, "sense_of_progression": 7, "want_to_keep_playing": 7, "would_wishlist": 7 },
+  "best_things": [
+    "The UI is cohesive and handsome: the evening cards (evening-1-card, evening-4-angus-card, evening-7-storm-card) tell me in two lines exactly what is new tonight and what the star and ribbon goals are, and the result card in evening-1-result is clear and rewarding.",
+    "The animals read instantly: fluffy low-poly sheep with dark faces, Pip outlined in black and white, Old Angus with his big gold horns in evening-4-angus, and little hearts popping as sheep go through the fold gate in e1-first-home.",
+    "The season has real twists: lambs, a stubborn ram, mist, a storm, snow, and Night Watch flipping the goal to keeping the flock alive until dawn, where evening-5-night to evening-5-dawn (navy night giving way to gold light and 'the wolves are leaving') is a great payoff."
+  ],
+  "worst_problems": [
+    {
+      "problem": "In the Night Watch evening the threat is where I can barely see it: the wolf with its red ring sits at the very bottom edge, half under the stamina panel and behind big black pine silhouettes, while Pip is a tiny grey speck in a navy field.",
+      "where": "evening-5-night.jpg",
+      "severity": "major",
+      "suggestion": "Frame the wolf away from the HUD panels, drop the foreground tree silhouettes at night, give Pip a brighter outline after dark, and let the 'A wolf is stalking your flock!' banner point at the wolf."
+    },
+    {
+      "problem": "Nine evenings but only four places, and Hollow Valley carries four of them (Long Light, The Far Bank, Old Angus, The Storm). e1-herding, evening-4-angus and evening-7-storm show the same minimap (Grove, Farm, Far bank, Meadow, Rocks) and the same lawn with a dirt track, so variety leans on modifiers over a recycled map.",
+      "where": "season-map.jpg",
+      "severity": "major",
+      "suggestion": "Make each return to Hollow Valley feel new (flock starts in a different corner, a different fold, a blocked route, a fallen tree), or add more places."
+    },
+    {
+      "problem": "The golden-hour play view is a flat mustard-olive carpet of identical grass tufts; trees are chunky blobs and bushes look like green gemstones, and the sky never appears, so the daytime shots blur together and the sunset mood lives mostly in the HUD bar.",
+      "where": "e1-herding.jpg",
+      "severity": "minor",
+      "suggestion": "Break the ground up with heather, bracken, stone walls and worn sheep tracks, vary the grass by slope, and let the camera show the horizon and the sinking sun when the wolves come out."
+    },
+    {
+      "problem": "The Storm looks like the drabbest moment in the game: a murky olive-grey field, a stream that reads as a tarmac road, no sheep on screen, and no sign of thunder or flood beyond rain streaks and a few leaves.",
+      "where": "evening-7-storm.jpg",
+      "severity": "minor",
+      "suggestion": "Add lightning flashes that light the valley, wind bending the grass, a swollen brown stream with foam, and keep a scattered sheep or two in frame."
+    },
+    {
+      "problem": "On the snow evening the special sheep is hard to read: the black sheep beside the bridge looks like a dark boulder or a bear cub standing in the river, and the white sheep on the white snowy bridge lose their shape.",
+      "where": "evening-8-snow.jpg",
+      "severity": "minor",
+      "suggestion": "Give the black sheep a pale outline or marker, and darken the bridge planks under snow so white fleeces stand off them."
+    }
+  ],
+  "boredom_points": [
+    "Evening 1 ended with 4:00 of daylight left and the wolves never came out (evening-1-result), so the first evening has no threat at all and the pitch's tension never shows.",
+    "A lot of fetching: e1-herding and evening-7-storm are mostly Pip running across bare grass toward an edge marker, and with evenings of 6 to 7 minutes (6:40 in the mist, 7:10 in the snow) I expect long empty runs.",
+    "The same 'Hold C to creep' tip shows up again on evening 4 (evening-4-angus) after being taught on evening 1.",
+    "Coming back to the same Hollow Valley layout on evenings 1, 2, 4 and 8.",
+    "Charms are small stat bumps (8% faster, 30% less tiring, barks 30% further) that will not change how I play."
+  ],
+  "confusions": [
+    "The title screen says 'Eight evenings from midsummer to the first snow' but the season map shows nine cards and counts /9 ribbons and /27 stars, and First Snow is labelled Evening 9.",
+    "'Wear two charms' on the evening cards lists four charms with no visible selected state, so I cannot tell which two I am wearing.",
+    "On the title screen, does clicking Gentle, Standard or Hard start a game, or do I then press 'Classic evening'? Two layers of choice for one action.",
+    "In evening-5-night the three big white lumps in the open field look like sheep lying down or hay bales; are they sheep I should be guarding or just rocks?",
+    "Night Watch's counter lists the stars in reverse (three stars first, then two, then one) while every other evening goes one, two, three.",
+    "Minimap labels are clipped at the edge ('East sho' in evening-3-lambing and evening-5-night, a cut-off label on the left in evening-8-snow) and 'Mid glen' sits under an icon.",
+    "In evening-3-lambing I can see a couple of smaller sheep but cannot tell which lamb belongs to which ewe, which the card says matters."
+  ],
+  "wish_list": [
+    "Let the camera show the sky and the setting sun at key moments, since the sunset is the whole hook.",
+    "More distinct places, or remixed layouts each time Hollow Valley comes back.",
+    "Charms or unlocks that change how I herd (a whistle, a lie-down command, a second dog) instead of percentages.",
+    "A storm with visible lightning and a rising stream, and mist that drifts in patches instead of a flat beige wall with a round hole around Pip (evening-6-mist).",
+    "A softer loch shore: the pale hard-edged rim in evening-5-dawn and evening-5-result looks like an ice shelf or the lip of a pool.",
+    "A daily seeded evening or a best-time board per evening so there is a reason to replay three-star levels."
+  ],
+  "one_line_review": "A handsome, cosy sheepdog game with real flock behaviour, cute readable sheep and a smart season of twists, held back by too many evenings on the same olive lawn and a first evening with no wolves; a likely buy at 10 dollars if the later nights deliver the tension."
+}

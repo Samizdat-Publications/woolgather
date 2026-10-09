@@ -199,7 +199,7 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'pass',
       objective: 'gather',
-      dayLength: 440,
+      dayLength: 480,
       target: 10,
       wolfStart: 0.24,
       maxWolves: 2,
@@ -258,8 +258,8 @@ export const SEASON: Evening[] = [
     rules: {
       levelId: 'pass',
       objective: 'gather',
-      dayLength: 470,
-      target: 12,
+      dayLength: 520,
+      target: 11,
       wolfStart: 0.18,
       maxWolves: 3,
       wolfRespawn: [12, 16],
