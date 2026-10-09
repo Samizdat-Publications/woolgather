@@ -22,6 +22,15 @@ export class Minimap {
    * the evening is clear (the map shows everything).
    */
   memory: Map<number, { x: number; z: number; t: number }> | null = null;
+  /** The valley's colour on the map follows the season. */
+  private fill = 'rgba(125, 150, 88, 0.92)';
+  setSeason(season: string) {
+    const f = season === 'winter' ? 'rgba(214, 220, 228, 0.94)' : season === 'autumn' ? 'rgba(150, 146, 86, 0.92)' : 'rgba(125, 150, 88, 0.92)';
+    if (f !== this.fill) {
+      this.fill = f;
+      this.refresh();
+    }
+  }
 
   constructor(private level: Level) {
     this.canvas = document.createElement('canvas');
@@ -102,7 +111,7 @@ export class Minimap {
     c.beginPath();
     L.boundary.forEach(([x, z], i) => (i ? c.lineTo(this.px(x), this.pz(z)) : c.moveTo(this.px(x), this.pz(z))));
     c.closePath();
-    c.fillStyle = 'rgba(125, 150, 88, 0.92)';
+    c.fillStyle = this.fill;
     c.fill();
     c.strokeStyle = 'rgba(40, 52, 36, 0.9)';
     c.lineWidth = 2;

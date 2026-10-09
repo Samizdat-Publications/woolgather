@@ -51,6 +51,8 @@ export interface EndContext {
   unlocked: string[];
   seasonDone: boolean;
   progress: Progress;
+  /** Beat this evening's best time (or trial score). */
+  newBest?: boolean;
 }
 
 export class Ui {
@@ -377,7 +379,7 @@ export class Ui {
         : r.objective === 'watch'
         ? `<span>★ lose no more than ${total - r.target}</span><span>★★ lose ${Math.floor((total - r.target) / 2)} or fewer</span><span>★★★ lose none</span>`
         : `<span>★ ${r.target} of ${total} home</span><span>★★ ${two}</span><span>★★★ all ${total}</span>`;
-    $('.intro-goals', this.root).innerHTML = `<div class="goal-row">${goals}</div><div class="ribbon-row">${RIBBON(!!rec?.ribbon)}<span>${escapeHtml(e.ribbon.title)}</span></div>${rec?.stars ? `<div class="best">Your best: ${stars(rec.stars)}</div>` : ''}`;
+    $('.intro-goals', this.root).innerHTML = `<div class="goal-row">${goals}</div><div class="ribbon-row">${RIBBON(!!rec?.ribbon)}<span>${escapeHtml(e.ribbon.title)}</span></div>${rec?.stars ? `<div class="best">Your best: ${stars(rec.stars)}${rec.time ? ` · home in ${fmtTime(rec.time)}` : ''}${rec.score !== undefined ? ` · ${rec.score} points` : ''}</div>` : ''}`;
     const s = totalStars(p);
     const slots = s >= SECOND_CHARM_STARS ? 2 : 1;
     const got = CHARMS.filter((c) => s >= c.stars);
@@ -736,6 +738,7 @@ export class Ui {
     const row = (label: string, value: string) => `<div class="row"><span>${label}</span><b>${value}</b></div>`;
     const ribbon = ev ? `<div class="end-ribbon ${ctx.ribbon ? 'on' : ''}">${RIBBON(ctx.ribbon)}<span>${ctx.ribbon ? 'Ribbon won: ' : 'Ribbon: '}${escapeHtml(ev.ribbon.title)}</span></div>` : '';
     const unlock = ctx.unlocked.length ? `<div class="end-unlock">New charm${ctx.unlocked.length > 1 ? 's' : ''}: <b>${ctx.unlocked.map(escapeHtml).join(', ')}</b></div>` : '';
+    const bestLine = ctx.newBest ? '<div class="end-unlock">A new best for this evening!</div>' : '';
     const nextLine = ctx.next && ctx.firstWin ? `<div class="end-unlock">Evening ${ctx.next.num} is open: <b>${escapeHtml(ctx.next.title)}</b></div>` : '';
     statsEl.innerHTML = `
       ${starHtml ? `<div class="stars">${starHtml}</div><div class="star-legend">${legend}</div>` : ''}
@@ -748,7 +751,7 @@ export class Ui {
       </div>
       ${losses ? `<div class="losses"><b>Taken by wolves:</b> ${sim.lost} (${escapeHtml(losses)})</div>` : ''}
       ${ev ? this.seasonStrip(ctx.progress, ev) : ''}
-      ${nextLine}${unlock}
+      ${bestLine}${nextLine}${unlock}
       ${tip ? `<div class="tip"><b>Tip</b> ${keycaps(tip)}</div>` : ''}`;
     const btns: string[] = [];
     if (ev && win && ctx.next) btns.push(`<button class="btn primary" data-act="next">Next: ${escapeHtml(ctx.next.title)} <kbd>Enter</kbd></button>`);

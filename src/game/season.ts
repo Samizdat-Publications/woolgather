@@ -309,7 +309,8 @@ export function perksFor(ids: string[]): Perks {
 // ---------------------------------------------------------------- progress (saved in the browser)
 
 export interface Progress {
-  evenings: Record<string, { stars: number; ribbon: boolean; best?: number }>;
+  /** best: most sheep home; time: fastest win in seconds (gather); score: best trial points. */
+  evenings: Record<string, { stars: number; ribbon: boolean; best?: number; time?: number; score?: number }>;
   charms: string[];
   /** The last evening played (the season map opens on it). */
   last?: string;

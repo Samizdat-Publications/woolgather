@@ -199,6 +199,7 @@ export class Game {
     this.grass.setFraction(GRASS_TIER[this.stage.quality]);
     this.stage.scene.add(this.grass.root);
     this.ui.setLevel(L);
+    this.ui.minimap.setSeason(season);
     this.audio.setLevel(L);
     if (this.opts.test) console.info(`[woolgather] built ${levelId} (${season}) in ${Math.round(performance.now() - t0)} ms`);
   }
@@ -733,13 +734,23 @@ export class Game {
     let ribbon = false;
     let firstWin = false;
     let unlocked: string[] = [];
+    let newBest = false;
     if (ev && o.kind === 'win') {
       ribbon = ev.ribbon.check(sim);
       const p = this.progress;
       const before = totalStars(p);
       const prev = p.evenings[ev.id];
       firstWin = !prev || prev.stars === 0;
-      p.evenings[ev.id] = { stars: Math.max(prev?.stars ?? 0, o.stars), ribbon: (prev?.ribbon ?? false) || ribbon, best: Math.max(prev?.best ?? 0, sim.folded) };
+      const time = !sim.watch && !sim.trial ? Math.round(sim.elapsed) : undefined;
+      const score = sim.trial ? sim.trialScore() : undefined;
+      newBest = (time !== undefined && prev?.time !== undefined && time < prev.time) || (score !== undefined && prev?.score !== undefined && score > prev.score);
+      p.evenings[ev.id] = {
+        stars: Math.max(prev?.stars ?? 0, o.stars),
+        ribbon: (prev?.ribbon ?? false) || ribbon,
+        best: Math.max(prev?.best ?? 0, sim.folded),
+        time: time === undefined ? prev?.time : Math.min(prev?.time ?? Infinity, time),
+        score: score === undefined ? prev?.score : Math.max(prev?.score ?? 0, score),
+      };
       saveProgress(p);
       const after = totalStars(p);
       unlocked = CHARMS.filter((c) => c.stars > before && c.stars <= after).map((c) => c.title);
@@ -752,6 +763,7 @@ export class Game {
       next: ev && o.kind === 'win' ? (SEASON[i + 1] ?? null) : null,
       unlocked,
       seasonDone: !!ev && o.kind === 'win' && i === SEASON.length - 1,
+      newBest,
       progress: this.progress,
     });
   }

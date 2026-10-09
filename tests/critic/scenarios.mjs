@@ -124,6 +124,7 @@ export const scenarios = {
     // Montage: later evenings, as if the season had gone on (each one unlocked for the camera).
     await page.evaluate(() => window.__WG.progress('all'));
     const montage = [
+      ['show', 70, 'evening-5-trial', (s) => s.elapsed > 30],
       ['lambing', 110, 'evening-3-lambing', (s) => s.elapsed > 50],
       ['angus', 100, 'evening-4-angus', (s) => s.sheep?.some((q) => q.kind === 'ram' && dist(q, s.dog) < 18)],
       ['mist', 80, 'evening-6-mist', (s) => s.elapsed > 40],
@@ -140,7 +141,7 @@ export const scenarios = {
       mark('evening', { id });
       // A highlight: twenty seconds of the opening, then on to just before the wolves come out.
       st = await play(20, []);
-      await page.evaluate(() => {
+      if (id !== 'show') await page.evaluate(() => {
         const s = window.__WG.state();
         const ws = { lambing: 0.22, angus: 0.2, mist: 0.24, storm: 0.22, 'first-snow': 0.18 }[s.evening] ?? 0.2;
         if (s.t < ws - 0.03) window.__WG.jumpTo(ws - 0.03);

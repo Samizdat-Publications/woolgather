@@ -32,6 +32,8 @@ export interface GeneratedTerrain {
   farmY: number;
   ground: THREE.BufferGeometry;
   paths: THREE.BufferGeometry | null;
+  /** Sheep trods (narrow worn tracks) on a 1 m mask over the world: 1 where a trod runs. */
+  trodMask: { minX: number; minZ: number; nx: number; nz: number; data: Uint8Array };
   streams: THREE.BufferGeometry[];
   lochs: THREE.BufferGeometry[];
   season: Season;
@@ -57,6 +59,8 @@ interface Palette {
   forestDeep: string;
   rocky: string;
   shingle: string;
+  /** A sheep trod: grass worn thin. */
+  trod: string;
   dirt: string;
   dirtEdge: string;
   heatherAmt: number;
@@ -65,13 +69,13 @@ interface Palette {
 
 const PALETTES: Record<Season, Palette> = {
   // Fresh, light yellow-greens: warm light turns them gold, not olive.
-  summer: { grassA: '#8eae5c', grassB: '#a6bd6c', dry: '#c0b87a', lush: '#7aa25a', worn: '#9c9a6a', mud: '#7a6440', straw: '#c8b068', heather: '#86697f', bed: '#7b7560', foldFloor: '#a38e5b', yard: '#9c8a6c', forest: '#4f6a3a', forestDeep: '#3d5430', rocky: '#737a55', shingle: '#8c8670', dirt: '#a8996a', dirtEdge: '#8a7c56', heatherAmt: 0.7, snow: 0 },
+  summer: { grassA: '#8eae5c', grassB: '#a6bd6c', dry: '#c0b87a', lush: '#7aa25a', worn: '#9c9a6a', mud: '#7a6440', straw: '#c8b068', heather: '#86697f', bed: '#7b7560', foldFloor: '#a38e5b', yard: '#9c8a6c', forest: '#4f6a3a', forestDeep: '#3d5430', rocky: '#737a55', shingle: '#8c8670', trod: '#aba476', dirt: '#a8996a', dirtEdge: '#8a7c56', heatherAmt: 0.7, snow: 0 },
   // Late summer: the heather in full bloom, the grass a little drier.
-  heather: { grassA: '#93aa5a', grassB: '#a9b96a', dry: '#c4b676', lush: '#7c9e56', worn: '#9c9a6a', mud: '#7a6440', straw: '#c8b068', heather: '#9a5a9c', bed: '#7b7560', foldFloor: '#a38e5b', yard: '#9c8a6c', forest: '#4f6a3a', forestDeep: '#3d5430', rocky: '#737a55', shingle: '#8c8670', dirt: '#a8996a', dirtEdge: '#8a7c56', heatherAmt: 0.9, snow: 0 },
+  heather: { grassA: '#93aa5a', grassB: '#a9b96a', dry: '#c4b676', lush: '#7c9e56', worn: '#9c9a6a', mud: '#7a6440', straw: '#c8b068', heather: '#9a5a9c', bed: '#7b7560', foldFloor: '#a38e5b', yard: '#9c8a6c', forest: '#4f6a3a', forestDeep: '#3d5430', rocky: '#737a55', shingle: '#8c8670', trod: '#aba476', dirt: '#a8996a', dirtEdge: '#8a7c56', heatherAmt: 0.9, snow: 0 },
   // Autumn: tawny grass, rust bracken where the heather was, the forest floor brown.
-  autumn: { grassA: '#a0a35a', grassB: '#b4b068', dry: '#c8a764', lush: '#879a50', worn: '#9a8e62', mud: '#6e5636', straw: '#c0a060', heather: '#9a5c3e', bed: '#76705a', foldFloor: '#9a8455', yard: '#968466', forest: '#5e5a34', forestDeep: '#4a4228', rocky: '#7a7656', shingle: '#888068', dirt: '#9c8a5e', dirtEdge: '#7e6c48', heatherAmt: 0.75, snow: 0 },
+  autumn: { grassA: '#a0a35a', grassB: '#b4b068', dry: '#c8a764', lush: '#879a50', worn: '#9a8e62', mud: '#6e5636', straw: '#c0a060', heather: '#9a5c3e', bed: '#76705a', foldFloor: '#9a8455', yard: '#968466', forest: '#5e5a34', forestDeep: '#4a4228', rocky: '#7a7656', shingle: '#888068', trod: '#a09068', dirt: '#9c8a5e', dirtEdge: '#7e6c48', heatherAmt: 0.75, snow: 0 },
   // First snow: snow on everything level enough to hold it, grass showing through on the steep.
-  winter: { grassA: '#8a9a6a', grassB: '#98a574', dry: '#a8a07a', lush: '#7c8c62', worn: '#a4a08a', mud: '#6a5e4a', straw: '#b8a678', heather: '#7a6070', bed: '#6c6a62', foldFloor: '#a0927a', yard: '#b4ad9e', forest: '#56604a', forestDeep: '#454d3c', rocky: '#7c7e72', shingle: '#8e8a80', dirt: '#b8b2a4', dirtEdge: '#9c968a', heatherAmt: 0.5, snow: 1 },
+  winter: { grassA: '#8a9a6a', grassB: '#98a574', dry: '#a8a07a', lush: '#7c8c62', worn: '#a4a08a', mud: '#6a5e4a', straw: '#b8a678', heather: '#7a6070', bed: '#6c6a62', foldFloor: '#a0927a', yard: '#b4ad9e', forest: '#56604a', forestDeep: '#454d3c', rocky: '#7c7e72', shingle: '#8e8a80', trod: '#c4c2bc', dirt: '#b8b2a4', dirtEdge: '#9c968a', heatherAmt: 0.5, snow: 1 },
 };
 
 const col = (hex: string) => new THREE.Color(hex);
@@ -387,9 +391,70 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
     return g;
   });
 
-  // ---------------------------------------------------------------- paths
+  // ---------------------------------------------------------------- sheep trods
+  // Narrow tracks worn by the flock: from each grazing spot towards the fold, and on to the
+  // nearest other grazing spot, meandering, broken wherever they meet water, walls or a track.
+  const trodNoise = new Noise2((rel.noiseSeed ?? 7) + 101);
+  const trodLines: [number, number][][] = [];
+  const spots = def.sheepGroups.map((g) => g.center);
+  const goal = level.fold.mouth;
+  const pathNear = (x: number, z: number) => pathDist(x, z) < 2.6;
+  const trodOk = (x: number, z: number) =>
+    pointInPolygon(x, z, bound) && polyDistance(x, z, bound) > 3 && level.waterQuery(x, z).edge > 1.5 && !level.penAt(x, z, -3) && !pathNear(x, z) &&
+    level.circles.every((c) => (c.x - x) ** 2 + (c.z - z) ** 2 > (c.r + 0.8) ** 2) && level.rects.every((r) => x < r.minX - 2 || x > r.maxX + 2 || z < r.minZ - 2 || z > r.maxZ + 2);
+  const addTrod = (ax: number, az: number, bx: number, bz: number, seed: number) => {
+    const len = Math.hypot(bx - ax, bz - az);
+    if (len < 12) return;
+    const n = Math.ceil(len / 1.5);
+    const px = -(bz - az) / len;
+    const pz = (bx - ax) / len;
+    let run: [number, number][] = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const wob = trodNoise.fbm(t * len / 22 + seed, seed * 3.1, 2, seed) * 9 * Math.sin(Math.PI * t);
+      const x = ax + (bx - ax) * t + px * wob;
+      const z = az + (bz - az) * t + pz * wob;
+      if (trodOk(x, z)) run.push([x, z]);
+      else {
+        if (run.length > 5) trodLines.push(run);
+        run = [];
+      }
+    }
+    if (run.length > 5) trodLines.push(run);
+  };
+  spots.forEach(([x, z], i) => {
+    addTrod(x, z, goal.x, goal.z, i * 1.7 + 0.3);
+    let best: [number, number] | null = null;
+    let bd = Infinity;
+    for (const [ox, oz] of spots) {
+      const d = Math.hypot(ox - x, oz - z);
+      if (d > 1 && d < bd) {
+        bd = d;
+        best = [ox, oz];
+      }
+    }
+    if (best) addTrod(x, z, best[0], best[1], i * 2.9 + 1.1);
+  });
+  const trodMask = { minX: w.minX, minZ: w.minZ, nx: Math.ceil(w.maxX - w.minX) + 1, nz: Math.ceil(w.maxZ - w.minZ) + 1, data: new Uint8Array(0) };
+  trodMask.data = new Uint8Array(trodMask.nx * trodMask.nz);
+  for (const line of trodLines) {
+    for (let i = 0; i < line.length - 1; i++) {
+      const [ax, az] = line[i];
+      const [bx, bz] = line[i + 1];
+      const steps = Math.ceil(Math.hypot(bx - ax, bz - az) / 0.5);
+      for (let k = 0; k <= steps; k++) {
+        const x = ax + ((bx - ax) * k) / steps;
+        const z = az + ((bz - az) * k) / steps;
+        const mx = Math.round(x - trodMask.minX);
+        const mz = Math.round(z - trodMask.minZ);
+        if (mx >= 0 && mz >= 0 && mx < trodMask.nx && mz < trodMask.nz) trodMask.data[mz * trodMask.nx + mx] = 1;
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- paths and trods
   let paths: THREE.BufferGeometry | null = null;
-  if (def.paths.length) {
+  if (def.paths.length || trodLines.length) {
     const vp: number[] = [];
     const vc: number[] = [];
     const ix: number[] = [];
@@ -408,6 +473,42 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
       const h11 = at(i0 + 1, j0 + 1);
       return fx >= fz ? h00 + (h10 - h00) * fx + (h11 - h10) * fz : h00 + (h11 - h01) * fx + (h01 - h00) * fz;
     };
+    const groundCol = (x: number, z: number) => {
+      const ix2 = clamp(Math.round((x - w.minX) / STEP), 0, nx - 1);
+      const iz2 = clamp(Math.round((z - w.minZ) / STEP), 0, nz - 1);
+      const k2 = (iz2 * nx + ix2) * 3;
+      return new THREE.Color(colors[k2], colors[k2 + 1], colors[k2 + 2]);
+    };
+    const trodCol = col(P.trod);
+    for (const line of trodLines) {
+      const start = vp.length / 3;
+      line.forEach(([x, z], i) => {
+        const a = line[Math.max(0, i - 1)];
+        const b = line[Math.min(line.length - 1, i + 1)];
+        const tl = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+        const px = -(b[1] - a[1]) / tl;
+        const pz = (b[0] - a[0]) / tl;
+        const half = 0.42 + trodNoise.fbm(x / 4, z / 4, 2, 5) * 0.25;
+        const gc = groundCol(x, z);
+        const mid = gc.clone().lerp(trodCol, 0.75);
+        [-half, 0, half].forEach((off, j) => {
+          const vx = x + px * off;
+          const vz = z + pz * off;
+          vp.push(vx, groundAt(vx, vz) + 0.1, vz);
+          const cc = j === 1 ? mid : gc;
+          vc.push(cc.r, cc.g, cc.b);
+        });
+      });
+      for (let i = 0; i < line.length - 1; i++) {
+        for (let j = 0; j < 2; j++) {
+          const a = start + i * 3 + j;
+          const b = a + 1;
+          const c2 = a + 3;
+          const d2 = c2 + 1;
+          ix.push(a, b, d2, a, d2, c2);
+        }
+      }
+    }
     for (const Pth of def.paths) {
       const pts: [number, number][] = [];
       for (let i = 0; i < Pth.length - 1; i++) {
@@ -465,6 +566,7 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
     farmY,
     ground,
     paths,
+    trodMask,
     streams: streamGeos,
     lochs: lochGeos,
     season,

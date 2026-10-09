@@ -196,6 +196,11 @@ export class GrassField {
           if (level.rects.some((r) => x > r.minX - 1.5 && x < r.maxX + 1.5 && z > r.minZ - 1.5 && z < r.maxZ + 3)) continue;
           if (level.circles.some((cc) => (cc.x - x) ** 2 + (cc.z - z) ** 2 < (cc.r + 0.2) ** 2)) continue;
           if (pathNear(x, z)) continue;
+          // Not on the sheep trods (a thin line of worn ground).
+          const tm = gen.trodMask;
+          const tmx = Math.round(x - tm.minX);
+          const tmz = Math.round(z - tm.minZ);
+          if (tmx >= 0 && tmz >= 0 && tmx < tm.nx && tmz < tm.nz && tm.data[tmz * tm.nx + tmx] && rng.next() < 0.85) continue;
           const ix = Math.round((x - hf.minX) / hf.step);
           const iz = Math.round((z - hf.minZ) / hf.step);
           const ci = Math.max(0, Math.min(hf.nx * hf.nz - 1, iz * hf.nx + ix));
