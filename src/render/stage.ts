@@ -225,7 +225,13 @@ export class Stage {
   }
 
   /** Low establishing shot for the title: across the valley towards the sunset sky. */
-  setTitleShot(x: number, y: number, z: number, angle: number) {
+  /** Distance and height of the low shot (the title's long view, or a closer cutaway in play). */
+  private shotDist = 70;
+  private shotHeight = 14;
+
+  setTitleShot(x: number, y: number, z: number, angle: number, dist = 70, height = 14) {
+    this.shotDist = dist;
+    this.shotHeight = height;
     if (!this.titleShot) this.focus.set(x, y, z);
     this.focusGoal.set(x, y, z);
     this.titleShot = true;
@@ -248,7 +254,7 @@ export class Stage {
       f.lerp(g, 1 - Math.exp(-2 * dt));
       // East of the focus, looking west with the low sun just left of centre, slowly swinging.
       const a = this.titleAngle;
-      this.camera.position.set(f.x + Math.cos(a) * 70, f.y + 14, f.z + Math.sin(a) * 70);
+      this.camera.position.set(f.x + Math.cos(a) * this.shotDist, f.y + this.shotHeight, f.z + Math.sin(a) * this.shotDist);
       this.camera.lookAt(f.x, f.y + 10, f.z);
     } else {
       f.x = damp(f.x, g.x, CAMERA.followRate, dt);

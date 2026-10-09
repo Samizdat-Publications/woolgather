@@ -25,6 +25,7 @@ const game = new Game(document.getElementById('app')!, {
   test,
   difficulty: diff === 'gentle' || diff === 'standard' || diff === 'hard' ? diff : undefined,
   quality: quality === 'auto' || quality === 'high' || quality === 'medium' || quality === 'low' ? quality : undefined,
+  noCutaway: params.has('nocutaway'),
 });
 if (params.has('fps')) game.perf = new PerfOverlay(game.stage.renderer);
 game.start();

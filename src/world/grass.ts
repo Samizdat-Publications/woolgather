@@ -189,7 +189,9 @@ export class GrassField {
           const patch = noise.fbm(x / 18, z / 18, 2, 3) * 1.4 + 0.55;
           if (rng.next() > patch) continue;
           if (!level.insideValley(x, z) || level.boundaryDistance(x, z) < 0.8) continue;
-          if (level.waterQuery(x, z).edge < 0.4 || level.onBridge(x, z, -1)) continue;
+          // Thinning out towards the water, so a shore never ends in a hard line of grass.
+          const wq = level.waterQuery(x, z).edge;
+          if (wq < 0.4 || (wq < 3 && rng.next() > (wq - 0.4) / 2.6) || level.onBridge(x, z, -1)) continue;
           if (level.penAt(x, z, -1.2)) continue;
           if (level.rects.some((r) => x > r.minX - 1.5 && x < r.maxX + 1.5 && z > r.minZ - 1.5 && z < r.maxZ + 3)) continue;
           if (level.circles.some((cc) => (cc.x - x) ** 2 + (cc.z - z) ** 2 < (cc.r + 0.2) ** 2)) continue;

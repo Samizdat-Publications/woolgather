@@ -288,7 +288,7 @@ function lochMaterial() {
       void main() {
         const vec3 LW = vec3(0.2126, 0.7152, 0.0722);
         vec3 deep = uDeep * 0.85;
-        vec3 col = mix(deep, uShallow * 1.05, smoothstep(0.35, 1.0, vShore));
+        vec3 col = mix(deep, uShallow * 0.82, smoothstep(0.45, 1.0, vShore));
         col = mix(col, uTint * (dot(col, LW) / max(dot(uTint, LW), 0.001)), uTintAmt);
         // Wind on the water: slow sheen and catspaws drifting across, finer ripples in rain.
         vec2 drift = vec2(uTime * 0.6, uTime * 0.25);
@@ -300,7 +300,7 @@ function lochMaterial() {
         col *= 1.0 - uRain * 0.12 * fine;
         float n = vnoise(vW * vec2(0.8, 2.4) + vec2(uTime * 0.5, 0.0)) * 0.6 + vnoise(vW * 2.3 + 5.0 - uTime * 0.3) * 0.4;
         float glint = smoothstep(0.8, 0.9, n) * 0.6 * (1.0 - uRain * 0.7);
-        col = mix(col, uFoam, smoothstep(0.88, 0.995, vShore) * 0.45);
+        col = mix(col, uFoam, smoothstep(0.93, 0.995, vShore) * 0.25);
         col *= uLight;
         col = mix(col, uSky * uSkyLight, smoothstep(0.62, 0.9, sheen) * uSkyRefl * 1.2);
         col += uSky * glint * uGlint;

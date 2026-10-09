@@ -1,0 +1,65 @@
+{
+  "id": "corrie",
+  "name": "Crannach Corrie",
+  "world": { "minX": -140, "maxX": 140, "minZ": -116, "maxZ": 116 },
+  "boundary": [
+    [-96, -40], [-80, -68], [-40, -80], [0, -82], [40, -80], [80, -68], [98, -40], [104, 0],
+    [100, 40], [86, 70], [50, 86], [10, 88], [-30, 86], [-70, 76], [-96, 50], [-104, 10]
+  ],
+  "dogStart": [-26, 40],
+  "pens": [{ "id": "fold", "center": [-50, 50], "angleDeg": 180, "role": "fold" }],
+  "farmhouse": { "center": [-80, 18], "halfW": 6, "halfD": 4.5 },
+  "streams": [
+    { "points": [[12, -12], [22, 4], [28, 22], [32, 44], [38, 66], [44, 116]], "halfWidth": 2.9 }
+  ],
+  "lochs": [
+    { "points": [[-24, -36], [-6, -42], [14, -38], [24, -26], [20, -12], [4, -6], [-14, -8], [-26, -18]], "level": 1.95 }
+  ],
+  "bridges": [{ "center": [30, 33], "length": 13, "width": 6.4, "angleDeg": -10 }],
+  "fords": [{ "center": [35, 55], "radius": 4.5 }],
+  "paths": [[[-74, 22], [-56, 36], [-36, 44], [-10, 40], [12, 36], [30, 33], [52, 28], [78, 20]]],
+  "rocks": [
+    [-30, -60, 2.4], [-6, -66, 2.0], [20, -60, 2.2], [48, -50, 1.8], [-56, -20, 1.6], [70, -40, 2.0],
+    [66, 10, 1.6], [-70, 0, 1.8], [0, 20, 1.4], [-30, 24, 1.5], [10, 64, 1.6], [60, 50, 1.8],
+    [-24, 70, 1.5], [-46, -50, 1.4], [36, -64, 1.6], [84, -24, 1.5], [-84, -24, 1.7]
+  ],
+  "trees": [
+    ["birch", 40, 40, 1.0], ["birch", 46, 74, 0.95], ["birch", 18, 50, 0.9], ["birch", 26, 12, 0.85],
+    ["pine", -80, 50, 1.0], ["pine", 80, 60, 1.1], ["pine", -90, -10, 1.0], ["oak", -66, 66, 1.0]
+  ],
+  "bushes": [[-40, 10, 1.0], [56, -6, 1.0], [-10, 52, 0.9], [74, 36, 1.0], [-86, 36, 0.9]],
+  "hay": [[-64, 36, 0], [-60.5, 35, 30]],
+  "signposts": [[14, 30, 0.3]],
+  "fieldWalls": [
+    [[-70, 62], [-58, 72]],
+    [[62, 70], [80, 60]],
+    [[-60, -62], [-40, -70]]
+  ],
+  "sheepGroups": [
+    { "id": "upper-west", "center": [-62, -38], "radius": 6 },
+    { "id": "tarnside", "center": [-38, -4], "radius": 6 },
+    { "id": "east-shelf", "center": [72, -16], "radius": 6 },
+    { "id": "screes", "center": [-4, -58], "radius": 5 }
+  ],
+  "wolfDens": [[-120, -30], [-60, -100], [20, -104], [90, -90], [124, 0], [110, 70], [30, 108], [-60, 100], [-124, 40]],
+  "places": [
+    { "name": "OVER THE BURN", "phrase": "over the burn", "x": 70, "z": 30, "kind": "bank" },
+    { "name": "SCREES", "phrase": "on the screes", "x": -4, "z": -64 },
+    { "name": "LOCHANSIDE", "phrase": "by the lochan", "x": -38, "z": -6 },
+    { "name": "EAST SHELF", "phrase": "on the east shelf", "x": 74, "z": -14 },
+    { "name": "WEST SIDE", "phrase": "up the west side", "x": -64, "z": -44 },
+    { "name": "SHIELING", "phrase": "by the shieling", "x": -82, "z": 10 },
+    { "name": "LOWER CORRIE", "phrase": "in the lower corrie", "x": 4, "z": 64 },
+    { "name": "BRIDGE", "phrase": "by the bridge", "x": 30, "z": 33, "kind": "crossing", "r": 12 },
+    { "name": "FORD", "phrase": "at the ford", "x": 35, "z": 55, "kind": "crossing", "r": 10 }
+  ],
+  "relief": {
+    "floor": 1.6,
+    "rim": 10,
+    "knolls": [[-40, -20, 2.0, 14], [50, -30, 2.4, 16], [60, 30, 1.6, 12], [-20, 50, 1.2, 12]],
+    "slopes": [{ "axis": "z", "from": 30, "to": -80, "height": 7 }],
+    "noiseSeed": 57
+  },
+  "heather": [{ "maxZ": -36 }, { "maxX": -70 }, { "minX": 76 }],
+  "titleShot": { "x": 0, "z": -6, "angle": 1.35 }
+}

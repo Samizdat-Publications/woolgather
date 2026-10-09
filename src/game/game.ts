@@ -3,6 +3,7 @@ import hollowDef from '../../level/hollow.json';
 import lochDef from '../../level/loch.json';
 import passDef from '../../level/pass.json';
 import showDef from '../../level/show.json';
+import corrieDef from '../../level/corrie.json';
 import { GameAudio } from '../audio/audio';
 import { dawnTime, moodTime } from '../render/daycycle';
 import { QUALITY_TIERS, Stage, type Quality } from '../render/stage';
@@ -37,6 +38,7 @@ export const LEVELS: Record<string, LevelDef> = {
   loch: lochDef as unknown as LevelDef,
   pass: passDef as unknown as LevelDef,
   show: showDef as unknown as LevelDef,
+  corrie: corrieDef as unknown as LevelDef,
 };
 
 export interface GameOptions {
@@ -45,6 +47,8 @@ export interface GameOptions {
   difficulty?: Difficulty;
   /** Graphics: a fixed tier, or 'auto' (the default, remembered from the pause menu). */
   quality?: 'auto' | Quality;
+  /** Skip the sunset cutaway (the bot and the self-test). */
+  noCutaway?: boolean;
 }
 
 export class Game {
@@ -96,6 +100,11 @@ export class Game {
    * watching them (a sim that is never steered and never ends).
    */
   private viewSim: Sim | null = null;
+  /**
+   * The sunset cutaway: when the sun drops and the wolves come out, a few seconds of a low shot
+   * from beside Pip into the western sky (the evening waits), then back to the herding view.
+   */
+  private cutaway: { t: number; x: number; z: number; angle: number } | null = null;
   /** In mist: where sheep bleated lately (a sheep glyph shows there for a moment). */
   private bleats = new Map<number, { x: number; z: number; until: number }>();
   /** Tips already given this session (the basics are not repeated every evening). */
@@ -436,6 +445,7 @@ export class Game {
     this.stalkToast = null;
     this.dragFeasible = null;
     this.flashT = -1;
+    this.cutaway = null;
     this.ui.prompt(null);
     if (rules.objective === 'watch') this.tip('move', 'Keep the flock together · run at wolves or bark (Space) to drive them off', 10, 0);
     else if (rules.tutorial || (!this.evening && this.runs === 1)) this.tip('move', 'WASD moves Pip · get behind the sheep · hold C to creep', 10, 0);
@@ -548,7 +558,10 @@ export class Game {
       if (input.pressed('pause')) this.ui.current === 'intro' ? this.openSeason() : this.toTitle();
       else if (input.pressed('confirm')) this.confirm(() => this.ui.current === 'intro' && this.evening && this.newDay(this.eveningRules(this.evening)));
     } else if (this.mode === 'playing' && sim) {
-      if (input.pressed('pause')) {
+      if (this.cutaway) {
+        this.cutaway.t -= rawDt;
+        if (this.cutaway.t <= 0 || input.pressed('confirm') || input.pressed('pause')) this.endCutaway(sim);
+      } else if (input.pressed('pause')) {
         this.setMode('paused');
       } else {
         const steps = Math.max(1, Math.ceil(dt / (1 / 60)));
@@ -597,6 +610,9 @@ export class Game {
       if (this.mode === 'ended' && sim.outcome?.kind === 'win' && !sim.watch) {
         this.pipHome(sim, rawDt);
         this.frameResults();
+      } else if (this.cutaway) {
+        const c = this.cutaway;
+        this.stage.setTitleShot(c.x, this.terrain.ground(c.x, c.z) + 1.5, c.z, c.angle, 34, 7);
       } else {
         this.frameCamera(sim);
       }
@@ -611,6 +627,7 @@ export class Game {
     const pdt = this.mode === 'paused' ? 0 : dt;
     this.particles?.update(pdt, this.stage.camera, this.clock, mood.night, tgt.height);
     this.weatherFx?.update(pdt, this.stage.camera, this.stage.focus, this.wx, mood.night, tgt.height, this.clock);
+    if (this.life) this.life.pointScale = tgt.height / (2 * Math.tan(THREE.MathUtils.degToRad(this.stage.camera.fov / 2)));
     this.life?.update(pdt, this.clock, sim, mood, this.stage.focus);
     this.updateGrass(sim);
     this.gateOpen += (this.gateTarget - this.gateOpen) * (1 - Math.exp(-3.5 * rawDt));
@@ -622,7 +639,7 @@ export class Game {
     this.stage.updateCamera(this.mode === 'paused' ? 0 : rawDt);
     this.updateMist(sim);
     updateWorld(this.world, mood, this.clock, this.stage.camera, sim ? this.actors.focusPoints(sim) : [], rawDt, tgt.width, tgt.height, this.wx);
-    if (sim && (this.mode === 'playing' || this.mode === 'paused')) {
+    if (sim && !this.cutaway && (this.mode === 'playing' || this.mode === 'paused')) {
       this.indicators.update(this.stage.camera, this.markers(sim));
       this.ui.fadeMap(this.behindMap(sim));
       this.ui.fadePanels(this.subjectsOnScreen(sim));
@@ -664,6 +681,24 @@ export class Game {
     }
     const wind = 1 + this.wx.rain * 1.3 - this.wx.mist * 0.6 - this.wx.snow * 0.3;
     this.grass.update(this.clock, wind, push);
+  }
+
+  private startCutaway(sim: Sim) {
+    const d = sim.dog;
+    // Look west into the sunset from just east of Pip (the low shot stands east of its focus).
+    const sun = this.stage.mood.sunDir;
+    const angle = Math.atan2(-sun.z, -sun.x);
+    this.cutaway = { t: 3.4, x: d.x, z: d.z, angle };
+    this.ui.showHud(false);
+    this.indicators.clear();
+  }
+
+  private endCutaway(sim: Sim) {
+    this.cutaway = null;
+    this.ui.showHud(true);
+    const d = sim.dog;
+    this.stage.snapTo(d.x, this.terrain.height(d.x, d.z), d.z, BASE_ZOOM);
+    this.stage.setFocusGoal(d.x, this.terrain.height(d.x, d.z), d.z, BASE_ZOOM);
   }
 
   /** Mist: the veil centred on Pip, its banks drifting with the ground under the camera. */
@@ -1135,6 +1170,7 @@ export class Game {
       switch (e.type) {
         case 'dusk':
           this.ui.toast('The sun is setting. Wolves are stirring in the pines.', 'warn');
+          if (this.sim && !this.sim.watch && !this.opts.noCutaway) this.startCutaway(this.sim);
           break;
         case 'dawn':
           this.ui.toast('Dawn is breaking! The wolves slink back to the woods.', 'good');

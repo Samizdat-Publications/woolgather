@@ -90,7 +90,7 @@ export class Life {
             vec4 mv = modelViewMatrix * vec4(position, 1.0);
             gl_Position = projectionMatrix * mv;
             vFlap = 0.6 + 0.4 * sin(uTime * 22.0 + position.x * 3.1 + position.z * 1.7);
-            gl_PointSize = max(1.5, uScale * 0.22 / -mv.z);
+            gl_PointSize = clamp(uScale * 0.22 / -mv.z, 1.5, 9.0);
           }`,
         fragmentShader: `
           uniform float uAlpha;
@@ -126,7 +126,7 @@ export class Life {
               vLife = aLife;
               vec4 mv = modelViewMatrix * vec4(position, 1.0);
               gl_Position = projectionMatrix * mv;
-              gl_PointSize = uScale * (0.7 + aLife * 2.6) / -mv.z;
+              gl_PointSize = min(70.0, uScale * (0.7 + aLife * 2.6) / -mv.z);
             }`,
           fragmentShader: `
             uniform sampler2D uMap;
@@ -199,9 +199,10 @@ export class Life {
     this.root.removeFromParent();
   }
 
+  /** Point sizes follow the lens and the drawing buffer (set by the game each frame). */
+  pointScale = 3000;
+
   update(dt: number, time: number, sim: Sim | null, mood: MoodValues, focus: THREE.Vector3) {
-    const cam = { fov: 20 };
-    void cam;
     this.updateBirds(dt, time, mood, focus);
     this.updateSmoke(dt, mood);
     this.updateRabbits(dt, time, sim);
@@ -274,7 +275,7 @@ export class Life {
     this.birds.geometry.getAttribute('position').needsUpdate = true;
     u.uAlpha.value = Math.min(1, Math.min(k, 1 - k) * 8) * 0.85;
     u.uTime.value = time;
-    u.uScale.value = window ? 3000 : 3000;
+    u.uScale.value = this.pointScale;
   }
 
   private updateSmoke(dt: number, mood: MoodValues) {
@@ -299,7 +300,7 @@ export class Life {
     });
     this.smoke.geometry.getAttribute('position').needsUpdate = true;
     this.smoke.geometry.getAttribute('aLife').needsUpdate = true;
-    this.smoke.material.uniforms.uScale.value = 3000;
+    this.smoke.material.uniforms.uScale.value = this.pointScale;
     this.smoke.material.uniforms.uColor.value.set('#cfc8c0').multiplyScalar(1 - 0.6 * mood.night);
   }
 

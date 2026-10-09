@@ -65,13 +65,13 @@ interface Palette {
 
 const PALETTES: Record<Season, Palette> = {
   // Fresh, light yellow-greens: warm light turns them gold, not olive.
-  summer: { grassA: '#8eae5c', grassB: '#a6bd6c', dry: '#c0b87a', lush: '#7aa25a', worn: '#9c9a6a', mud: '#7a6440', straw: '#c8b068', heather: '#86697f', bed: '#7b7560', foldFloor: '#a38e5b', yard: '#9c8a6c', forest: '#4f6a3a', forestDeep: '#3d5430', rocky: '#737a55', shingle: '#a89f80', dirt: '#a8996a', dirtEdge: '#8a7c56', heatherAmt: 0.7, snow: 0 },
+  summer: { grassA: '#8eae5c', grassB: '#a6bd6c', dry: '#c0b87a', lush: '#7aa25a', worn: '#9c9a6a', mud: '#7a6440', straw: '#c8b068', heather: '#86697f', bed: '#7b7560', foldFloor: '#a38e5b', yard: '#9c8a6c', forest: '#4f6a3a', forestDeep: '#3d5430', rocky: '#737a55', shingle: '#8c8670', dirt: '#a8996a', dirtEdge: '#8a7c56', heatherAmt: 0.7, snow: 0 },
   // Late summer: the heather in full bloom, the grass a little drier.
-  heather: { grassA: '#93aa5a', grassB: '#a9b96a', dry: '#c4b676', lush: '#7c9e56', worn: '#9c9a6a', mud: '#7a6440', straw: '#c8b068', heather: '#9a5a9c', bed: '#7b7560', foldFloor: '#a38e5b', yard: '#9c8a6c', forest: '#4f6a3a', forestDeep: '#3d5430', rocky: '#737a55', shingle: '#a89f80', dirt: '#a8996a', dirtEdge: '#8a7c56', heatherAmt: 0.9, snow: 0 },
+  heather: { grassA: '#93aa5a', grassB: '#a9b96a', dry: '#c4b676', lush: '#7c9e56', worn: '#9c9a6a', mud: '#7a6440', straw: '#c8b068', heather: '#9a5a9c', bed: '#7b7560', foldFloor: '#a38e5b', yard: '#9c8a6c', forest: '#4f6a3a', forestDeep: '#3d5430', rocky: '#737a55', shingle: '#8c8670', dirt: '#a8996a', dirtEdge: '#8a7c56', heatherAmt: 0.9, snow: 0 },
   // Autumn: tawny grass, rust bracken where the heather was, the forest floor brown.
-  autumn: { grassA: '#a0a35a', grassB: '#b4b068', dry: '#c8a764', lush: '#879a50', worn: '#9a8e62', mud: '#6e5636', straw: '#c0a060', heather: '#9a5c3e', bed: '#76705a', foldFloor: '#9a8455', yard: '#968466', forest: '#5e5a34', forestDeep: '#4a4228', rocky: '#7a7656', shingle: '#a49a7c', dirt: '#9c8a5e', dirtEdge: '#7e6c48', heatherAmt: 0.75, snow: 0 },
+  autumn: { grassA: '#a0a35a', grassB: '#b4b068', dry: '#c8a764', lush: '#879a50', worn: '#9a8e62', mud: '#6e5636', straw: '#c0a060', heather: '#9a5c3e', bed: '#76705a', foldFloor: '#9a8455', yard: '#968466', forest: '#5e5a34', forestDeep: '#4a4228', rocky: '#7a7656', shingle: '#888068', dirt: '#9c8a5e', dirtEdge: '#7e6c48', heatherAmt: 0.75, snow: 0 },
   // First snow: snow on everything level enough to hold it, grass showing through on the steep.
-  winter: { grassA: '#8a9a6a', grassB: '#98a574', dry: '#a8a07a', lush: '#7c8c62', worn: '#a4a08a', mud: '#6a5e4a', straw: '#b8a678', heather: '#7a6070', bed: '#6c6a62', foldFloor: '#a0927a', yard: '#b4ad9e', forest: '#56604a', forestDeep: '#454d3c', rocky: '#7c7e72', shingle: '#a8a294', dirt: '#b8b2a4', dirtEdge: '#9c968a', heatherAmt: 0.5, snow: 1 },
+  winter: { grassA: '#8a9a6a', grassB: '#98a574', dry: '#a8a07a', lush: '#7c8c62', worn: '#a4a08a', mud: '#6a5e4a', straw: '#b8a678', heather: '#7a6070', bed: '#6c6a62', foldFloor: '#a0927a', yard: '#b4ad9e', forest: '#56604a', forestDeep: '#454d3c', rocky: '#7c7e72', shingle: '#8e8a80', dirt: '#b8b2a4', dirtEdge: '#9c968a', heatherAmt: 0.5, snow: 1 },
 };
 
 const col = (hex: string) => new THREE.Color(hex);
