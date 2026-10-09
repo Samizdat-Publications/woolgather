@@ -494,6 +494,20 @@ export class Actors {
    */
   private wolfRim = { value: new THREE.Color(0, 0, 0) };
 
+  /** Pitch and roll that stand an animal on the slope under it (half the ground's own tilt). */
+  private slopeTilt(x: number, z: number, facing: number) {
+    const t = this.terrain;
+    const e = 0.8;
+    const gx = (t.height(x + e, z) - t.height(x - e, z)) / (2 * e);
+    const gz = (t.height(x, z + e) - t.height(x, z - e)) / (2 * e);
+    const fx = Math.sin(facing);
+    const fz = Math.cos(facing);
+    // Uphill along the facing pitches the nose up (negative x rotation); across it rolls.
+    const along = gx * fx + gz * fz;
+    const across = gx * fz - gz * fx;
+    return { x: clampN(-Math.atan(along) * 0.6, 0.35), z: clampN(Math.atan(across) * 0.6, 0.3) };
+  }
+
   sync(sim: Sim, dt: number, mood: MoodValues, showRings = true) {
     const h = (x: number, z: number) => this.terrain.height(x, z);
     this.time += dt;
@@ -508,12 +522,14 @@ export class Actors {
     const halo = Math.min(1, Math.max(0, (night - 0.3) / 0.4));
     this.dogHalo.color.copy(HALO_DAY).lerp(HALO_NIGHT, halo);
     this.dogHalo.userData.width.value = 0.048 + 0.014 * halo;
-    // An orange-gold key light is taken out of white wool (orange sheep read as dirty), but the
-    // rose sunset's pink is left on it: sixteen pink-lit sheep are the sunset. By moonlight the
-    // fleece may cool a little.
+    // Most of a coloured key light is taken out of white wool and coat, orange or pink: the sheep
+    // stay white through the sunset (a touch of warmth is left). By moonlight the fleece may cool.
     const k = mood.keyColor;
-    const orange = Math.min(1, Math.max(0, (k.g - k.b) / Math.max(0.01, k.r)) * 2.2);
-    this.whiteKeep.value = Math.min(0.85, 0.12 + 0.6 * orange * Math.min(1, mood.keyIntensity / 2) + 0.3 * night);
+    // Keyed on how coloured the light is at all (its chroma), not only how orange: the pink sunset
+    // keys left the wool pink, which two rounds of critics found odd ("the sheep turn pink").
+    const mx = Math.max(k.r, k.g, k.b);
+    const chroma = Math.min(1, Math.max(0, (mx - Math.min(k.r, k.g, k.b)) / Math.max(0.01, mx)) * 1.8);
+    this.whiteKeep.value = Math.min(0.85, 0.15 + 0.55 * chroma * Math.min(1, mood.keyIntensity / 2) + 0.3 * night);
     for (const m of this.whiteMats) m.emissiveIntensity = 1 + (m.name === 'coat_white' ? 1.2 : 0.4) * night;
     // Rim light: faint and warm by day, rose-pink through the sunset and dusk, silver by moonlight.
     // Pink from the sunset until the sun goes, then the moon's silver.
@@ -658,10 +674,18 @@ export class Actors {
       // its dark face and legs show.
       const bounce = s.kind === 'lamb' && !grabbed && s.speed > 1.2 ? Math.abs(Math.sin(this.time * 9 + s.seed * 20)) * Math.min(0.55, 0.15 + s.speed * 0.06) : 0;
       r.root.position.set(s.x, h(s.x, s.z) + (grabbed ? 0.35 : 0) + bounce, s.z);
-      r.root.rotation.set(0, s.facing, grabbed ? 0.6 : 0);
+      r.root.rotation.order = 'YXZ';
+      const tilt = grabbed ? null : this.slopeTilt(s.x, s.z, s.facing);
+      r.root.rotation.set(tilt ? tilt.x : 0, s.facing, grabbed ? 0.6 : tilt ? tilt.z : 0);
       const st = this.sheepAnim[i];
       const before = st.steps;
-      animateSheep(r, st, s, dt, this.time);
+      const dd = Math.hypot(d.x - s.x, d.z - s.z);
+      let look: number | null = null;
+      if (dd < 16 && s.kind !== 'ram') {
+        const a = Math.atan2(d.x - s.x, d.z - s.z) - s.facing;
+        look = Math.atan2(Math.sin(a), Math.cos(a));
+      }
+      animateSheep(r, st, s, dt, this.time, look);
       // Angus squared up to a dog: head down, horns forward.
       if (s.kind === 'ram' && s.stubborn > 0.15 && s.yieldT <= 0 && r.head) r.head.rotation.x += 0.45;
       // A bolting flock kicks up dust, one puff for every other footfall of each sheep.
@@ -704,7 +728,9 @@ export class Actors {
       }
       const y = h(w.x, w.z);
       v.rig.root.position.set(w.x, y, w.z);
-      v.rig.root.rotation.y = w.facing;
+      v.rig.root.rotation.order = 'YXZ';
+      const wt = this.slopeTilt(w.x, w.z, w.facing);
+      v.rig.root.rotation.set(wt.x, w.facing, wt.z);
       const wSteps = v.anim.steps;
       animateWolf(v.rig, v.anim, w, dt, this.time);
       if (v.anim.steps !== wSteps && (w.state === 'charge' || w.state === 'flee' || w.state === 'drag') && w.speed > 5 && !w.inWater) step(w.x, w.z, w.vx, w.vz, 1);
@@ -794,4 +820,8 @@ export class Actors {
     for (const s of near) pts.push({ x: s.x, z: s.z });
     return pts;
   }
+}
+
+function clampN(v: number, m: number) {
+  return Math.max(-m, Math.min(m, v));
 }

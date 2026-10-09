@@ -62,5 +62,16 @@
   },
   "heather": [{ "maxZ": -36 }, { "maxX": -70 }, { "minX": 76 }, { "maxZ": -8 }, { "minX": 18 }],
   "ground": { "grassA": "#86924e", "grassB": "#949858", "dry": "#a48c62", "lush": "#6c7c46", "heatherAmt": 1 },
-  "titleShot": { "x": 0, "z": -6, "angle": 1.35 }
+  "titleShot": { "x": 0, "z": -6, "angle": 1.35 },
+  "landmarks": [
+    {"kind": "crag_a", "at": [6, -74], "angle": 0},
+    {"kind": "scree", "at": [-2, -66], "angle": 0},
+    {"kind": "scree", "at": [14, -65], "angle": -20, "scale": 0.9},
+    {"kind": "crag_b", "at": [-80, -60], "angle": 40},
+    {"kind": "scree", "at": [-74, -52], "angle": 30, "scale": 0.8},
+    {"kind": "shieling", "at": [-84, 14], "angle": -15},
+    {"kind": "peat_hag", "at": [88, -50], "angle": 20},
+    {"kind": "peat_hag", "at": [94, -38], "angle": -30, "scale": 0.8},
+    {"kind": "cairn", "at": [60, -72]}
+  ]
 }

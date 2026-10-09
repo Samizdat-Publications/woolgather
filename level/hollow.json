@@ -75,5 +75,15 @@
     "noiseSeed": 7
   },
   "heather": [{ "maxX": -48 }],
-  "titleShot": { "x": -10, "z": 4, "angle": 0.1 }
+  "titleShot": { "x": -10, "z": 4, "angle": 0.1 },
+  "landmarks": [
+    {"kind": "standing_stone", "at": [-14, -14], "angle": 10},
+    {"kind": "standing_stone", "at": [-8, -19], "angle": 70, "scale": 0.9},
+    {"kind": "standing_stone", "at": [-10, -26], "angle": 150, "scale": 1.1},
+    {"kind": "standing_stone", "at": [-17, -27], "angle": 220, "scale": 0.85},
+    {"kind": "standing_stone", "at": [-21, -20], "angle": 300},
+    {"kind": "stell", "at": [82, -38], "angle": 0},
+    {"kind": "cairn", "at": [-46, 64]},
+    {"kind": "crag_b", "at": [-82, -52], "angle": 30}
+  ]
 }

@@ -74,6 +74,9 @@ export interface Sheep extends Body {
   trotT: number;
   /** How long it has been driven steadily: a flock driven well settles into a quicker walk-on. */
   driveT: number;
+  /** Seconds left following a flockmate that just went into a pen, and which pen. */
+  followT: number;
+  followPen: number;
   /** Where this sheep last settled: undisturbed sheep graze around it instead of wandering off. */
   homeX: number;
   homeZ: number;
@@ -256,6 +259,7 @@ export class Sim {
           !level.inWater(x, z) &&
           this.sheep.every((s) => (s.x - x) ** 2 + (s.z - z) ** 2 > 2.2 * 2.2) &&
           level.circles.every((c) => (c.x - x) ** 2 + (c.z - z) ** 2 > (c.r + 1.4) ** 2) &&
+          level.segs.every((g) => g.tag === 'boundary' || segDist(x, z, g.ax, g.az, g.bx, g.bz) > g.r + 1.4) &&
           !level.penAt(x, z, -2);
         if (clear) break;
       }
@@ -290,6 +294,8 @@ export class Sim {
         trotZ: 0,
         trotT: 0,
         driveT: 0,
+        followT: 0,
+        followPen: -1,
         homeX: x,
         homeZ: z,
         stubborn: kind === 'ram' ? 1 : 0,
@@ -1050,6 +1056,21 @@ export class Sim {
         }
       }
 
+      if (s.followT > 0) {
+        s.followT -= dt;
+        const p = L.pens[s.followPen];
+        if (p) {
+          const tgt = p.inFunnel(s.x, s.z) ? p.inside : p.mouth;
+          const gx = tgt.x - s.x;
+          const gz = tgt.z - s.z;
+          const gl = Math.hypot(gx, gz) || 1;
+          const k = alert ? 3.4 : 2.4;
+          vx += (gx / gl) * k;
+          vz += (gz / gl) * k;
+          s.alertT = Math.max(s.alertT, 0.4);
+        }
+      }
+
       // Sheep settle wherever the dog (or a wolf) left them, then graze around that spot.
       if (alert || fear > 0.05) {
         s.homeX = s.x;
@@ -1307,6 +1328,15 @@ export class Sim {
     s.penId = p.id;
     this.folded++;
     this.events.push({ type: 'folded', x: s.x, z: s.z, id: s.id, count: this.folded });
+    // Sheep follow sheep: once one goes in, the ones close behind it follow through the gate.
+    const pi = this.level.pens.indexOf(p);
+    for (const q of this.sheep) {
+      if (q === s || !this.isFree(q) || (q.kind === 'ram' && q.stubborn > 0.15)) continue;
+      if ((q.x - s.x) ** 2 + (q.z - s.z) ** 2 < 10 * 10) {
+        q.followT = 3;
+        q.followPen = pi;
+      }
+    }
   }
 
   private updateFoldedSheep(s: Sheep, dt: number) {
@@ -2091,4 +2121,13 @@ export class Sim {
     this.dog.vx = 0;
     this.dog.vz = 0;
   }
+}
+
+/** Distance from (x, z) to the segment a-b. */
+function segDist(x: number, z: number, ax: number, az: number, bx: number, bz: number) {
+  const dx = bx - ax;
+  const dz = bz - az;
+  const l2 = dx * dx + dz * dz || 1;
+  const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l2));
+  return Math.hypot(x - ax - dx * t, z - az - dz * t);
 }

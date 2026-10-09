@@ -345,6 +345,56 @@ if (!flag('skip-season')) {
     await shot(`evening-${id}`, `evening ${id} in play`);
   }
   await page.evaluate(() => window.__WG.setTimeScale(1));
+
+  // Landmarks: the corrie has its crag, screes and shieling, and they block the way.
+  await page.evaluate(() => window.__WG.evening('angus', true));
+  await sleep(800);
+  const lm = await page.evaluate(() => (window.__WG.level.landmarks ?? []).length);
+  check('landmarks: the corrie has its landmarks', lm >= 5, String(lm));
+  await shot('landmarks-corrie', 'Crannach Corrie with its landmarks');
+
+  // Fly, the old dog: F sends her to lie where Pip stands, F again calls her back.
+  await page.evaluate(() => window.__WG.charms(['fly']));
+  await page.evaluate(() => window.__WG.evening('lambing', true));
+  await sleep(800);
+  const f0 = (await state()).fly;
+  check('fly: comes along when worn', !!f0 && f0.mode === 'heel', JSON.stringify(f0));
+  await page.keyboard.press('KeyF');
+  await sleep(1500);
+  const f1 = (await state()).fly;
+  check('fly: F sends her to hold a spot', !!f1 && (f1.mode === 'go' || f1.mode === 'down'), JSON.stringify(f1));
+  await shot('fly-down', 'Fly holding a spot');
+  await page.keyboard.press('KeyF');
+  await sleep(300);
+  check('fly: F again calls her back', (await state()).fly?.mode === 'heel');
+  await page.evaluate(() => window.__WG.charms([]));
+  await page.evaluate(() => window.__WG.evening('show', true));
+  await sleep(500);
+  check('fly: never at the trial', (await state()).fly === null);
+
+  // Wolf Moon: harder rules, and its record kept apart from the evening's.
+  await page.evaluate(() => window.__WG.progress('moon'));
+  await page.evaluate(() => window.__WG.evening('storm', true, false));
+  await sleep(500);
+  const tNormal = (await state()).target;
+  await page.evaluate(() => window.__WG.evening('storm', false, true));
+  await sleep(400);
+  check('wolf moon: the intro card shows the tier switch', await page.locator('.intro-card.moon .tier-switch').isVisible());
+  await shot('wolf-moon-card', 'the Wolf Moon intro card');
+  await page.evaluate(() => window.__WG.evening('long-light', true, true));
+  await sleep(500);
+  const m0 = await state();
+  check('wolf moon: one more sheep needed', m0.target === Math.min(m0.total, 7 + 1) && tNormal === 11, `${m0.target} (normal storm ${tNormal})`);
+  await page.evaluate((n) => window.__WG.placeInFold(n), m0.target);
+  await sleep(800);
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => window.__WG.state().screen === 'end', null, { timeout: 15000 }).catch(() => {});
+  const rec = (await state()).progress.evenings['long-light'];
+  check('wolf moon: a moon win keeps the evening record', rec?.stars === 3 && (rec?.moon?.stars ?? 0) >= 1, JSON.stringify(rec));
+  await page.evaluate(() => window.__WG.progress('all'));
+
+  await page.evaluate(() => window.__WG.classic('standard'));
+  await sleep(300);
   await page.keyboard.press('Escape');
   await sleep(300);
   await page.locator('.pause-screen [data-act="title"]').click();

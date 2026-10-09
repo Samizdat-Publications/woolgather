@@ -984,7 +984,9 @@ export class HerdBot2 {
     const sprint = orbit ? dc > g.r + far : dist(dog, target) > far && dc > g.r + 15;
     // Expert: go round with the flank command (the game keeps Pip just outside the flight zone).
     let flank = 0;
-    if (orbit && this.skill.flank) {
+    // Not at a crossing, a trial gate or the fold: the flank key circles the whole flock and does
+    // not mind water, so lining up on a bridge it ran round and round across the stream.
+    if (orbit && this.skill.flank && !this.cross && !this.foldStage && !this.gateRun) {
       // Only when the game's flank would go round this group (it circles the flock nearest Pip).
       const nearest = free.slice().sort((a, b) => dist(a, dog) - dist(b, dog))[0];
       if (nearest && g.all.some((m) => m.id === nearest.id) && dist(nearest, dog) < g.r + 30) flank = this.orbitDir;

@@ -75,5 +75,13 @@
   },
   "heather": [{ "maxZ": -52 }],
   "ground": { "grassA": "#7eaa58", "grassB": "#96bc66", "dry": "#aebb76", "lush": "#669c50" },
-  "titleShot": { "x": 20, "z": 10, "angle": -0.2 }
+  "titleShot": { "x": 20, "z": 10, "angle": -0.2 },
+  "landmarks": [
+    {"kind": "jetty", "at": [21, 42], "angle": 90},
+    {"kind": "rowing_boat", "at": [19, 51], "angle": 115},
+    {"kind": "crag_b", "at": [-56, -70], "angle": -20},
+    {"kind": "scree", "at": [-50, -60], "angle": 0},
+    {"kind": "cairn", "at": [-20, -72]},
+    {"kind": "shieling", "at": [-98, 14], "angle": 20}
+  ]
 }

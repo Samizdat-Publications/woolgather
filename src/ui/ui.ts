@@ -421,6 +421,19 @@ export class Ui {
       : '';
   }
 
+  /**
+   * A control chip lights while its key is held, and steps back (dims) once the player has used it
+   * a couple of times: the opening HUD was busy with prompts for things already learned.
+   */
+  private chipUses = new Map<string, number>();
+  private chipOn = new Map<string, boolean>();
+  private chip(el: HTMLElement, id: string, on: boolean) {
+    if (on && !this.chipOn.get(id)) this.chipUses.set(id, (this.chipUses.get(id) ?? 0) + 1);
+    this.chipOn.set(id, on);
+    el.classList.toggle('on', on);
+    el.classList.toggle('learned', !on && (this.chipUses.get(id) ?? 0) >= 2);
+  }
+
   showHud(on: boolean) {
     $('.hud', this.root).hidden = !on;
   }
@@ -650,9 +663,9 @@ export class Ui {
     const st = $('.stamina-fill', this.root);
     st.style.width = `${(d.stamina / DOG.staminaMax) * 100}%`;
     st.classList.toggle('tired', d.sprintLock);
-    $('.creep-pip', this.root).classList.toggle('on', d.creeping);
-    $('.lie-pip', this.root).classList.toggle('on', d.lying);
-    $('.flank-pip', this.root).classList.toggle('on', d.flanking !== 0);
+    this.chip($('.creep-pip', this.root), 'creep', d.creeping);
+    this.chip($('.lie-pip', this.root), 'lie', d.lying);
+    this.chip($('.flank-pip', this.root), 'flank', d.flanking !== 0);
     const outrunPip = $('.outrun-pip', this.root);
     outrunPip.hidden = !r.outrun;
     outrunPip.classList.toggle('on', !!d.outrunning);

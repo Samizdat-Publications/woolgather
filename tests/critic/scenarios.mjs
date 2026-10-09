@@ -141,8 +141,15 @@ export const scenarios = {
       ['storm', 100, 'evening-7-storm', (s) => s.elapsed > 45],
       ['first-snow', 90, 'evening-8-snow', (s) => s.elapsed > 40],
     ];
+    // Lambing Time is played with Old Fly along: the player sends her to hold a spot, then calls her back.
+    const flyCues = [
+      ['fly-down', (s) => s.elapsed > 28 && s.sheep?.some((q) => q.state !== 'folded' && dist(q, s.dog) < 22), () => page.keyboard.press('KeyF')],
+      ['evening-3-fly', (s) => s.fly?.mode === 'down' && s.elapsed > 31],
+      ['fly-back', (s) => s.fly?.mode === 'down' && s.elapsed > 70, () => page.keyboard.press('KeyF')],
+    ];
     for (const [id, seconds, name, cue] of montage) {
       if (ctx.overTime()) break;
+      await page.evaluate((c) => window.__WG.charms(c), id === 'lambing' ? ['fly'] : []);
       await page.evaluate((e) => window.__WG.evening(e, false), id);
       await frames(3);
       await still(`${name}-card`);
@@ -150,13 +157,36 @@ export const scenarios = {
       await frame();
       mark('evening', { id });
       // A highlight: twenty seconds of the opening, then on to just before the wolves come out.
-      st = await play(20, []);
+      st = await play(id === 'lambing' ? 40 : 20, id === 'lambing' ? flyCues : []);
       if (id !== 'show') await page.evaluate(() => {
         const s = window.__WG.state();
-        const ws = { lambing: 0.22, angus: 0.2, mist: 0.24, storm: 0.22, 'first-snow': 0.18 }[s.evening] ?? 0.2;
+        const ws = s.wolfStart ?? 0.2;
         if (s.t < ws - 0.03) window.__WG.jumpTo(ws - 0.03);
       });
-      st = await play(seconds, [[name, cue]]);
+      st = await play(seconds, id === 'lambing' ? [[name, cue], ...flyCues] : [[name, cue]]);
+    }
+    await page.evaluate(() => window.__WG.charms([]));
+    // The Wolf Moon: the storm again, harder, with the wolves hunting as a pack.
+    if (!ctx.overTime()) {
+      await page.evaluate(() => window.__WG.progress('moon'));
+      await page.evaluate(() => window.__WG.evening('storm', false, true));
+      await frames(3);
+      await still('wolf-moon-card');
+      await page.keyboard.press('Enter');
+      await frame();
+      mark('evening', { id: 'storm', moon: true });
+      st = await play(15, []);
+      // On to the moment a second wolf may come out (the pack needs two).
+      await page.evaluate(() => {
+        const s = window.__WG.state();
+        const ws = s.wolfStart ?? 0.15;
+        const two = ws + 0.18 * (0.85 - ws);
+        if (s.t < two - 0.02) window.__WG.jumpTo(two - 0.02);
+      });
+      st = await play(110, [
+        ['wolf-moon-pack', (s) => s.wolves?.some((w) => w.role === 'flanker' && w.state === 'stalk')],
+        ['wolf-moon-feint', (s) => s.wolves?.some((w) => w.feint)],
+      ]);
     }
     // The night watch near its end: the sun coming up and the wolves going home.
     if (!ctx.overTime()) {

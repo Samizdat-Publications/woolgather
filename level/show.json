@@ -42,5 +42,8 @@
     ],
     "post": [0, 40]
   },
-  "titleShot": { "x": 0, "z": 0, "angle": 0.15 }
+  "titleShot": { "x": 0, "z": 0, "angle": 0.15 },
+  "landmarks": [
+    {"kind": "judges_box", "at": [34, 54], "angle": 0}
+  ]
 }

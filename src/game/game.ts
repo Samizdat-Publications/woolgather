@@ -1182,6 +1182,7 @@ export class Game {
           break;
         case 'spook':
           p.ripple(e.x, e.z, 0.8, 6, 0.35);
+          this.life?.bolt(e.x, e.z);
           break;
         case 'scatter':
           p.ripple(e.x, e.z, 1, 14, 0.7);
@@ -1530,6 +1531,13 @@ export class Game {
     return true;
   }
 
+  /** Test hook: wear these charms (unlocking them as if enough stars had been earned). */
+  testCharms(ids: string[]) {
+    this.progress.charms = ids.filter((id) => CHARMS.some((c) => c.id === id));
+    saveProgress(this.progress);
+    return this.progress.charms;
+  }
+
   testClassic(d: Difficulty) {
     this.ui.setDifficulty(d);
     this.evening = null;
@@ -1605,6 +1613,8 @@ export class Game {
       evening: this.evening?.id ?? null,
       levelId: this.level.def.id,
       objective: s?.rules.objective ?? null,
+      wolfStart: s?.rules.wolfStart ?? null,
+      fly: s?.fly ? { x: s.fly.x, z: s.fly.z, mode: s.fly.mode } : null,
       outcome: s?.outcome ?? null,
       t: s?.t ?? 0,
       elapsed: s?.elapsed ?? 0,

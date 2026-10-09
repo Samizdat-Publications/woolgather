@@ -146,11 +146,13 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
     for (const l of level.lochs) {
       const q = level.lochQuery(x, z);
       if (q.d > 12) continue;
-      if (q.d < 0) h = Math.min(h, l.level - 0.35 - 2.4 * smoothstep(0, 14, -q.d));
+      // The bed shelves gently from the waterline (a 0.5 m step inside one grid cell drew the
+      // shore as a staircase of triangles).
+      if (q.d < 0) h = Math.min(h, l.level - 0.05 - 0.4 * smoothstep(0, 4, -q.d) - 2.4 * smoothstep(0, 14, -q.d));
       // A burn running in keeps its channel below the loch's level (the shore's floor lifted the
       // channel bed through the water as a dark slab at the mouth).
       else if (s.d < s.half + 1.2) h = Math.min(h, l.level - 0.35);
-      else h = Math.max(l.level + 0.12, Math.min(h, l.level + 0.18 + q.d * 0.16 + 2 * smoothstep(4, 12, q.d)));
+      else h = Math.max(l.level + 0.04 + 0.1 * smoothstep(0, 4, q.d), Math.min(h, l.level + 0.06 + q.d * 0.16 + 2 * smoothstep(4, 12, q.d)));
     }
     h -= 0.07 * (1 - smoothstep(0.8, 1.6, pathDist(x, z)));
     return h;
@@ -207,6 +209,14 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
       for (const [rx, rz, rr] of def.rocks) {
         const dr = Math.hypot(x - rx, z - rz);
         if (dr < rr + 1.5) c.lerp(C.rocky, (1 - smoothstep(rr * 0.6, rr + 1.5, dr)) * 0.45);
+      }
+      // Stony ground round crags and under screes; trodden earth round a stell and a shieling.
+      for (const l of def.landmarks ?? []) {
+        const dr = Math.hypot(x - l.at[0], z - l.at[1]);
+        const sc = l.scale ?? 1;
+        if (l.kind.startsWith('crag') && dr < 10 * sc) c.lerp(C.rocky, (1 - smoothstep(4 * sc, 10 * sc, dr)) * 0.55);
+        else if (l.kind === 'scree' && dr < 7 * sc) c.lerp(C.rocky, (1 - smoothstep(2 * sc, 7 * sc, dr)) * 0.5);
+        else if ((l.kind === 'stell' || l.kind === 'shieling') && dr < 8 * sc) c.lerp(C.worn, (1 - smoothstep(3 * sc, 8 * sc, dr)) * 0.35);
       }
       const s = level.streamQuery(x, z);
       const half = s.half;
@@ -372,6 +382,7 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
     const gz = Math.ceil((maxZ - minZ) / STEP) + 1;
     const vp: number[] = [];
     const shore: number[] = [];
+    const depth: number[] = [];
     const uv: number[] = [];
     const ix: number[] = [];
     for (let iz = 0; iz < gz; iz++) {
@@ -381,6 +392,7 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
         const q = level.lochQuery(x, z);
         vp.push(x, l.level, z);
         shore.push(1 - smoothstep(0, 10, -q.d));
+        depth.push(l.level - height(x, z));
         uv.push(x, z);
       }
     }
@@ -396,6 +408,7 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(vp, 3));
     g.setAttribute('aShore', new THREE.Float32BufferAttribute(shore, 1));
+    g.setAttribute('aDepth', new THREE.Float32BufferAttribute(depth, 1));
     g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
     g.setIndex(ix);
     g.computeVertexNormals();

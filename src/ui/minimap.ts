@@ -174,6 +174,35 @@ export class Minimap {
       c.arc(this.px(x), this.pz(z), r * this.scale * 0.7 + 0.4, 0, Math.PI * 2);
       c.fill();
     }
+    // Landmarks: crags as grey masses, walls and ruins as dark rings, stones and cairns as dots.
+    for (const lm of L.def.landmarks ?? []) {
+      const x = this.px(lm.at[0]);
+      const z = this.pz(lm.at[1]);
+      const k = (lm.scale ?? 1) * this.scale;
+      c.beginPath();
+      if (lm.kind.startsWith('crag')) {
+        c.fillStyle = 'rgba(96, 92, 84, 0.75)';
+        c.ellipse(x, z, (lm.kind === 'crag_a' ? 5.5 : 4) * k + 1, (lm.kind === 'crag_a' ? 3.8 : 3.2) * k + 1, 0, 0, Math.PI * 2);
+        c.fill();
+      } else if (lm.kind === 'stell' || lm.kind === 'shieling') {
+        c.strokeStyle = 'rgba(70, 64, 58, 0.85)';
+        c.lineWidth = 1.6;
+        if (lm.kind === 'stell') c.arc(x, z, 6 * k, 0, Math.PI * 1.5);
+        else c.rect(x - 2.5 * k, z - 2 * k, 5 * k, 4 * k);
+        c.stroke();
+      } else if (lm.kind === 'standing_stone' || lm.kind === 'cairn' || lm.kind === 'judges_box' || lm.kind === 'peat_hag') {
+        c.fillStyle = lm.kind === 'peat_hag' ? 'rgba(70, 48, 34, 0.7)' : 'rgba(70, 66, 60, 0.85)';
+        c.arc(x, z, (lm.kind === 'peat_hag' ? 2 : 1.2) * k + 1, 0, Math.PI * 2);
+        c.fill();
+      } else if (lm.kind === 'jetty') {
+        c.strokeStyle = 'rgba(110, 82, 52, 0.95)';
+        c.lineWidth = 2;
+        const a = ((lm.angle ?? 0) * Math.PI) / 180;
+        c.moveTo(x, z);
+        c.lineTo(x + Math.sin(a) * 8 * k, z + Math.cos(a) * 8 * k);
+        c.stroke();
+      }
+    }
     for (const r of L.rects) {
       c.fillStyle = '#d8c7a6';
       c.fillRect(this.px(r.minX), this.pz(r.minZ), (r.maxX - r.minX) * this.scale, (r.maxZ - r.minZ) * this.scale);

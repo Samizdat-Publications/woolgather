@@ -304,6 +304,22 @@ export class Life {
     this.smoke.material.uniforms.uColor.value.set('#cfc8c0').multiplyScalar(1 - 0.6 * mood.night);
   }
 
+  /**
+   * A hare bursts out of the grass at (x, z) and bolts: the visible cause of a night-watch spook
+   * (the flock startled by something unseen read as the sheep twitching at nothing).
+   */
+  bolt(x: number, z: number) {
+    const r = this.rabbits.find((q) => q.hidden <= 0) ?? this.rabbits[0];
+    if (!r) return;
+    const a = this.rng.range(0, Math.PI * 2);
+    r.hidden = 0;
+    r.x = x - Math.cos(a) * 2;
+    r.z = z - Math.sin(a) * 2;
+    r.vx = Math.cos(a) * 10;
+    r.vz = Math.sin(a) * 10;
+    r.run = 1.8;
+  }
+
   private updateRabbits(dt: number, time: number, sim: Sim | null) {
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
@@ -343,7 +359,7 @@ export class Life {
       if (r.run > 0) {
         r.run -= dt;
         const l = Math.hypot(tx, tz);
-        if (l > 0) {
+        if (l > 0 && scared) {
           r.vx = (tx / l) * 9;
           r.vz = (tz / l) * 9;
         }

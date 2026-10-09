@@ -164,6 +164,7 @@ function exposeTestHooks() {
     classic: (d: Difficulty) => game.testClassic(d),
     /** Season progress: wipe it, or mark every evening won (to test the map and charms). */
     progress: (what: 'reset' | 'all' | 'moon') => game.testProgress(what),
+    charms: (ids: string[]) => game.testCharms(ids),
     /**
      * Walkability for the bot's path planner on a 2 m grid over the level: 0 open ground, 1 water
      * (sheep refuse it), 2 solid (walls, rocks, buildings, outside the valley), 3 a crossing.

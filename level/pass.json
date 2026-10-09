@@ -79,5 +79,14 @@
     "noiseSeed": 41
   },
   "heather": [{ "maxZ": -22 }, { "minZ": 22 }],
-  "titleShot": { "x": -60, "z": 0, "angle": 0.05 }
+  "titleShot": { "x": -60, "z": 0, "angle": 0.05 },
+  "landmarks": [
+    {"kind": "crag_a", "at": [-62, -47], "angle": 0},
+    {"kind": "scree", "at": [-54, -39], "angle": 10},
+    {"kind": "cairn", "at": [-8, -30]},
+    {"kind": "peat_hag", "at": [-112, -42], "angle": 15},
+    {"kind": "peat_hag", "at": [128, 44], "angle": -20},
+    {"kind": "peat_hag", "at": [-170, 40], "angle": 40, "scale": 0.9},
+    {"kind": "shieling", "at": [120, -46], "angle": 10}
+  ]
 }

@@ -246,9 +246,15 @@ function waterMaterial(ford: { x: number; z: number; r: number } | null) {
         col = mix(col, bed + ripple * 0.12, shallow * 0.8);
         // A flooding stream runs peat-brown and fast, with thin foam streaks racing down it (broad
         // pale patches read as cracked concrete).
-        col = mix(col, vec3(0.13, 0.08, 0.036), uRain * 0.85);
-        float churn = vnoise(vec2(vUv.x * 3.0 - uTime * 2.6, vUv.y * 18.0)) * 0.65 + vnoise(vec2(vUv.x * 6.0 - uTime * 3.4, vUv.y * 31.0) + 5.0) * 0.35;
-        col = mix(col, vec3(0.62, 0.58, 0.5), uRain * 0.42 * smoothstep(0.7, 0.82, churn));
+        // Peat-brown, lighter where the water heaps up over the bed, with foam that tumbles in
+        // broken, warped clots of every length (straight even streaks read as lane markings).
+        float heap = vnoise(vec2(vUv.x * 1.6 - uTime * 1.8, vUv.y * 4.0));
+        col = mix(col, mix(vec3(0.16, 0.1, 0.05), vec3(0.3, 0.21, 0.12), heap), uRain * 0.85);
+        vec2 wq = vec2(vUv.x * 2.2 - uTime * 2.4, vUv.y * 7.0);
+        wq += vec2(vnoise(wq * 0.7 + 3.1), vnoise(wq * 0.9 + 8.4)) * 1.6;
+        float churn = vnoise(wq) * 0.6 + vnoise(wq * vec2(2.3, 1.9) + 5.0) * 0.4;
+        float clot = smoothstep(0.62, 0.8, churn) * (0.55 + 0.45 * vnoise(vec2(vUv.x * 0.7 - uTime * 1.1, vUv.y * 2.0)));
+        col = mix(col, vec3(0.66, 0.62, 0.54), uRain * 0.5 * clot);
         col = mix(col, uTint * (dot(col, LW) / max(dot(uTint, LW), 0.001)), uTintAmt * (1.0 - 0.6 * uRain));
         float flow = 1.0 + uRain * 1.4;
         float sheen = vnoise(vec2(vUv.x * 1.1 - uTime * 0.18 * flow, vUv.y * 9.0)) * 0.6 + vnoise(vec2(vUv.x * 3.2 - uTime * 0.3 * flow, vUv.y * 17.0) + 3.0) * 0.4;
@@ -259,7 +265,8 @@ function waterMaterial(ford: { x: number; z: number; r: number } | null) {
         vec2 p = vec2(vUv.x * 3.0 - uTime * 0.55 * flow, vUv.y * 11.0);
         float n = vnoise(p) * 0.6 + vnoise(p * vec2(2.1, 1.7) + 7.0) * 0.4;
         float glint = smoothstep(0.8, 0.9, n) * (1.0 - smoothstep(0.6, 0.9, across)) * 0.7;
-        col = mix(col, uFoam, smoothstep(0.93, 0.995, across) * (0.55 + 0.3 * uRain));
+        float bankBreak = 0.6 + 0.4 * vnoise(vec2(vUv.x * 2.0 - uTime * 0.8, vUv.y));
+        col = mix(col, uFoam, smoothstep(0.93, 0.995, across) * (0.55 + 0.3 * uRain) * mix(1.0, bankBreak, uRain));
         col *= uLight;
         // Rain breaks up the mirror: a churned stream hardly shows the sky.
         float skyRefl = smoothstep(0.62, 0.9, sheen) * (0.7 + 0.3 * smoothstep(0.1, 0.8, across)) * (1.0 - 0.85 * uRain);
@@ -280,11 +287,14 @@ function lochMaterial() {
     uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...WATER_U },
     vertexShader: `
       attribute float aShore;
+      attribute float aDepth;
       varying float vShore;
+      varying float vDepth;
       varying vec2 vW;
       #include <fog_pars_vertex>
       void main() {
         vShore = aShore;
+        vDepth = aDepth;
         vW = (modelMatrix * vec4(position, 1.0)).xz;
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mvPosition;
@@ -295,6 +305,7 @@ function lochMaterial() {
       uniform vec3 uDeep, uShallow, uSky, uFoam, uTint;
       uniform float uLight, uTintAmt, uGlint, uReflect, uSkyRefl, uSkyLight, uRain;
       varying float vShore;
+      varying float vDepth;
       varying vec2 vW;
       #include <fog_pars_fragment>
       ${NOISE_GLSL}
@@ -313,7 +324,13 @@ function lochMaterial() {
         col *= 1.0 - uRain * 0.12 * fine;
         float n = vnoise(vW * vec2(0.8, 2.4) + vec2(uTime * 0.5, 0.0)) * 0.6 + vnoise(vW * 2.3 + 5.0 - uTime * 0.3) * 0.4;
         float glint = smoothstep(0.8, 0.9, n) * 0.6 * (1.0 - uRain * 0.7);
-        col = mix(col, uFoam, smoothstep(0.93, 0.995, vShore) * 0.25);
+        // The waterline: a thin, broken line of lapping foam and clear shallows over the stones,
+        // following the true depth so the edge sits in the ground instead of cutting it.
+        float lap = 0.5 + 0.5 * sin(uTime * 1.3 + vW.x * 0.35 + vW.y * 0.27);
+        float line = smoothstep(0.0, 0.03, vDepth) * (1.0 - smoothstep(0.05 + 0.03 * lap, 0.1 + 0.03 * lap, vDepth));
+        float brk = smoothstep(0.45, 0.7, vnoise(vW * 1.6 + vec2(uTime * 0.2, 0.0)));
+        col = mix(col, uShallow * 1.1, (1.0 - smoothstep(0.03, 0.45, vDepth)) * 0.45);
+        col = mix(col, uFoam, line * brk * 0.3);
         col *= uLight;
         col = mix(col, uSky * uSkyLight, smoothstep(0.62, 0.9, sheen) * uSkyRefl * 1.2);
         col += uSky * glint * uGlint;
@@ -562,6 +579,32 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
   for (let k = 0; k < 3; k++) {
     const spots = L.rocks.filter((_, i) => i % 3 === k).map(([x, z, r]) => ({ x, y: g(x, z) - 0.15 * r, z, rot: rng.range(0, 6.28), scale: r * 0.95 }));
     if (spots.length) root.add(instance(a.nature.get(rockKinds[k])!, spots).group);
+  }
+
+  // Landmarks: what makes each place itself from the herding camera (crags, a stell, a jetty...).
+  // One instanced set per kind; the stell is three quarters of a ring, left open on one side.
+  const byKind = new Map<string, Placement[]>();
+  for (const l of L.landmarks ?? []) {
+    const rot = ((l.angle ?? 0) * Math.PI) / 180;
+    const sc = l.scale ?? 1;
+    const [x, z] = l.at;
+    const sink = l.kind === 'jetty' ? 0 : l.kind.startsWith('crag') ? 0.25 * sc : 0.05;
+    const y = l.kind === 'jetty' ? g(x, z) : g(x, z) - sink;
+    if (l.kind === 'stell') {
+      for (let k = 0; k < 3; k++) {
+        const arr = byKind.get('stell_arc') ?? [];
+        arr.push({ x, y, z, rot: rot + (k * Math.PI) / 2, scale: sc });
+        byKind.set('stell_arc', arr);
+      }
+      continue;
+    }
+    const arr = byKind.get(l.kind) ?? [];
+    arr.push({ x, y, z, rot, scale: sc });
+    byKind.set(l.kind, arr);
+  }
+  for (const [kind, spots] of byKind) {
+    const proto = a.landmarks.get(kind);
+    if (proto) root.add(instance(proto, spots, { shadow: kind !== 'scree' && kind !== 'cotton_grass' }).group);
   }
 
   // Ground detail: tussocks, flowers, heather, bracken, reeds. No colliders, no shadows (cheap).

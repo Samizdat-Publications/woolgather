@@ -1,4 +1,4 @@
-import type { LevelDef, PenDef, PlaceDef } from './leveldef';
+import { landmarkColliders, type LevelDef, type PenDef, type PlaceDef } from './leveldef';
 import { closestOnSegment, pointInPolygon } from './math';
 
 // Collision and query data for one level, built from its level file. Every static thing the flock
@@ -170,7 +170,9 @@ export class Level {
     this.def = def;
     this.boundary = def.boundary;
     this.streams = def.streams.map((s) => ({ pts: s.points, half: s.halfWidth }));
-    this.lochs = def.lochs.map((l) => ({ pts: l.points, level: l.level }));
+    // Loch outlines are drawn with a handful of points: rounded off (Chaikin, twice) so the shore
+    // curves instead of running in straight cuts with corners.
+    this.lochs = def.lochs.map((l) => ({ pts: chaikin(chaikin(l.points)), level: l.level }));
     this.dens = def.wolfDens;
     this.pens = def.pens.map((p) => new Pen(p));
     this.places = def.places;
@@ -251,6 +253,11 @@ export class Level {
     if (fh) this.rects.push({ minX: fh.center[0] - fh.halfW, maxX: fh.center[0] + fh.halfW, minZ: fh.center[1] - fh.halfD, maxZ: fh.center[1] + fh.halfD });
 
     for (const [x, z, r] of def.rocks) this.circles.push({ x, z, r: r * 0.9 });
+    for (const l of def.landmarks ?? []) {
+      const col = landmarkColliders(l);
+      this.circles.push(...col.circles);
+      for (const sg of col.segs) wall(sg.ax, sg.az, sg.bx, sg.bz, 0.4);
+    }
     for (const t of def.trees) {
       const [kind, x, z, s] = t as [TreeDef['kind'], number, number, number];
       this.trees.push({ kind, x, z, s });
@@ -467,4 +474,15 @@ function segsCross(ax: number, az: number, bx: number, bz: number, cx: number, c
   const d3 = o(ax, az, bx, bz, cx, cz);
   const d4 = o(ax, az, bx, bz, dx, dz);
   return d1 * d2 < 0 && d3 * d4 < 0;
+}
+
+/** One round of Chaikin corner cutting on a closed polygon. */
+function chaikin(pts: Pt[]): Pt[] {
+  const out: Pt[] = [];
+  for (let i = 0; i < pts.length; i++) {
+    const [ax, az] = pts[i];
+    const [bx, bz] = pts[(i + 1) % pts.length];
+    out.push([ax * 0.75 + bx * 0.25, az * 0.75 + bz * 0.25], [ax * 0.25 + bx * 0.75, az * 0.25 + bz * 0.75]);
+  }
+  return out;
 }

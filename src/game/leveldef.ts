@@ -61,6 +61,77 @@ export interface ReliefDef {
   noiseSeed?: number;
 }
 
+export type LandmarkKind = 'crag_a' | 'crag_b' | 'scree' | 'standing_stone' | 'cairn' | 'shieling' | 'stell' | 'jetty' | 'rowing_boat' | 'judges_box' | 'snow_pole' | 'peat_hag' | 'cotton_grass';
+
+/** One landmark: where, turned how far (degrees, as the game's y rotation), and how big. */
+export interface LandmarkDef {
+  kind: LandmarkKind;
+  at: [number, number];
+  angle?: number;
+  scale?: number;
+}
+
+/**
+ * What a landmark blocks, in the landmark's own frame (x right, z towards the camera at angle 0):
+ * circles [x, z, r], and wall segments for the stell (three quarters of a ring, open on one side).
+ */
+export function landmarkColliders(l: LandmarkDef) {
+  const s = l.scale ?? 1;
+  const rot = ((l.angle ?? 0) * Math.PI) / 180;
+  const c = Math.cos(rot);
+  const sn = Math.sin(rot);
+  // three.js rotation about y: x' = x cos + z sin, z' = -x sin + z cos.
+  const w = (x: number, z: number): [number, number] => [l.at[0] + (x * c + z * sn) * s, l.at[1] + (-x * sn + z * c) * s];
+  const circles: { x: number; z: number; r: number }[] = [];
+  const segs: { ax: number; az: number; bx: number; bz: number }[] = [];
+  const circ = (x: number, z: number, r: number) => {
+    const [px, pz] = w(x, z);
+    circles.push({ x: px, z: pz, r: r * s });
+  };
+  switch (l.kind) {
+    case 'crag_a':
+      for (const ox of [-3.4, 0, 3.4]) circ(ox, 0, 3.3);
+      break;
+    case 'crag_b':
+      for (const ox of [-1.8, 1.8]) circ(ox, 0, 2.9);
+      break;
+    case 'standing_stone':
+      circ(0, 0, 0.7);
+      break;
+    case 'cairn':
+      circ(0, 0, 1.1);
+      break;
+    case 'shieling':
+      circ(0, 0, 3.1);
+      break;
+    case 'rowing_boat':
+      circ(0, 0, 1.3);
+      break;
+    case 'judges_box':
+      circ(0, 0, 1.9);
+      break;
+    case 'peat_hag':
+      for (const ox of [-1.1, 1.1]) circ(ox, 0, 1.35);
+      break;
+    case 'stell':
+      // Arcs 0..2 of the ring (the fourth quarter is the way in): each quarter runs from local +x
+      // round to local -z, turned a further quarter for each arc.
+      for (let k = 0; k < 3; k++) {
+        const pts: [number, number][] = [];
+        for (let i = 0; i <= 3; i++) {
+          const t = (i / 3) * (Math.PI / 2);
+          const lx = 6 * Math.cos(t);
+          const lz = -6 * Math.sin(t);
+          const a = (k * Math.PI) / 2;
+          pts.push(w(lx * Math.cos(a) + lz * Math.sin(a), -lx * Math.sin(a) + lz * Math.cos(a)));
+        }
+        for (let i = 0; i < 3; i++) segs.push({ ax: pts[i][0], az: pts[i][1], bx: pts[i + 1][0], bz: pts[i + 1][1] });
+      }
+      break;
+  }
+  return { circles, segs };
+}
+
 export interface LevelDef {
   id: string;
   name: string;
@@ -96,4 +167,6 @@ export interface LevelDef {
    * machair by the loch, a brown heather moor in the corrie.
    */
   ground?: { grassA?: string; grassB?: string; dry?: string; lush?: string; heatherAmt?: number };
+  /** Landmarks the herding camera passes: crags, standing stones, a stell, a jetty (landmarks.glb). */
+  landmarks?: LandmarkDef[];
 }

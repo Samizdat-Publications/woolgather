@@ -13,6 +13,7 @@ export interface Assets {
   nature: Map<string, THREE.Object3D>;
   structures: Map<string, THREE.Object3D>;
   fx: Map<string, THREE.Object3D>;
+  landmarks: Map<string, THREE.Object3D>;
 }
 
 const matCache = new Map<string, THREE.Material>();
@@ -58,7 +59,7 @@ function childrenByName(scene: THREE.Object3D) {
 
 export async function loadAssets(onProgress: (done: number, total: number) => void): Promise<Assets> {
   const loader = new GLTFLoader();
-  const files = ['collie', 'sheep', 'wolf', 'nature', 'structures', 'fx'];
+  const files = ['collie', 'sheep', 'wolf', 'nature', 'structures', 'fx', 'landmarks'];
   const total = files.length;
   let done = 0;
   const tick = () => onProgress(++done, total);
@@ -84,6 +85,7 @@ export async function loadAssets(onProgress: (done: number, total: number) => vo
     nature: childrenByName(scenes.nature),
     structures: childrenByName(scenes.structures),
     fx: childrenByName(scenes.fx),
+    landmarks: childrenByName(scenes.landmarks),
   };
 }
 

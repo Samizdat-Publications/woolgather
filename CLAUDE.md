@@ -36,6 +36,8 @@ away before they drag a sheep into the trees. Night falls in violet and moonligh
 | Creep (sheep stay calm until close) | C (hold) | LT / LB |
 | Lie down (the flock stops; the strongest stare against a ram) | Q (hold) | B |
 | Flank: run round the nearest flock ("away" / "come bye") | Z / X (hold) | D-pad left / right |
+| Outrun to the far side of a loose flock (charm "The Outrun") | Z and X together (hold) | Left stick click |
+| Fly, the old dog: lie down here / come back (charm "Old Fly") | F | D-pad down |
 | Bark (startles sheep, scares wolves) | Space or B | A / X |
 | Latch the gate (only once target is met) | Enter | Y |
 | Pause | Esc or P | Start |
@@ -1069,3 +1071,49 @@ Newest at the bottom. Record every non-obvious choice.
   the burn mouth at Loch Ailsa and an empty mud channel at the corrie lochan's outflow. Inside a
   burn's channel the shore now carves down to below the loch instead; Loch Ailsa's burn ends just
   inside the loch.
+- 2026-10-09 (Run 2, plan in `docs/RUN2-PLAN.md`, resume notes in `docs/RUN2-LOG.md`): measured with
+  two bot skills. HerdBot2 takes `{skill}`: the expert now goes round flocks with the flank keys;
+  the average bot (a first-time player) reacts only to wolves it can see or that were announced,
+  0.4 s late, goes for the nearest wolf, holds a course half a second, aims 2-3.5 m off, walks
+  more, pauses, and goes round flocks late and close. On the 1.0-balanced season both bots won
+  every evening, nearly all with three stars: the critics' "no pressure" in numbers.
+- 2026-10-09 (Run 2): Stewart played it once and found it "kid game easy"; he plays like the expert
+  bot. The balance rule is now: the expert bot has a fight (wins most evenings, not always with
+  three stars), the average bot wins only some of the time. Evenings are shorter with higher
+  targets and more, faster wolves; `src/game/tuning.ts` scales the whole season in one place for
+  the next playtest. Trial stars moved to 90 / 75 / 55 points.
+- 2026-10-09 (Run 2): wolves hunt as a pack (`Rules.pack`, from Old Angus on): a wolf that comes
+  out while another stalks Pip's flock pairs with it. The bait prowls in plain view on Pip's side
+  and feints; the flanker circles outside the sheep's fear radius to the far side and charges once
+  Pip has committed to the bait. A feint is a flag on the stalk state, not a state of its own, so
+  markers, camera, HUD and the music all treat the bait as stalking (a real `charge` would have
+  fired the snatch banners). Tells keep it fair: a howl answered from the other side, a "Two
+  wolves!" toast with an arrow, a growl when the flanker is in place, a pulsing ring on the
+  minimap, a one-time tip. Lone wolves strongly prefer prey within 100 m of Pip (a 250 m snatch
+  nobody could answer read as unfair).
+- 2026-10-09 (Run 2): Wolf Moon, a harder tier of each season evening, opens at three stars: a
+  shorter evening, wolves out sooner, one more wolf, a full pack, one more sheep needed (the trial
+  a strictly judged championship course, the watch a longer night). Its stars, ribbon and best
+  are kept in a `moon` record inside the evening's (a normal win keeps it), and count toward
+  charms. Not for today's evening or classic.
+- 2026-10-09 (Run 2): charms with verbs instead of more percentages: The Outrun (Z and X together:
+  a wide run to the far side of the nearest loose flock, stopping behind it) and Old Fly (F: Pip's
+  mother lies down where he stands and holds the spot, sheep keep 6.5 m off her, wolves 8 m; F
+  again calls her back to heel, where she moves nothing; one dog per run at the trial, so never
+  there). A third charm slot at 30 stars. The storm lantern idea was dropped: wolves already keep
+  off sheep near Pip, so it would have been another number.
+- 2026-10-09 (Run 2): sheep follow sheep: when one goes into a pen, those within 10 m are drawn
+  after it for 3 s (the trial pen stall, named by three critics over two rounds). The night
+  watch's unseen spooks now have a cause on screen: a hare bolts out of the grass.
+- 2026-10-09 (Run 2): landmarks as level data (`landmarks` in `level/*.json`, models from the new
+  `blender_scripts/landmarks.py`): crags with screes, standing stones, a stell, a shieling, a
+  jetty and boat, cairns, peat hags, the judges' box. Colliding ones (crags, stell, shieling)
+  are kept off the drive lines: sheep only get a short push off walls, so a dyke with a gateway
+  would have made a new choke point. Loch outlines are Chaikin-rounded at load, the bed shelves
+  from the waterline, and the loch shader draws a broken foam line and clear shallows from the
+  true depth (the edge was a staircase of 2 m triangles). Flood foam is domain-warped clots of
+  every length (even streaks read as lane markings).
+- 2026-10-09 (Run 2): feel: sheep and wolves lean into turns and stand on the slope (YXZ root
+  rotation), sheep squash and stretch on startles and pronks (legs counter-scaled), and turn their
+  heads to watch Pip when he is near. The white-keep on wool is keyed on the key light's chroma,
+  so the fleece stays white through the pink sunset. Control chips dim once used twice.

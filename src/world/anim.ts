@@ -33,6 +33,7 @@ export class AnimState {
   headYaw = 0;
   hop = 0;
   hopT = 99;
+  squash = 1;
   lift = 0;
   /** Footfalls so far (two per stride), for dust. */
   steps = 0;
@@ -122,7 +123,20 @@ export function animateDog(r: Rig, st: AnimState, d: Dog, dt: number, time: numb
   }
 }
 
-export function animateSheep(r: Rig, st: AnimState, s: Sheep, dt: number, time: number) {
+/** Turn rate (radians a second, smoothed) for leaning into corners. */
+function turnRate(st: AnimState, facing: number, dt: number) {
+  let df = facing - st.prevFacing;
+  df = Math.atan2(Math.sin(df), Math.cos(df));
+  st.prevFacing = facing;
+  st.turn = damp(st.turn, dt > 0 ? clamp(df / dt, -8, 8) : 0, 8, dt);
+  return st.turn;
+}
+
+/**
+ * A sheep. `look` is the bearing of Pip from the sheep's facing (radians) when he is close enough
+ * to matter: sheep keep an eye on the dog, which reads from above and is what real sheep do.
+ */
+export function animateSheep(r: Rig, st: AnimState, s: Sheep, dt: number, time: number, look: number | null = null) {
   const p = rest(r, st);
   const grabbed = s.state === 'grabbed';
   if (s.state !== st.prevState) {
@@ -148,7 +162,22 @@ export function animateSheep(r: Rig, st: AnimState, s: Sheep, dt: number, time: 
   const bob = st.amp * (s.state === 'flee' || s.state === 'panic' ? 0.075 : 0.03) * Math.abs(Math.sin(TAU * st.phase));
   r.body.position.y = p.bodyY + bob + startle + pronk;
   r.body.rotation.x = st.gallop * 0.1 * Math.sin(TAU * st.phase);
+  // Lean into a turn at speed, the fleece rolling outward a little after it.
+  const turn = turnRate(st, s.facing, dt);
+  r.body.rotation.z = clamp(-turn * 0.06, -0.2, 0.2) * clamp(s.speed / 4, 0, 1);
+  // Squash as it lands from a startle or a pronk, stretch on the way up (the legs keep their size).
+  const sq = startle > 0 || pronk > 0 ? (startle + pronk > 0.12 ? 1.06 : 0.92) : 1;
+  st.squash = damp(st.squash, sq, 18, dt);
+  r.body.scale.set(1 / Math.sqrt(st.squash), st.squash, 1 / Math.sqrt(st.squash));
+  for (const l of r.legs) {
+    l.userData.baseY ??= l.scale.y;
+    l.scale.y = l.userData.baseY / st.squash;
+  }
   if (r.head) {
+    // Eyes on the dog: the head turns towards Pip while he is near (not while grazing heads-down).
+    const yaw = look !== null && s.state !== 'graze' ? clamp(look, -0.9, 0.9) : 0;
+    st.headYaw = damp(st.headYaw, yaw, 6, dt);
+    r.head.rotation.y = st.headYaw;
     st.lift = Math.max(0, st.lift - dt);
     const graze = s.state === 'graze' ? 1 : 0;
     const nibble = graze * 0.06 * Math.sin(time * 9 + st.seed);
