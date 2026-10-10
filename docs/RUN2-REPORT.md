@@ -64,7 +64,8 @@ The average bot's results swing a lot between seeds (5 of 10 on one, 9 of 10 on 
 | Average bot, season (seed 23) | 7 of 10 won (two with one or two stars) |
 | Today's evening, four sample dates | expert 4 of 4, average 4 of 4, tight on some (tightened twice in the last hour) |
 | Frame rate (`perf-season`, 1080p High) | 116-149 fps on every evening, 341-402 draw calls, no errors |
-| Public site (`site-check`, local) | passes; the season section has no horizontal scroll on desktop or phone |
+| Public site (`site-check`, local and live) | passes; the season section has no horizontal scroll on desktop or phone |
+| Deploy | Cloudflare Pages, https://woolgather.pages.dev (the live `/play/` bundle contains The Gathering, Wolf Moon and Old Fly); tag `v2.0.0`, `main` fast-forwarded, GitHub release published |
 
 ## What the critics said
 

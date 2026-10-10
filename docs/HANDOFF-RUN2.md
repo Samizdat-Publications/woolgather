@@ -4,7 +4,14 @@ Read this first if you are a fresh session picking up the second 24-hour run. Th
 `docs/RUN2-PLAN.md` (the approved plan), `docs/RUN2-LOG.md` (what happened, in order) and
 `docs/RUN2-REPORT.md` (the report for Stewart, nearly final). Project rules: `CLAUDE.md`.
 
-## Where things stand (2026-10-09, about 22:30 local)
+## Done (2026-10-10, about 00:30 local)
+
+Run 2 is finished and shipped: v2.0.0 is live at https://woolgather.pages.dev, tagged, merged to
+`main`, GitHub release published. The next session's job is Stewart's playtest feedback (tune
+`src/game/tuning.ts`) or the open ideas at the end of `docs/RUN2-REPORT.md`. The notes below are
+the state before shipping, kept for reference.
+
+## Where things stood (2026-10-09, about 22:30 local)
 
 - Branch `season`, last commit `1a7748e` (round r07 fixes), pushed. `main` is still at `edb0dd3`
   (fast-forwarded at the start of the run); it is fast-forwarded again only at the very end.
