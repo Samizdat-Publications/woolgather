@@ -46,4 +46,4 @@ brief for 2.1) is `docs/HANDOFF-RUN3.md`; everything in it was done.
 - Commit and push after every step (standing preference). Never use em dashes anywhere.
 - Python on Windows: open files with `newline=''` to keep LF; write new files with the editor tool.
 - The goose model: `blender --background --factory-startup --python blender_scripts/characters.py
-  -- --only goose --preview --topdown` (Blender 5.1 at `C:\\Program Files\\Blender Foundation`).
+  -- --only goose --preview --topdown` (Blender 5.1 under `C:\Program Files\Blender Foundation`).
