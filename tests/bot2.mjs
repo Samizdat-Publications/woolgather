@@ -756,17 +756,21 @@ export class HerdBot2 {
       };
       this.orbitDir = blocked(1) <= blocked(-1) ? 1 : -1;
     }
-    const step = this.orbitDir * 0.55;
-    let p = null;
-    for (const rr of [r, r - 3, r + 4, r - 6]) {
-      const x = g.c.x + Math.cos(cur + step) * rr;
-      const z = g.c.z + Math.sin(cur + step) * rr;
-      if (this.nav.cells[this.nav.cellOf(x, z)] !== 2) {
-        p = { x, z };
-        break;
+    const ahead = (dir) => {
+      for (const rr of [r, r - 3, r + 4, r - 6, r - 9]) {
+        const x = g.c.x + Math.cos(cur + dir * 0.55) * rr;
+        const z = g.c.z + Math.sin(cur + dir * 0.55) * rr;
+        if (this.nav.cells[this.nav.cellOf(x, z)] !== 2) return { x, z };
       }
+      return null;
+    };
+    let p = ahead(this.orbitDir);
+    if (!p) {
+      // Walled off this way round (the valley's edge behind the flock): go round the other way.
+      this.orbitDir = -this.orbitDir;
+      p = ahead(this.orbitDir);
     }
-    return p ?? { x: g.c.x + Math.cos(cur + step) * r, z: g.c.z + Math.sin(cur + step) * r };
+    return p ?? { x: g.c.x + Math.cos(cur + this.orbitDir * 0.55) * r, z: g.c.z + Math.sin(cur + this.orbitDir * 0.55) * r };
   }
 
   /** The wolves this bot knows about (all of them for the expert). */
@@ -930,12 +934,22 @@ export class HerdBot2 {
     }
     if (groups.length === 0) return { target: null, why: 'all home', cat: 'idle' };
 
-    // 5. Pick the group to work: stick with the previous focus if it still exists.
+    // 5. Pick the group to work: stick with the previous focus if it still exists. A group that has
+    //    made no progress for 45 s is left alone for 40 s while another is worked, as a player
+    //    would (the bot once spent five minutes on one ewe at a bridge while eleven waited).
+    if (this.focus && this.stalled && now - this.progress.t > 45 && groups.length > 1) {
+      this.log(`giving up on the group at (${this.focus.x.toFixed(0)}, ${this.focus.z.toFixed(0)}) for now: no progress in ${(now - this.progress.t).toFixed(0)} s`);
+      this.avoid = { c: { ...this.focus }, until: now + 40 };
+      this.focus = null;
+      this.progress = { best: Infinity, t: now };
+    }
+    const avoided = (q) => this.avoid && now < this.avoid.until && dist(q.c, this.avoid.c) < 20;
+    const choice = groups.some((q) => !avoided(q)) ? groups.filter((q) => !avoided(q)) : groups;
     let g = null;
-    if (this.focus) g = groups.slice().sort((a, b) => dist(a.c, this.focus) - dist(b.c, this.focus))[0];
+    if (this.focus) g = choice.slice().sort((a, b) => dist(a.c, this.focus) - dist(b.c, this.focus))[0];
     if (!g || dist(g.c, this.focus) > 25) {
       const score = (q) => dist(q.c, dog) + nav.fieldDist(q.c) * 0.35 - q.n * 2;
-      g = groups.slice().sort((a, b) => score(a) - score(b))[0];
+      g = choice.slice().sort((a, b) => score(a) - score(b))[0];
       this.cross = null;
       this.orbitDir = 0;
     }

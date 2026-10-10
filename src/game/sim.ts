@@ -500,8 +500,44 @@ export class Sim {
     const tx = -uz * dir + ux * radial * 1.3;
     const tz = ux * dir + uz * radial * 1.3;
     const tl = Math.hypot(tx, tz) || 1;
-    return { x: tx / tl, z: tz / tl };
+    return this.roundObstacles(tx / tl, tz / tl, cx, cz);
   }
+
+  /**
+   * A run round a flock that would go into the valley's edge, a wall or a tree turns in towards the
+   * flock until the way 2.5 m ahead is clear: with a flock by the edge, holding the flank key ran Pip
+   * straight into the boundary, where he stood pushing.
+   */
+  private roundObstacles(x: number, z: number, cx: number, cz: number) {
+    const d = this.dog;
+    const probe = this.probe;
+    const clear = (px: number, pz: number) => {
+      probe.x = d.x + px * 2.5;
+      probe.z = d.z + pz * 2.5;
+      probe.r = d.r;
+      const bx = probe.x;
+      const bz = probe.z;
+      collideStatic(this.level, probe, { boundary: true, gate: false });
+      return Math.hypot(probe.x - bx, probe.z - bz) < 0.25;
+    };
+    if (clear(x, z)) return { x, z };
+    // Turn a step at a time, towards the flock's middle first, then away from it (behind a field
+    // wall the way in is blocked too, and the run must follow the wall to its end).
+    const inward = Math.atan2(cz - d.z, cx - d.x);
+    const a0 = Math.atan2(z, x);
+    let da = inward - a0;
+    while (da > Math.PI) da -= Math.PI * 2;
+    while (da < -Math.PI) da += Math.PI * 2;
+    const sgn = Math.sign(da) || 1;
+    for (let k = 1; k <= 6; k++) {
+      for (const side of [sgn, -sgn]) {
+        const a = a0 + (side * k * 15 * Math.PI) / 180;
+        if (clear(Math.cos(a), Math.sin(a))) return { x: Math.cos(a), z: Math.sin(a) };
+      }
+    }
+    return { x, z };
+  }
+  private probe: Body = { x: 0, z: 0, vx: 0, vz: 0, r: 0.5 };
 
   /**
    * Fly: F (d-pad down) sends her to the spot where Pip stands, where she lies down and holds it:
