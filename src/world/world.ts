@@ -473,6 +473,46 @@ export interface WorldHandles {
   /** Ford open (1) or flooded (0) per stream material, eased by the game. */
   fordOpen: number[];
   season: Season;
+  /** The show's crowd (null elsewhere): it cheers when a gate is taken or a ewe is penned. */
+  crowd: Crowd | null;
+}
+
+/** Spectators, two instanced meshes, and how long each keeps cheering. */
+interface Crowd {
+  bodies: THREE.InstancedMesh;
+  heads: THREE.InstancedMesh;
+  base: THREE.Matrix4[];
+  phase: number[];
+  cheerT: number;
+}
+
+function buildCrowd(spots: [number, number][], g: (x: number, z: number) => number, rnd: () => number): Crowd {
+  const coats = ['#3a5c9a', '#c8402e', '#5f7a3a', '#e8b440', '#7a4a6a', '#2e3a48', '#b86a3a', '#d8d0c0', '#4a7a8a'].map((c) => new THREE.Color(c));
+  const bodyGeo = new THREE.CapsuleGeometry(0.34, 0.8, 2, 6);
+  bodyGeo.translate(0, 0.75, 0);
+  const headGeo = new THREE.SphereGeometry(0.24, 6, 4);
+  headGeo.translate(0, 1.62, 0);
+  bodyGeo.userData.disposable = headGeo.userData.disposable = true;
+  const bodies = new THREE.InstancedMesh(bodyGeo, new THREE.MeshLambertMaterial({ name: 'crowd_coat', flatShading: true }), spots.length);
+  const heads = new THREE.InstancedMesh(headGeo, new THREE.MeshLambertMaterial({ name: 'crowd_face', color: '#e0b494', flatShading: true }), spots.length);
+  const base: THREE.Matrix4[] = [];
+  const phase: number[] = [];
+  spots.forEach(([sx, sz], i) => {
+    const s = 1.15 + rnd() * 0.3;
+    const m4 = new THREE.Matrix4().makeScale(s, s, s).setPosition(sx, g(sx, sz) - 0.05, sz);
+    base.push(m4);
+    phase.push(rnd() * Math.PI * 2);
+    bodies.setMatrixAt(i, m4);
+    heads.setMatrixAt(i, m4);
+    bodies.setColorAt(i, coats[Math.floor(rnd() * coats.length)]);
+  });
+  bodies.castShadow = heads.castShadow = true;
+  return { bodies, heads, base, phase, cheerT: 0 };
+}
+
+/** The crowd cheers for a few seconds (a gate taken, a ewe penned). */
+export function cheer(w: WorldHandles, seconds = 2.2) {
+  if (w.crowd) w.crowd.cheerT = Math.max(w.crowd.cheerT, seconds);
 }
 
 export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: GeneratedTerrain): WorldHandles {
@@ -812,6 +852,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
 
   // A trial course: white gate posts with red flags, the handler's post with a crook, bunting
   // strung along the field's edge near the post, and the show marquee.
+  let crowd: Crowd | null = null;
   if (level.gates.length || level.post) {
     const white = new THREE.MeshLambertMaterial({ name: 'post_white', color: '#ece6d8', flatShading: true });
     const red = new THREE.MeshLambertMaterial({ name: 'flag_red', color: '#c8402e', flatShading: true, side: THREE.DoubleSide });
@@ -905,33 +946,46 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
       }
       // The crowd: the whole glen turned out, two or three deep behind the bunting, in coats of
       // every colour (a body and a head each, instanced: two draw calls).
-      const coats = ['#3a5c9a', '#c8402e', '#5f7a3a', '#e8b440', '#7a4a6a', '#2e3a48', '#b86a3a', '#d8d0c0', '#4a7a8a'].map((c) => new THREE.Color(c));
-      const spots: [number, number][] = [];
       let seed = 7;
       const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      const spots: [number, number][] = [];
       for (let i = 0; i < 110; i++) {
         const sx = x - 44 + rnd() * 88;
         const sz = z + 17 + rnd() * 3.2;
         if (Math.abs(Math.abs(sx - x) - 12) < 2.6) continue;
         spots.push([sx, sz]);
       }
-      const bodyGeo = new THREE.CapsuleGeometry(0.34, 0.8, 2, 6);
-      bodyGeo.translate(0, 0.75, 0);
-      const headGeo = new THREE.SphereGeometry(0.24, 6, 4);
-      headGeo.translate(0, 1.62, 0);
-      bodyGeo.userData.disposable = headGeo.userData.disposable = true;
-      const bodies = new THREE.InstancedMesh(bodyGeo, new THREE.MeshLambertMaterial({ name: 'crowd_coat', flatShading: true }), spots.length);
-      const heads = new THREE.InstancedMesh(headGeo, new THREE.MeshLambertMaterial({ name: 'crowd_face', color: '#e0b494', flatShading: true }), spots.length);
-      const m4 = new THREE.Matrix4();
-      spots.forEach(([sx, sz], i) => {
-        const s = 1.15 + rnd() * 0.3;
-        m4.makeScale(s, s, s).setPosition(sx, g(sx, sz) - 0.05, sz);
-        bodies.setMatrixAt(i, m4);
-        heads.setMatrixAt(i, m4);
-        bodies.setColorAt(i, coats[Math.floor(rnd() * coats.length)]);
-      });
-      bodies.castShadow = heads.castShadow = true;
-      course.add(bodies, heads);
+      // And more along the top of the field, just outside its edge behind the lift, where the run
+      // starts: the play camera never reached the crowd at the bottom, so the trial looked like an
+      // empty field (critics: "a driving test"). The field's edge already keeps everyone apart (a
+      // rope inside the field caught Pip behind it on his outrun), so the rope here is only show.
+      const lift = level.def.sheepGroups[0]?.center;
+      const north: [number, number][] = [];
+      if (lift) {
+        let edge = Infinity;
+        for (const [, bz] of level.def.boundary) edge = Math.min(edge, bz);
+        const rz = edge - 0.6;
+        for (let i = 0; i < 70; i++) north.push([lift[0] - 34 + rnd() * 68, rz - 1.2 - rnd() * 3]);
+        for (const sx of [lift[0] - 36, lift[0] + 36]) {
+          const p = new THREE.Mesh(postGeo, white);
+          p.position.set(sx, g(sx, rz) - 0.05, rz);
+          p.scale.set(0.45, 0.42, 0.45);
+          course.add(p);
+        }
+        const rope = new THREE.Mesh(new THREE.BoxGeometry(72, 0.08, 0.08), white);
+        rope.geometry.userData.disposable = true;
+        rope.position.set(lift[0], g(lift[0], rz) + 1.05, rz);
+        course.add(rope);
+        for (let i = 0; i < 36; i++) {
+          const bx = lift[0] - 35 + i * 2;
+          const m = new THREE.Mesh(pennant, flagMats[i % 4]);
+          m.position.set(bx, g(bx, rz) + 1.0, rz);
+          m.scale.setScalar(0.8);
+          course.add(m);
+        }
+      }
+      crowd = buildCrowd([...spots, ...north], g, rnd);
+      course.add(crowd.bodies, crowd.heads);
     }
     root.add(course);
   }
@@ -1001,6 +1055,7 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
     chimney,
     fordOpen: level.fords.map(() => 1),
     season,
+    crowd,
   };
 }
 
@@ -1031,6 +1086,21 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
   }
   holeCountMain = n;
   HOLE_COUNT.value = n;
+  // The show's crowd: a cheer is a quick hop and a lean, each spectator a little out of step.
+  const c = w.crowd;
+  if (c && (c.cheerT > 0 || c.phase.length && c.bodies.userData.cheering)) {
+    c.cheerT = Math.max(0, c.cheerT - dt);
+    const amt = Math.min(1, c.cheerT / 0.5);
+    c.bodies.userData.cheering = amt > 0;
+    for (let i = 0; i < c.base.length; i++) {
+      const hop = amt * Math.max(0, Math.sin(time * 11 + c.phase[i])) * 0.28;
+      tmpM.copy(c.base[i]);
+      tmpM.elements[13] += hop;
+      c.bodies.setMatrixAt(i, tmpM);
+      c.heads.setMatrixAt(i, tmpM);
+    }
+    c.bodies.instanceMatrix.needsUpdate = c.heads.instanceMatrix.needsUpdate = true;
+  }
   BUF_H.value = bufH;
   UP_VIEW.value.set(0, 1, 0).transformDirection(camera.matrixWorldInverse);
   WET.value = weather.rain;

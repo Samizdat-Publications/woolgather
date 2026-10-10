@@ -132,3 +132,17 @@ Not changed, for Stewart: evening 1's star goals are "7, 8, all 8" (two and thre
 goal, because the flock is 8 and the target 7); the trial's 120 s clock is tight for the average bot
 (it overshoots the cross gates); a rare soft yellow disc seen once by day on the show field was not
 reproduced.
+
+## 2.1.3 (2026-10-10, afternoon)
+
+- **The trial has an audience in view.** Spectators stand behind a rope and bunting just outside
+  the top of the show field, behind the lift where every run starts (the crowd by the handler's post
+  was 50 m from the play and never on screen: critics called the trial "a driving test" on "an
+  empty field"). Both crowds hop and cheer when a gate is taken or a ewe is penned (longer for the
+  last). A first try put the rope inside the field and caught Pip behind it on his outrun (the
+  expert penned none); outside the edge it changes nothing: the expert wins in 73 s as before, the
+  average bot wins on seed 11 and loses on seed 23 exactly as it did before.
+- The soft yellow disc on the show field could not be reproduced (three captures, with and
+  without bloom, and after a second of play). In play, the sunset smudges were lantern pools, which
+  now have a glowing lamp.
+

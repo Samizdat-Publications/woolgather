@@ -20,7 +20,7 @@ import { Particles } from '../world/particles';
 import { Terrain } from '../world/terrain';
 import { generateTerrain, type Season } from '../world/terraingen';
 import { WeatherFx } from '../world/weatherfx';
-import { buildWorld, disposeWorld, setNearCut, treeHoles, updateWorld, type WorldHandles } from '../world/world';
+import { buildWorld, cheer, disposeWorld, setNearCut, treeHoles, updateWorld, type WorldHandles } from '../world/world';
 import { WOLF_KINDS, type Difficulty } from './config';
 import { Input } from './input';
 import { Level } from './level';
@@ -1229,6 +1229,8 @@ export class Game {
           p.ripple(e.x, e.z, 0.8, 4, 0.5);
           const i = sim.sheep.findIndex((s) => s.id === e.id);
           if (i >= 0) this.actors.hop(i);
+          // At the show the crowd cheers each ewe into the pen (longer for the last).
+          if (sim.trial && this.world) cheer(this.world, sim.folded === sim.total ? 4 : 1.6);
           break;
         }
         case 'charge':
@@ -1393,7 +1395,10 @@ export class Game {
           break;
         case 'gate': {
           const next = this.level.gates[e.index + 1];
-          if (e.passed) this.ui.toast(`Through the ${e.name.toLowerCase()}!${next ? ` Now the ${next.name.toLowerCase()}` : ' Now pen them'}`, 'good');
+          if (e.passed) {
+            this.ui.toast(`Through the ${e.name.toLowerCase()}!${next ? ` Now the ${next.name.toLowerCase()}` : ' Now pen them'}`, 'good');
+            if (this.world) cheer(this.world);
+          }
           else this.ui.toast(`Missed the ${e.name.toLowerCase()}: -15 points`, 'warn');
           break;
         }

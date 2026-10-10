@@ -147,7 +147,7 @@ Progress screenshots (user request): after every self-test round, save the telli
 `node tools/save-progress.mjs <runDir> <label> "<file>=<caption>" ...` into `docs/progress/`
 (committed, captioned in `docs/progress/PROGRESS.md`). They feed the README later.
 
-Status: 2.1.2 (Easy / Standard / Hard, wolves by kind, the goose, overnight fixes; tag `v2.1.2`) on `main` and live
+Status: 2.1.3 (Easy / Standard / Hard, wolves by kind, the goose, overnight fixes; tag `v2.1.3`) on `main` and live
 at https://woolgather.pages.dev (the game at /play/). 2.0.0 is tag `v2.0.0`, 1.0.0 `v1.0.0`. Run
 reports: `docs/OVERNIGHT-REPORT.md` (the season), `docs/RUN2-REPORT.md` (the hard rebalance,
 packs, Wolf Moon, charms, landmarks), `docs/RUN3-REPORT.md` (2.1). **Next session: start with
@@ -1208,3 +1208,8 @@ Newest at the bottom. Record every non-obvious choice.
 - 2026-10-10 (2.1.2): the mist veil's colour is 72% pearl grey and 28% the evening's fog colour (was
   88/12), and animals take 28% less of the veil; a hunting wolf's tree window is 1.7 times the usual
   size (`focusPoints` carries a radius). Visual only: the clear radius and the evening are unchanged.
+- 2026-10-10 (2.1.3): the show's crowd is also outside the top edge of the field behind the lift,
+  so the play camera sees it as each run starts; both crowds cheer (`cheer()` in world.ts) on a gate
+  and on each ewe penned. A rope inside the field was tried first and trapped Pip on his outrun:
+  decorations near the play area go outside the boundary, never as new colliders in it.
+
