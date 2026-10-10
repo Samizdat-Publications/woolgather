@@ -309,6 +309,9 @@ export class Game {
   }
 
   private gooseHello = false;
+  /** Fly's last mode and when it changed (for her label). */
+  private flyMode = 'heel';
+  private flyModeAt = -99;
   /** The goose herds in Pip's place when it is the chosen coat (and the season has been won). */
   private applyGoose() {
     const on = gooseOn(this.progress);
@@ -1169,6 +1172,17 @@ export class Game {
     // Old Angus is named over his head for his evening's opening seconds.
     const ram = sim.sheep.find((s) => s.kind === 'ram' && sim.isFree(s));
     if (ram && sim.elapsed < 30) out.push({ id: 'angus', kind: 'note', x: ram.x, y: h(ram.x, ram.z) + 4.2, z: ram.z, labelOnScreen: 'Old Angus, the ram', onScreenOnly: true });
+    // Old Fly, too (from above she read as a grey smudge at Pip's side), and for a few seconds each
+    // time she goes to hold a spot or comes back to heel, what she is doing.
+    const fly = sim.fly;
+    if (fly) {
+      if (fly.mode !== this.flyMode) {
+        this.flyMode = fly.mode;
+        this.flyModeAt = sim.elapsed;
+      }
+      const label = sim.elapsed < 20 ? "Old Fly, Pip's mother" : sim.elapsed - this.flyModeAt < 4 ? (fly.mode === 'heel' ? 'Fly: back at heel' : 'Fly: holding this spot') : null;
+      if (label) out.push({ id: 'fly', kind: 'note', x: fly.x, y: h(fly.x, fly.z) + 3.2, z: fly.z, labelOnScreen: label, onScreenOnly: true });
+    }
     if (this.runs === 1 && sim.elapsed < 20 && (sim.rules.tutorial || !this.evening)) {
       const r = sim.dogThreatRadius;
       out.push({ id: 'reach', kind: 'note', x: d.x, y: h(d.x, d.z - r), z: d.z - r, labelOnScreen: "Pip's reach: sheep inside it move away", onScreenOnly: true });
