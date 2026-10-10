@@ -144,8 +144,9 @@ Progress screenshots (user request): after every self-test round, save the telli
 Status: 2.0.0 ("The Season", tag `v2.0.0`) released and live at https://woolgather.pages.dev
 (the game at /play/), merged to `main`. 1.0.0 is tag `v1.0.0`. Run reports:
 `docs/OVERNIGHT-REPORT.md` (the season), `docs/RUN2-REPORT.md` (the hard rebalance, packs, Wolf
-Moon, charms, landmarks). Stewart plays next and tunes difficulty via `src/game/tuning.ts`. The
-DECISIONS log below has the history.
+Moon, charms, landmarks). **Next session: start with `docs/HANDOFF-NEXT.md`** (Stewart's playtest
+feedback: Easy / Standard / Hard difficulty levels, wolves that threaten by kind not number, a goose
+unlock). The DECISIONS log below has the history.
 
 ## Asset list
 
