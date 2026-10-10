@@ -475,14 +475,31 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
       shader.uniforms.uGround = GROUND_TINT;
       shader.uniforms.uHillDir = HILL_DIR;
       shader.uniforms.uWet = WET;
+      // The ground (not the path ribbon) carries a show field's mown stripes: crisp 5 m bands in
+      // world space, weighted by how far inside the mown field each vertex lies (aMown).
+      const mownV = smooth ? '\nattribute float aMown;\nvarying float vMown;\nvarying vec2 vGroundXZ;' : '';
+      const mownF = smooth ? '\nvarying float vMown;\nvarying vec2 vGroundXZ;' : '';
       shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nvarying vec3 vWorldN;')
-        .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvWorldN = normalize(mat3(modelMatrix) * objectNormal);');
+        .replace('#include <common>', `#include <common>\nvarying vec3 vWorldN;${mownV}`)
+        .replace(
+          '#include <beginnormal_vertex>',
+          `#include <beginnormal_vertex>\nvWorldN = normalize(mat3(modelMatrix) * objectNormal);${smooth ? '\nvMown = aMown;\nvGroundXZ = (modelMatrix * vec4(position, 1.0)).xz;' : ''}`,
+        );
       shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform vec3 uGround;\nuniform vec3 uHillDir;\nuniform float uWet;\nvarying vec3 vWorldN;')
+        .replace('#include <common>', `#include <common>\nuniform vec3 uGround;\nuniform vec3 uHillDir;\nuniform float uWet;\nvarying vec3 vWorldN;${mownF}`)
         .replace(
           '#include <color_fragment>',
           `#include <color_fragment>
+          ${
+            smooth
+              ? `if (vMown > 0.01) {
+            float sx = vGroundXZ.x / 10.0;
+            float e = fwidth(sx) * 0.75 + 0.02;
+            float band = smoothstep(0.5 - e, 0.5 + e, abs(fract(sx) - 0.5) * 2.0);
+            diffuseColor.rgb *= 1.0 + vMown * mix(-0.055, 0.075, band);
+          }`
+              : ''
+          }
           diffuseColor.rgb *= uGround;
           vec3 hl = normalize(uHillDir * 0.8 + vec3(0.0, 0.6, 0.0));
           float hs = dot(normalize(vWorldN), hl) - hl.y;

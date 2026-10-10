@@ -199,6 +199,9 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
     return heat * smoothstep(-0.05, 0.5, fbm(x / 21, z / 21, 2, 4.4));
   };
   const colors = new Float32Array(nx * nz * 3);
+  // A show field's mown stripes are drawn by the ground's shader (crisp edges a 2 m grid cannot
+  // carry); this is how much of each vertex lies inside the mown field.
+  const mown = def.trial ? new Float32Array(nx * nz) : null;
   for (let iz = 0; iz < nz; iz++) {
     for (let ix = 0; ix < nx; ix++) {
       const x = w.minX + ix * STEP;
@@ -247,9 +250,8 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
       // A show field is mown: fresher turf in light and dark stripes, the way a trial ground looks.
       if (def.trial && pointInPolygon(x, z, bound)) {
         const k = smoothstep(6, 14, polyDistance(x, z, bound));
-        const stripe = Math.cos((x / 9) * Math.PI) > 0 ? 1 : 0;
         c.lerp(C.lush, 0.45 * k);
-        c.multiplyScalar(1 + (stripe ? 0.07 : -0.05) * k);
+        if (mown) mown[iz * nx + ix] = k;
       }
       const pd = pathDist(x, z);
       c.lerp(C.worn, (1 - smoothstep(1, 2.6, pd)) * 0.6);
@@ -320,6 +322,7 @@ export function generateTerrain(level: Level, season: Season): GeneratedTerrain 
   const ground = new THREE.BufferGeometry();
   ground.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   ground.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  if (mown) ground.setAttribute('aMown', new THREE.BufferAttribute(mown, 1));
   ground.setIndex(new THREE.BufferAttribute(idx, 1));
   ground.computeVertexNormals();
   ground.computeBoundingSphere();

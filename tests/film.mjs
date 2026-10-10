@@ -251,6 +251,137 @@ try {
     }
     await setKeys(new Set());
     if (!grabbed) log('warn: no snatch within the time limit');
+  } else if (shoot === 'tour') {
+    // What 2.1 added, with a caption over each scene: the Easy / Standard / Hard switch on an evening
+    // card, the old grey taking two barks, a young wolf bolting and coming back, and the goose.
+    const keysDown = new Set();
+    const setKeys = async (want) => {
+      for (const k of [...keysDown]) if (!want.has(k)) { await page.keyboard.up(k); keysDown.delete(k); }
+      for (const k of want) if (!keysDown.has(k)) { await page.keyboard.down(k); keysDown.add(k); }
+    };
+    const toward = async (st, x, z, sprint) => {
+      const dx = x - st.dog.x;
+      const dz = z - st.dog.z;
+      const want = new Set(sprint ? ['ShiftLeft'] : []);
+      if (dx > 1.2) want.add('KeyD');
+      if (dx < -1.2) want.add('KeyA');
+      if (dz > 1.2) want.add('KeyS');
+      if (dz < -1.2) want.add('KeyW');
+      await setKeys(want);
+    };
+    const caption = (text) =>
+      page.evaluate((t) => {
+        let el = document.getElementById('film-caption');
+        if (!el) {
+          el = document.createElement('div');
+          el.id = 'film-caption';
+          el.style.cssText = 'position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:99;max-width:70vw;padding:10px 22px;border-radius:14px;background:rgba(35,28,43,0.9);color:#fbf3e4;font:800 22px Nunito Variable,sans-serif;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,0.35)';
+          document.body.appendChild(el);
+        }
+        el.textContent = t;
+        el.style.display = t ? 'block' : 'none';
+      }, text);
+    /** Advance the game without filming (cuts out a wait). */
+    const skip = async (seconds) => {
+      for (let i = 0; i < Math.round(seconds * FPS); i++) {
+        const evs = await page.evaluate(() => {
+          window.__film.step();
+          return window.__WG.drain();
+        });
+        if (evs.some((e) => e.type === 'wolfSpawn' && e.back)) return true;
+      }
+      return false;
+    };
+    const wolf = async (id) => (await state()).wolves.find((w) => w.id === id);
+
+    // 1. The setting, on an evening card.
+    await page.evaluate(() => window.__WG.progress('all'));
+    await page.evaluate(() => window.__WG.setting('hard'));
+    await page.evaluate(() => window.__WG.evening('angus', false));
+    await caption('Easy, Standard or Hard: on Hard, each evening brings back something from an earlier one');
+    await frames(5);
+    mark('card');
+
+    // 2. The old grey.
+    await page.evaluate(() => window.__WG.setting('standard'));
+    await page.evaluate(() => window.__WG.evening('storm', true));
+    await frames(0.3);
+    await page.evaluate(() => window.__WG.jumpTo(0.24));
+    await page.evaluate(() => window.__WG.zoom?.(0.8));
+    const gid = await page.evaluate(() => window.__WG.wolf('grey', 26));
+    await caption('The old grey: bigger and bolder. One bark only staggers him...');
+    await frames(2.5);
+    mark('grey');
+    let barks = 0;
+    for (let i = 0; i < 60 * 12 && barks < 2; i += 3) {
+      const st = await state();
+      const w = await wolf(gid);
+      if (!w || w.state === 'flee') break;
+      const d = dist(w, st.dog);
+      await toward(st, w.x, w.z, d > 9);
+      if (d < 10.5 && st.dog.barkCd <= 0) {
+        await setKeys(new Set());
+        await page.keyboard.press('Space');
+        barks++;
+        if (barks === 1) {
+          mark('stagger');
+          await frames(1.4);
+          await caption('...so bark again while he is shaken, or run into him');
+          await frames(0.4);
+        }
+      }
+      for (let k = 0; k < 3; k++) await frame();
+    }
+    await setKeys(new Set());
+    mark('greyGone');
+    await frames(2.5);
+
+    // 3. A young wolf.
+    const yid = await page.evaluate(() => window.__WG.wolf('young', 20));
+    await caption('Young wolves are quick and nervy: one bark and they bolt...');
+    await frames(2);
+    for (let i = 0; i < 60 * 8; i += 3) {
+      const st = await state();
+      const w = await wolf(yid);
+      if (!w || w.state === 'flee') break;
+      const d = dist(w, st.dog);
+      await toward(st, w.x, w.z, true);
+      if (d < 15 && st.dog.barkCd <= 0) {
+        await setKeys(new Set());
+        await page.keyboard.press('Space');
+      }
+      for (let k = 0; k < 3; k++) await frame();
+    }
+    await setKeys(new Set());
+    await frames(2.5);
+    await caption('');
+    const back = await skip(45);
+    mark('youngBack', { back });
+    await caption('...but they come back, from another side of the valley');
+    await frames(4.5);
+
+    // 4. The goose: chosen in the coat row once the whole season is won.
+    await page.evaluate(() => window.__WG.evening('far-bank', false));
+    await page.keyboard.press('Escape');
+    await frames(0.5);
+    await page.evaluate(() => document.querySelector('.season-screen .coat[data-arg="goose"]')?.click());
+    await page.evaluate(() => window.__WG.evening('far-bank', true));
+    await frames(0.3);
+    await page.evaluate(() => window.__WG.zoom?.(0.7));
+    await caption('Win the whole season, and a goose will herd in Pip\'s place');
+    mark('goose');
+    const bot = new HerdBot(page);
+    for (let i = 0; i < 60 * 14; i += 3) {
+      const st = await state();
+      await bot.step(st, 3 / FPS);
+      if (i % 150 === 0) await page.keyboard.press('Space');
+      for (let k = 0; k < 3; k++) await frame();
+    }
+    await bot.release();
+    await caption('It honks.');
+    await page.keyboard.press('Space');
+    await frames(2.5);
+    await caption('');
   } else if (shoot === 'night') {
     // The last seconds of the day by the fold, the flock still out on the hills.
     await page.keyboard.press('Enter');

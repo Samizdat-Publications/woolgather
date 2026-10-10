@@ -1765,6 +1765,7 @@ export class Sim {
     if (!s) return -1;
     const w = this.addWolf(kind, d.x + dist, d.z, s);
     w.valleyT = 0;
+    this.events.push({ type: 'wolfSpawn', x: w.x, z: w.z, id: w.id, tx: s.x, tz: s.z, kind, back: false });
     return w.id;
   }
 

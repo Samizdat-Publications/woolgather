@@ -1322,15 +1322,17 @@ export class Game {
           const d = this.sim?.dog;
           if (!d) break;
           const where = this.level.placeName(e.tx, e.tz);
-          // Each new kind of wolf is named and explained the first time it comes out.
-          if (e.kind === 'grey' && !this.said.has('grey')) {
+          // A wolf coming back says so; each new kind of wolf is named and explained the first time.
+          if (e.back) {
+            this.said.add(e.kind);
+            this.ui.toast(`${e.kind === 'young' ? 'The young wolf' : e.kind === 'grey' ? 'The old grey' : 'A wolf you chased off'} is back, after the sheep ${where}! ${this.arrowTo(e.x, e.z)}`, 'warn');
+          } else if (e.kind === 'grey' && !this.said.has('grey')) {
             this.said.add('grey');
             this.ui.toast(`The old grey is out, after the sheep ${where}! One bark only staggers him: bark twice, or run into him`, 'warn');
           } else if (e.kind === 'young' && !this.said.has('young')) {
             this.said.add('young');
             this.ui.toast(`A young wolf, after the sheep ${where}! Quick and easily scared, but it comes back`, 'warn');
-          } else if (e.back) this.ui.toast(`${e.kind === 'young' ? 'The young wolf' : e.kind === 'grey' ? 'The old grey' : 'A wolf you chased off'} is back, after the sheep ${where}! ${this.arrowTo(e.x, e.z)}`, 'warn');
-          else if (Math.hypot(e.tx - d.x, e.tz - d.z) >= 26) this.ui.toast(`${e.kind === 'grey' ? 'The old grey' : e.kind === 'young' ? 'A young wolf' : 'A wolf'} is after the sheep ${where}!`, 'warn');
+          } else if (Math.hypot(e.tx - d.x, e.tz - d.z) >= 26) this.ui.toast(`${e.kind === 'grey' ? 'The old grey' : e.kind === 'young' ? 'A young wolf' : 'A wolf'} is after the sheep ${where}!`, 'warn');
           break;
         }
         case 'wolfStagger':
