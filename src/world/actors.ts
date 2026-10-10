@@ -11,7 +11,7 @@ import type { Terrain } from './terrain';
 // procedural animation can move them (milestone 3 adds the full motion).
 
 // Characters are drawn larger than life so they read from the herding camera's height.
-export const SCALE = { dog: 2.4, goose: 2.7, sheep: 1.9, wolf: 2.3, lamb: 1.18, ram: 3.05 };
+export const SCALE = { dog: 2.4, goose: 3.1, sheep: 1.9, wolf: 2.3, lamb: 1.18, ram: 3.05 };
 /** Each kind of wolf drawn bigger or smaller than an ordinary one, and its danger ring with it. */
 const WOLF_LOOK: Record<WolfKind, { scale: number; ring: number }> = { wolf: { scale: 1, ring: 1 }, grey: { scale: 1.24, ring: 1.22 }, young: { scale: 0.8, ring: 0.84 } };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
@@ -438,7 +438,7 @@ export class Actors {
       }
       return out;
     };
-    this.greyProto = withMaterials(a.wolf, recolour('grey', { wolf_grey: '#5e5a5c', wolf_saddle: '#2e2c32', wolf_light: '#a49c90' }));
+    this.greyProto = withMaterials(a.wolf, recolour('grey', { wolf_grey: '#6c6866', wolf_saddle: '#38363a', wolf_light: '#aaa296' }));
     const gHead = this.greyProto.getObjectByName('head') as THREE.Mesh | undefined;
     if (gHead) {
       const box = new THREE.Box3();

@@ -328,7 +328,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .classic { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 12px; border-top: 1.5px dashed var(--stitch); }
 
 .season-screen, .intro-screen { background: radial-gradient(ellipse at 50% 55%, rgba(20, 16, 26, 0.55), rgba(20, 16, 26, 0.25) 70%); }
-.season-card { width: min(1040px, 96vw); gap: 16px; padding: 24px 28px 22px; }
+.season-card { width: min(1200px, 96vw); max-height: calc(100vh - 24px); overflow-y: auto; gap: 14px; padding: 22px 28px 20px; }
 .season-head { width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .season-head h2 { margin-top: 2px; }
 .season-tally { display: flex; gap: 18px; }
@@ -336,7 +336,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .tally-n { font-family: var(--display); font-variation-settings: 'SOFT' 100; font-size: 34px; font-weight: 800; color: var(--gold); line-height: 1; }
 .tally-of { font-size: 14px; font-weight: 800; color: var(--wool-2); }
 .season-grid { width: 100%; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
-.ev { pointer-events: auto; position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 136px; padding: 12px 14px 12px; border-radius: 12px; border: 2px solid rgba(251, 243, 228, 0.22); background: rgba(251, 243, 228, 0.05); color: var(--wool); font: inherit; text-align: left; cursor: pointer; overflow: hidden; transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease; }
+.ev { pointer-events: auto; position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 124px; padding: 12px 14px 12px; border-radius: 12px; border: 2px solid rgba(251, 243, 228, 0.22); background: rgba(251, 243, 228, 0.05); color: var(--wool); font: inherit; text-align: left; cursor: pointer; overflow: hidden; transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease; }
 /* A strip of the evening's season along the top of each card. */
 .ev::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--season, #8eae5c); }
 .ev.season-summer { --season: linear-gradient(90deg, #8eae5c, #f2b45a); }
@@ -364,6 +364,9 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .charm-title { font-size: 12.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
 .charm-title small { margin-left: 8px; font-size: 12.5px; letter-spacing: 0; text-transform: none; color: var(--wool-3); font-weight: 700; }
 .charm-row { display: flex; gap: 10px; flex-wrap: wrap; }
+/* On the season map the charms sit four to a row, so the coats stay in view on a 720p screen. */
+.charm-shelf .charm-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.charm-shelf .charm { padding: 6px 10px; }
 .charm { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1 1 200px; padding: 8px 12px; border-radius: 10px; border: 1.5px dashed rgba(251, 243, 228, 0.22); color: var(--wool-3); font: inherit; text-align: left; }
 .charm b { font-size: 14.5px; font-weight: 800; }
 .charm small { font-size: 12.5px; font-weight: 600; }
@@ -437,6 +440,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 @media (max-width: 900px) {
   .season-grid { grid-template-columns: repeat(2, 1fr); }
   .ev { min-height: 112px; }
+  .charm-shelf .charm-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* Trial HUD: the course, gate by gate. */
@@ -458,7 +462,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .ss.cur b { color: var(--wool); }
 .ss.locked { opacity: 0.4; }
 /* The tip sits to the right of the meters (with the lie-down chip they reached the middle). */
-.hud-hint { left: 580px; right: 16px; transform: none; margin: 0 auto; width: fit-content; max-width: calc(100vw - 596px); }
+.hud-hint { left: var(--meters-right, 620px); right: 16px; transform: none; margin: 0 auto; width: fit-content; max-width: calc(100vw - var(--meters-right, 620px) - 16px); }
 .lie-pip.on, .flank-pip.on { color: #cfe8ff; border-color: rgba(143, 208, 255, 0.8); background: rgba(143, 208, 255, 0.16); }
 .flank-pip kbd + kbd { margin-left: 2px; }
 .creep-pip, .bark-pip { padding: 5px 8px; }

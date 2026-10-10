@@ -379,7 +379,7 @@ if (!flag('skip-season')) {
   const tNormal = (await state()).target;
   await page.evaluate(() => window.__WG.evening('storm', false, true));
   await sleep(400);
-  check('wolf moon: the intro card shows the tier switch', await page.locator('.intro-card.moon .tier-switch').isVisible());
+  check('wolf moon: the intro card shows the tier switch', await page.locator('.intro-card.moon .tier-switch:not(.setting-switch)').isVisible());
   await shot('wolf-moon-card', 'the Wolf Moon intro card');
   await page.evaluate(() => window.__WG.evening('storm', true, true));
   await sleep(500);

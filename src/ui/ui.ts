@@ -469,6 +469,7 @@ export class Ui {
    * A control chip lights while its key is held, and steps back (dims) once the player has used it
    * a couple of times: the opening HUD was busy with prompts for things already learned.
    */
+  private metersRight = 0;
   private chipUses = new Map<string, number>();
   private chipOn = new Map<string, boolean>();
   private chip(el: HTMLElement, id: string, on: boolean) {
@@ -724,6 +725,12 @@ export class Ui {
     const st = $('.stamina-fill', this.root);
     st.style.width = `${(d.stamina / DOG.staminaMax) * 100}%`;
     st.classList.toggle('tired', d.sprintLock);
+    // The tip sits to the right of the meters, however many chips they show (Fly, the outrun).
+    const metersRight = Math.round(this.rectOf($('.hud-dog', this.root)).r.right + 14);
+    if (metersRight > 14 && metersRight !== this.metersRight) {
+      this.metersRight = metersRight;
+      this.root.style.setProperty('--meters-right', `${metersRight}px`);
+    }
     this.chip($('.creep-pip', this.root), 'creep', d.creeping);
     this.chip($('.lie-pip', this.root), 'lie', d.lying);
     this.chip($('.flank-pip', this.root), 'flank', d.flanking !== 0);
