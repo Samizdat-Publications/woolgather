@@ -141,10 +141,11 @@ Progress screenshots (user request): after every self-test round, save the telli
 `node tools/save-progress.mjs <runDir> <label> "<file>=<caption>" ...` into `docs/progress/`
 (committed, captioned in `docs/progress/PROGRESS.md`). They feed the README later.
 
-Status: released as 1.0.0 (tag `v1.0.0`; all five milestones closed at `m5-polish`) and live at
-https://woolgather.pages.dev (the game at /play/). Woolgather 2 ("The Season") is on branch
-`season`, not merged or deployed (see `docs/OVERNIGHT-REPORT.md`). The DECISIONS log below has the
-history.
+Status: 2.0.0 ("The Season", tag `v2.0.0`) released and live at https://woolgather.pages.dev
+(the game at /play/), merged to `main`. 1.0.0 is tag `v1.0.0`. Run reports:
+`docs/OVERNIGHT-REPORT.md` (the season), `docs/RUN2-REPORT.md` (the hard rebalance, packs, Wolf
+Moon, charms, landmarks). Stewart plays next and tunes difficulty via `src/game/tuning.ts`. The
+DECISIONS log below has the history.
 
 ## Asset list
 
@@ -1138,3 +1139,6 @@ Newest at the bottom. Record every non-obvious choice.
   soup); the wheel's low view stops at 26 degrees, not 15 (four rounds said it put the camera in
   the grass); the sunset cutaway plays once per evening per sitting; Old Fly is a blue merle (a
   red coat read from above as a fox chasing Pip); sideways motion dies away on a bridge deck.
+- 2026-10-09 (Run 2, ship): today's evening was far too easy (the expert finished in a quarter of
+  the day); its length is now 48 + 36 per flock (+ 30% of the place's extra, + 18 s in fog or
+  snow) and it always has a gentle pack. Released as 2.0.0.

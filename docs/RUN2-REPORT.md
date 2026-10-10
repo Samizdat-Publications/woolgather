@@ -53,6 +53,19 @@ The average bot's results swing a lot between seeds (5 of 10 on one, 9 of 10 on 
 "about half" as the honest summary. The final numbers on the shipped build are under
 **Verification** below.
 
+## Verification (the shipped build)
+
+| Check | Result |
+| --- | --- |
+| Build | clean (`tsc` and `vite build`) |
+| Self-test (`npm run playtest`, frozen build) | 41 of 41 checks, 0 console errors |
+| Expert bot, season | 10 of 10 won, all with three stars (Long Light 45 of 110 s, The Far Bank 119 of 140, Lambing Time 138 of 160, The Gathering 258 of 480, First Snow 271 of 440) |
+| Expert bot, Wolf Moon | 6 of 10 won (Long Light, The Far Bank, Old Angus and The Storm lost at nightfall) |
+| Average bot, season (seed 23) | 7 of 10 won (two with one or two stars) |
+| Today's evening, four sample dates | expert 4 of 4, average 4 of 4, tight on some (tightened twice in the last hour) |
+| Frame rate (`perf-season`, 1080p High) | 116-149 fps on every evening, 341-402 draw calls, no errors |
+| Public site (`site-check`, local) | passes; the season section has no horizontal scroll on desktop or phone |
+
 ## What the critics said
 
 Four critics score footage of the game from 1 to 10 without ever seeing the code (Gemini on the

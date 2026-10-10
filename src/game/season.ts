@@ -523,11 +523,12 @@ export function dailyEvening(date = new Date()): Evening {
     rules: {
       levelId: where.levelId,
       objective: 'gather',
-      dayLength: Math.round(140 + 55 * n + where.extra * 0.6 + (weather === 'fog' || weather === 'snow' ? 40 : 0)),
+      // As tight as the season's evenings: about the time an average player needs, so it is a race.
+      dayLength: Math.round(48 + 36 * n + where.extra * 0.3 + (weather === 'fog' || weather === 'snow' ? 18 : 0)),
       target: Math.round(total * 0.82),
       wolfStart: rng.range(0.16, 0.22),
       maxWolves: n,
-      pack: n >= 3 ? 'gentle' : undefined,
+      pack: 'gentle',
       wolfRespawn: [14, 22],
       wolfSpeedScale: 1,
       flock,
