@@ -147,7 +147,7 @@ Progress screenshots (user request): after every self-test round, save the telli
 `node tools/save-progress.mjs <runDir> <label> "<file>=<caption>" ...` into `docs/progress/`
 (committed, captioned in `docs/progress/PROGRESS.md`). They feed the README later.
 
-Status: 2.1.0 (Easy / Standard / Hard, wolves by kind, the goose; tag `v2.1.0`) on `main` and live
+Status: 2.1.1 (Easy / Standard / Hard, wolves by kind, the goose, overnight fixes; tag `v2.1.1`) on `main` and live
 at https://woolgather.pages.dev (the game at /play/). 2.0.0 is tag `v2.0.0`, 1.0.0 `v1.0.0`. Run
 reports: `docs/OVERNIGHT-REPORT.md` (the season), `docs/RUN2-REPORT.md` (the hard rebalance,
 packs, Wolf Moon, charms, landmarks), `docs/RUN3-REPORT.md` (2.1). **Next session: start with
@@ -1196,3 +1196,12 @@ Newest at the bottom. Record every non-obvious choice.
   the charms sit four to a row. The tip beside the meters was placed at a fixed 580 px and
   overlapped the bark chip once the lie-down and flank chips were added; it now follows the
   meters' measured right edge.
+- 2026-10-10 (2.1.1, overnight; Stewart: anything but the balance, which he will judge by playing):
+  the flank now turns in or out round an obstacle in its way (`Sim.roundObstacles`): with a flock by
+  the valley edge, or Pip behind a field wall, holding Z or X pushed him into it and he stood still.
+  The landing page loads only its coarse scrub frames with the page (34 s to 4 s on a slow phone).
+  Lanterns glow at the lamp head (critics read the light pool as a stray smudge). The show field's
+  stripes are drawn in the ground shader (`aMown`), crisp instead of 2 m-grid smudges. Old Fly is
+  named on screen. A dusk variant B (`?dusk=b`: less violet at sunset, a blue rather than lavender
+  twilight) is kept opt-in for Stewart to choose: the critics' dusk advice has reversed before, so a
+  colour change waits for his eye.

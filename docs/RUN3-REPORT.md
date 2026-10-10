@@ -87,3 +87,43 @@ Notes on the numbers:
 - Ideas not done: on Hard, wolves that test a second flock while Pip is busy (a real choice of
   which to save); a goose-only ribbon or a goose honk that carries further but scares the flock
   more (a different verb, not a nerf).
+
+## Overnight (2026-10-10, after Stewart's go-ahead: anything but the balance)
+
+No difficulty numbers were touched (tuning, targets, day lengths, wolf numbers and `bold` are as
+2.1.0 shipped). Released as **2.1.1** and deployed.
+
+- **Landing page loads fast on phones.** Only the coarse scroll-scrub frames load with the page;
+  the rest follow after it, nearest the scroll position first, and clip posters load as they near
+  the screen. Throttled 1.6 Mbit/s phone (`tests/site-load.mjs`): load event 34 s and 6.5 MB before,
+  4.2 s and 0.7 MB after, on the live site. The live `site-check --url` now passes in full.
+- **The flank no longer stalls against the valley edge or behind a field wall.** A run round a
+  flock whose next 2.5 m is blocked turns a step at a time, towards the flock and then away, up to
+  90 degrees (`Sim.roundObstacles`). Holding Z or X with a flock by the edge used to leave Pip
+  pushing at the boundary (the expert bot lost Long Light that way; same seed now 37 s).
+- **Bot fixes (testing only):** a group with no progress for 45 s is left for 40 s while another is
+  worked; a walled-off outrun goes round the other way. The Gathering with the same seed: 24 of 25
+  home (was 0, five minutes on one ewe at a bridge, who was not stuck: the bot was).
+- **The show field is mown in crisp stripes**, drawn by the ground shader in world space (on the
+  2 m vertex grid they were soft smudges: the critics' "empty yellow carpet").
+- **Lanterns glow at the lamp head**, so their pool of light on the grass has a visible source (two
+  critics took the pool for a stray yellow smudge).
+- **Old Fly is named on screen** for her first 20 s and for a few seconds whenever she goes to hold
+  a spot or comes back to heel.
+- **A returning wolf always says it is back** (the first-time message for its kind could show
+  instead).
+- **The Wolf Moon badge** on the season map no longer covers the evening's season label.
+- **Critic round r08** on 2.1 (one round, as the handoff allows): Gemini video 8.25, Gemini stills
+  7.63, Claude stills 7.13, Claude video 6.50, mean 7.38 (r07: about 7.2). Their common complaints:
+  the dusk as "mauve mud", places that look alike from the play camera, a busy HUD.
+- **Dusk variant B, for Stewart to judge** (not the default): `?dusk=b` on the game's URL takes violet
+  out of the sunset and twilight (the sunset keeps the grass green-gold; the twilight becomes a
+  slate-blue moonlit night instead of lavender). `node tests/dusk-compare.mjs` captures both side by
+  side; sheets in `docs/progress/` (`2.1-dusk-*.jpg`).
+- **A film tour of 2.1**: `npm run film -- --shoot tour` (the setting card, the old grey's two
+  barks, a young wolf that comes back, the goose), 40 s with captions.
+
+Not changed, for Stewart: evening 1's star goals are "7, 8, all 8" (two and three stars are the same
+goal, because the flock is 8 and the target 7); the trial's 120 s clock is tight for the average bot
+(it overshoots the cross gates); a rare soft yellow disc seen once by day on the show field was not
+reproduced.

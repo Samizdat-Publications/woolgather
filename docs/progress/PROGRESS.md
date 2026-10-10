@@ -610,3 +610,14 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![The season map with Easy, Standard and Hard, at its full width](2.1-season-map.png)
 *The season map with Easy, Standard and Hard, at its full width*
 
+
+## 2.1.1 (overnight, 2026-10-10): dusk variant B, for comparison
+
+Top row: the dusk as shipped. Bottom row: `?dusk=b`. Left to right, the same spot at 50%, 65%,
+85% and 97% of the evening, with a wolf placed 13 m from Pip.
+
+![The Far Bank, dusk as shipped (top) and variant B (bottom)](2.1-dusk-far-bank.jpg)
+
+![Lambing Time, dusk as shipped (top) and variant B (bottom)](2.1-dusk-lambing.jpg)
+
+![Old Angus in the corrie, dusk as shipped (top) and variant B (bottom)](2.1-dusk-angus.jpg)
