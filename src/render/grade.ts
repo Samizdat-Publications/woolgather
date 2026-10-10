@@ -103,6 +103,32 @@ const KEYS: GradeKey[] = [
   { t: 1.0, sat: 0.3, zones: [0.16, 0.44, 0.56, 0.76], greyKeep: 0.25, shadeKeep: 0.3, spare: 0.4, warm: 1, shadow: [298, 0.12, 0.88], mid: [272, 0.11, 0.8], high: [255, 0.045, 0.55], protect: 0.11, gain: 0.88, contrast: 1.55, pivot: 0.26, haze: '#383c80', hazeAmt: 0.1, sky: 0.32, shafts: 0, bloom: 0.45, bloomAt: 0.55, vignette: 0.44 },
 ];
 
+/**
+ * Dusk variant B (`?dusk=b`, for comparison only; 2026-10-10): every Claude video critic since r05
+ * called the dusk "mauve mud" (ground, heather, path and wolves on one value). B takes violet out
+ * of the sunset and twilight: lighter violet shade and rose haze at sunset, and a twilight that
+ * drains the ground towards cool blue (keeping a little of its green) instead of violet.
+ */
+export const DUSK_B = typeof location !== 'undefined' && new URLSearchParams(location.search).get('dusk') === 'b';
+if (DUSK_B) {
+  for (const k of KEYS) {
+    if (k.t >= 0.45 && k.t <= 0.6) {
+      k.shadow = [272, 0.09, 0.55];
+      k.hazeAmt = 0.08;
+      k.shadeKeep = 0.4;
+    }
+    if (k.t >= 0.74 && k.t < 1) {
+      k.sat = 0.4;
+      k.shadow = [282, 0.1, 0.75];
+      k.mid = [266, 0.08, 0.6];
+      k.high = [255, 0.035, 0.45];
+      k.hazeAmt *= 0.6;
+      k.haze = k.t < 0.8 ? '#8a80b8' : '#5a5aa0';
+      k.contrast += 0.06;
+    }
+  }
+}
+
 /** Display-space (sRGB) components of a hex colour. */
 function srgb(hex: string, out = new THREE.Vector3()) {
   const n = parseInt(hex.slice(1), 16);

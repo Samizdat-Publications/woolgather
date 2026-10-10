@@ -49,6 +49,26 @@ interface Placement {
   sy?: number;
 }
 
+/** A lantern's glow: a small warm halo, added on top, shared by every lantern. */
+let lampGlow: THREE.SpriteMaterial | null = null;
+function lampGlowMaterial() {
+  if (lampGlow) return lampGlow;
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d')!;
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, 'rgba(255,236,190,1)');
+  grad.addColorStop(0.18, 'rgba(255,196,110,0.95)');
+  grad.addColorStop(0.5, 'rgba(255,150,60,0.35)');
+  grad.addColorStop(1, 'rgba(255,130,40,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  lampGlow = new THREE.SpriteMaterial({ map: t, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0 });
+  return lampGlow;
+}
+
 /** Patch a Lambert material so snow settles on its upward faces and rain darkens it. */
 function weatherize(m: THREE.Material) {
   if (m.userData.weather) return;
@@ -924,6 +944,13 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
     (l.getObjectByName('lantern_light') ?? l).getWorldPosition(lampPos);
     light.position.copy(lampPos);
     root.add(light);
+    // The lantern itself glows, so its pool of light on the grass has a source: from the herding
+    // camera the post is a hairline, and two critics took the pool for a stray yellow smudge.
+    const glow = new THREE.Sprite(lampGlowMaterial());
+    glow.position.copy(lampPos);
+    glow.scale.setScalar(1.5);
+    glow.renderOrder = 2;
+    root.add(glow);
     return light;
   });
   const fold = level.fold;
@@ -1049,7 +1076,11 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
     if (m.userData.base === undefined) m.userData.base = m.color.getHex();
     m.color.setHex(m.userData.base).lerp(HEATHER_DUSK, 0.6 * dusk);
   }
-  for (const l of w.lanternLights) l.intensity = 46 * (l.userData.gain ?? 1) * Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
+  const lit = Math.min(1, Math.max(0, (mood.night - 0.12) / 0.3));
+  for (const l of w.lanternLights) l.intensity = 46 * (l.userData.gain ?? 1) * lit;
+  const glow = lampGlowMaterial();
+  glow.opacity = 0.85 * lit;
+  glow.visible = lit > 0.01;
 
   // Trees standing between the camera and anything that matters open a window.
   const k = 1 - Math.exp(-6 * dt);

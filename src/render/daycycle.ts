@@ -57,6 +57,14 @@ const KEYS: Mood[] = [
   // Night, at nightfall itself: a strong cool-white moon over a dim blue-violet fill.
   { t: 1.0, elev: 42, azim: 120, keyColor: '#bcc2ff', keyIntensity: 2.6, hemiSky: '#5a4a9c', hemiGround: '#4a4f66', hemiIntensity: 0.5, fog: '#2e3264', fogNear: 72, fogFar: 250, skyTop: '#0c1034', skyHorizon: '#2a2c5c', sunGlow: '#6878c0', exposure: 1.06, night: 1, shadow: 0.85, ground: '#e4e4ff' },
 ];
+// Dusk variant B (see DUSK_B in grade.ts): a bluer sky fill and ground tint after sunset.
+if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('dusk') === 'b') {
+  const blue: Record<number, [string, string]> = { 0.45: ['#93a0e0', '#fff4ea'], 0.6: ['#8f98dc', '#f8f2ee'], 0.628: ['#8a92d0', '#f2f0f8'], [SUN_MOON_SWAP]: ['#8890cc', '#f0f0fa'], 0.7: ['#8088c8', '#eceefc'], 0.8: ['#7a7ec4', '#e8eafc'], 0.88: ['#6c6cb8', '#e4e6fe'] };
+  for (const k of KEYS) {
+    const b = blue[k.t];
+    if (b) [k.hemiSky, k.ground] = b;
+  }
+}
 
 
 /** Mood position where the sun is setting: wolves always arrive at this moment. */

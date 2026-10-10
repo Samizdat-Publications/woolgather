@@ -433,7 +433,8 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .intro-card.moon .tier.on { background: #c9b8ff; color: #1d1636; }
 .intro-card.moon .goal-row { color: #d3c4ff; }
 .tier-note { margin: 0; max-width: 46ch; text-align: center; font-size: 13.5px; font-weight: 700; color: #c9b8ff; }
-.ev-moon { position: absolute; right: 36px; top: 9px; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: rgba(150, 128, 230, 0.22); color: #d3c4ff; font-size: 13px; font-weight: 800; }
+/* Above the stars row, in the card's empty space (at the top it covered the season label). */
+.ev-moon { position: absolute; right: 12px; bottom: 40px; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: rgba(150, 128, 230, 0.22); color: #d3c4ff; font-size: 13px; font-weight: 800; }
 .ev-moon .ev-stars { font-size: 13px; }
 .ev-moon .ev-stars span.on { color: #d3c4ff; }
 .moon-tally .tally-n { color: #d3c4ff; }
