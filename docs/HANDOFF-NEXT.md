@@ -29,7 +29,12 @@ brief for 2.1) is `docs/HANDOFF-RUN3.md`; everything in it was done.
 2. The average bot's trial pen jam (0 of 5 penned in some runs): makes the trial look harder than it is.
 3. Hard could ask for a real choice: a second wolf testing another flock while Pip is busy with
    the first (both answerable in principle, not at once). Keep the one-snatch-at-a-time rule.
-4. Landing page footage: the clips are 2.0's; a short clip of the old grey staggering and of the
+4. **The landing page loads 6.4 MB at once** (113 files, mostly the 96 scroll-scrub frames in
+   `site/media/evening/`). On a slow connection (about 100 KB/s here on 2026-10-10) the phone page
+   took 60-85 s to finish loading, and `tests/site-check.mjs --url` timed out on its phone pass
+   (desktop passed). Load the scrub frames lazily (the first few, then the rest after load or as
+   the scroll approaches them) so the page is usable at once.
+5. Landing page footage: the clips are 2.0's; a short clip of the old grey staggering and of the
    goose would show 2.1 (`npm run film`, `npm run media`; Gemini critics only if visuals change a lot).
 
 ## How to verify (unchanged)

@@ -76,6 +76,7 @@ Notes on the numbers:
 | --- | --- |
 | Build | clean (`tsc`, `vite build`) |
 | Self-test (`node tests/playtest.mjs --serve dist`) | 54 of 54 checks (13 new: the setting, the Hard layer, Easy's later wolves, evening 1 unchanged, the old grey's two barks, the young wolf, the goose), 0 console errors |
+| Public site | local `site-check` passes; live: deployed, the 2.1 text and assets are served and the desktop pass of `site-check --url` passes; its phone pass timed out three times because the page loads 6.4 MB at once and this connection was at about 100 KB/s (the same media as 2.0; see the handoff) |
 | Frame rate (`perf-season`, 1080p High, same hour) | 2.1: 109-141 fps; 2.0.0 built alongside: 116-140 fps; identical draw calls and triangles |
 
 ## For the next session
