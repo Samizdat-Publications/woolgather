@@ -15,8 +15,8 @@
   ],
   "lochs": [],
   "bridges": [
-    { "center": [-86.3, -2], "length": 13, "width": 6.4, "angleDeg": -8.5 },
-    { "center": [69.7, -2.5], "length": 13, "width": 6.4, "angleDeg": 7.6 }
+    { "center": [-86.3, -2], "length": 13, "width": 7.8, "angleDeg": -8.5 },
+    { "center": [69.7, -2.5], "length": 13, "width": 7.8, "angleDeg": 7.6 }
   ],
   "fords": [
     { "center": [-89.6, 24], "radius": 4.5 },

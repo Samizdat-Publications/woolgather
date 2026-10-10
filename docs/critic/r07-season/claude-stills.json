@@ -1,0 +1,72 @@
+{
+  "critic": "claude-stills",
+  "mode": "images",
+  "model": "claude-opus (blind subagent)",
+  "first_impression": "The title screen sold me in one frame: chunky serif logo over a peach sky, pines, and a felt-panel menu that looks like a real indie release. In play it is a tidy top-down herding game with a lot of UI care, a proper season map and charms, and some genuinely tense wolf moments, but from the high camera too many evenings are the same mustard lawn with a dog, a dashed circle and markers pointing off screen.",
+  "scores": {
+    "visual_appeal": 7,
+    "readability": 7,
+    "game_feel": 6,
+    "fun_factor": 7,
+    "variety": 7,
+    "sense_of_progression": 8,
+    "want_to_keep_playing": 7,
+    "would_wishlist": 7
+  },
+  "best_things": [
+    "The wolf snatch moments (wolf-moon-pack.jpg, wolf-moon-feint.jpg) are clear and exciting: a red ringed wolf dragging a sheep, a red banner with a countdown and exactly what to press, and Pip close enough that you know you can still make it.",
+    "Progression is real and readable: the season map with ten named evenings, a daily evening, stars per evening, ribbons, a charm shop (season-map-after-1.jpg) and a mechanic card per evening that teaches one new thing (lambs, Old Angus, mist, flood, Old Fly).",
+    "The low view (e1-low-view.jpg) and the night watch (evening-5-night.jpg) show the art at its best: a chunky black and white collie in tall grass by a stream, and a cold blue moonlit field with a pale flock, both screenshot-worthy."
+  ],
+  "worst_problems": [
+    {
+      "problem": "From the play camera most places look like the same flat mustard-olive lawn with soft brown blotches, so five different locations blur into one; the trial field in particular is an empty yellow carpet.",
+      "where": "evening-5-trial.jpg, evening-3-fly.jpg, evening-3-lambing.jpg, evening-4-angus.jpg, evening-9-gather.jpg",
+      "severity": "major",
+      "suggestion": "Give each place a ground you could recognise from a thumbnail: real heather moor colours in the corrie, green machair and sand by the loch, a mown show field with crowd, flags and pens in view, stony grey on the pass."
+    },
+    {
+      "problem": "Several evenings' gameplay shots show nothing but Pip alone on grass with markers pointing off screen, so the evening's twist is invisible: no lambs or lost lamb in the lambing shots, and the storm is just a dull green field with faint rain lines, no dark sky, lightning or flood in sight.",
+      "where": "evening-3-lambing.jpg, evening-7-storm.jpg",
+      "severity": "major",
+      "suggestion": "Make the special thing visible on the field: lambs that are clearly small and stick to a ewe, the lost lamb marked as its own thing, a storm with lightning flashes, a dark sky tint, wind-bent grass and visibly rising water."
+    },
+    {
+      "problem": "Streams and floodwater often read as a grey asphalt road with white lane streaks rather than water; Pip looks like he is standing in the middle of a road.",
+      "where": "evening-5-dawn.jpg, evening-5-result.jpg, wolf-moon-pack.jpg, wolf-moon-feint.jpg",
+      "severity": "minor",
+      "suggestion": "Make water look wet: bluer or browner body, ripples and foam around rocks and legs, banks that soften into it instead of a hard grey ribbon."
+    },
+    {
+      "problem": "In the snow the white flock on white ground merges into one lumpy blob that is hard to count, and the minimap stays a tan summer map in the snow and the mist, which looks like a different game.",
+      "where": "evening-8-snow.jpg, evening-6-mist.jpg",
+      "severity": "minor",
+      "suggestion": "Give sheep a warmer cream tint or stronger shadow in snow, and tint the minimap to match the weather (white for snow, grey for mist)."
+    },
+    {
+      "problem": "Things that matter end up hidden: the stalking wolf sits inside the dark foreground pines that fill the bottom third of the screen, the night watch wolf is half under the meter bar, the snatch banner sits over a second wolf at the top, and Old Angus reads as a grey boulder with an orange horn. The charm picker also jumps layout when one charm is selected (a tall stretched row).",
+      "where": "e1-wolf.jpg, e1-first-home.jpg, evening-5-night.jpg, wolf-moon-feint.jpg, evening-4-angus.jpg, evening-3-lambing-card.jpg",
+      "severity": "minor",
+      "suggestion": "Keep wolves out from under trees and HUD panels when they are the threat, make Angus look like a big horned ram from above, and show charm descriptions in a fixed box instead of growing the button."
+    }
+  ],
+  "boredom_points": [
+    "The long drives across an empty field with only Pip and his circle on screen (evening-3-lambing.jpg, evening-7-storm.jpg) look like the dull part of every evening, especially with nightfall timers of six minutes or more on the later evenings.",
+    "The night watch (evening-5-night.jpg) shows 12 safe sheep and Pip standing in a circle while a timer counts to dawn; unless wolves come often it looks like waiting.",
+    "Every evening opens with a big text card; by evening 7 or 8 I would be skipping them."
+  ],
+  "confusions": [
+    "In e1-wolf.jpg the hint says the wolves are out but the only wolf is a marker at the bottom edge inside the trees; it took a second screenshot to see where it was.",
+    "In evening-3-fly.jpg I could not find Old Fly on the field even though the message says she is lying down holding a spot.",
+    "The ribbon on the evening 1 results reads 'Ribbon: Quiet dog' in grey: I could not tell if I won it or missed it.",
+    "The snatch banner in wolf-moon-pack.jpg says 'on the far bank' while the wolf is on screen 22 m away; I was not sure which bank it meant."
+  ],
+  "wish_list": [
+    "More visual identity per place, so a screenshot tells you which evening it is.",
+    "A visible handler or whistle feel, maybe a shepherd on the hill at the trial with a crowd that reacts.",
+    "A replay or highlight of the best rescue at the end of an evening.",
+    "More low-view moments, like a camera that drops low as the flock goes through the fold gate.",
+    "Local co-op where a second player is Old Fly."
+  ],
+  "one_line_review": "A handsome, well-built herding game with real progression and tense wolf rescues, held back by evenings that too often look like the same empty yellow field."
+}

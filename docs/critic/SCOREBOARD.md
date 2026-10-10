@@ -36,6 +36,10 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
 | r06-season | claude-video | 8 | 6 | 6 | 7 | 8 | 8 | 7 | 7 | 7.13 |
 | r06-season | gemini-stills | 7 | 8 | 7 | 8 | 9 | 8 | 8 | 8 | 7.88 |
 | r06-season | gemini | 7 | 8 | 7 | 7 | 8 | 7 | 7 | 8 | 7.38 |
+| r07-season | claude-stills | 7 | 7 | 6 | 7 | 7 | 8 | 7 | 7 | 7.00 |
+| r07-season | claude-video | 8 | 6 | 7 | 7 | 8 | 7 | 7 | 7 | 7.13 |
+| r07-season | gemini-stills | 7 | 8 | 7 | 8 | 8 | 7 | 8 | 8 | 7.63 |
+| r07-season | gemini | 8 | 8 | 7 | 8 | 8 | 7 | 8 | 8 | 7.75 |
 
 ## One-line reviews
 
@@ -124,3 +128,14 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
   - worst problem (major): Wolf threats trigger mostly off-screen with sudden text alerts, forcing frantic camera scanning rather than deliberate spatial defense.
 - **gemini**: A smart, tense sheepdog sim that nails the genuine drama of dusk herding, held back only by jittery bottleneck physics and an awkward low camera.
   - worst problem (major): The zoomed-in third-person camera is disorienting, clips into the grass, and completely destroys tactical awareness of the flock.
+
+### r07-season
+
+- **claude-stills**: A handsome, well-built herding game with real progression and tense wolf rescues, held back by evenings that too often look like the same empty yellow field.
+  - worst problem (major): From the play camera most places look like the same flat mustard-olive lawn with soft brown blotches, so five different locations blur into one; the trial field in particular is an empty yellow carpet.
+- **claude-video**: A gorgeous, clever little sheepdog game where the flock really behaves like a flock, let down by a cluttered HUD and a purple dusk that turns half of every evening to mud.
+  - worst problem (major): The screen is crowded with HUD. Every frame has a counter panel, the timer, a minimap, a row of five control chips, a hint ticker along the bottom and edge markers, and during a snatch you also get a red two-line banner, a close-up inset and more markers on top. In the storm the red banners, the inset and the red diamond markers stack up so much the field is the smallest thing on screen, and most of the text is too small to read at a glance.
+- **gemini-stills**: Equal parts cozy country evening and frantic tactical trial - a genuine, mechanically smart border collie sim that punches way above its price tag.
+  - worst problem (major): Wolf rescue timer and bridge chokepoints create cheap-feeling fail states when sprinting across water barriers.
+- **gemini**: A smart, surprisingly tense Scottish sheepdog sim that turns livestock management into pure tactical flow.
+  - worst problem (major): Wolf snatch alerts slap an intrusive picture-in-picture box and a giant red countdown banner right across the top-left screen, ruining the pastoral mood and turning herding into an awkward high-speed sprint QTE.

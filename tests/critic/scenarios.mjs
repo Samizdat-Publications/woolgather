@@ -137,10 +137,10 @@ export const scenarios = {
       ['show', 70, 'evening-5-trial', (s) => s.elapsed > 30],
       ['lambing', 110, 'evening-3-lambing', (s) => s.elapsed > 50],
       ['angus', 100, 'evening-4-angus', (s) => s.sheep?.some((q) => q.kind === 'ram' && dist(q, s.dog) < 18)],
-      ['mist', 80, 'evening-6-mist', (s) => s.elapsed > 40],
-      ['storm', 100, 'evening-7-storm', (s) => s.elapsed > 45],
+      ['mist', 80, 'evening-7-mist', (s) => s.elapsed > 40],
+      ['storm', 100, 'evening-8-storm', (s) => s.elapsed > 45],
       ['gather', 70, 'evening-9-gather', (s) => s.elapsed > 35],
-      ['first-snow', 90, 'evening-8-snow', (s) => s.elapsed > 40],
+      ['first-snow', 90, 'evening-10-snow', (s) => s.elapsed > 40],
     ];
     // Lambing Time is played with Old Fly along: the player sends her to hold a spot, then calls her back.
     const flyCues = [
@@ -194,11 +194,11 @@ export const scenarios = {
       await page.evaluate(() => window.__WG.evening('night-watch', true));
       await frames(1);
       mark('evening', { id: 'night-watch' });
-      await play(25, [['evening-5-night', (s) => s.elapsed > 15]]);
+      await play(25, [['evening-6-night', (s) => s.elapsed > 15]]);
       await page.evaluate(() => window.__WG.jumpTo(0.84));
-      st = await play(60, [['evening-5-dawn', (s) => s.t > 0.95]]);
+      st = await play(60, [['evening-6-dawn', (s) => s.t > 0.95]]);
       await frames(3);
-      await still('evening-5-result');
+      await still('evening-6-result');
     }
     log(`season scenario done at ${ctx.time().toFixed(0)} s`);
   },

@@ -1,0 +1,71 @@
+{
+  "critic": "claude-video",
+  "mode": "contact sheets",
+  "model": "claude-opus (blind subagent)",
+  "first_impression": "This is a genuinely pretty little herding game with a real hook: the flock moves as a flock and you steer it by where you stand, and the light going from gold to rose to violet is a clock you can feel. It clearly has more in it than the store blurb lets on (a sheepdog trial, a ram, a second dog, mist, a storm, snow, a night watch). My worry is that a lot of it is played under a busy HUD and a purple dusk that turns everything to mud.",
+  "scores": {
+    "visual_appeal": 8,
+    "readability": 6,
+    "game_feel": 7,
+    "fun_factor": 7,
+    "variety": 8,
+    "sense_of_progression": 7,
+    "want_to_keep_playing": 7,
+    "would_wishlist": 7
+  },
+  "best_things": [
+    "The low view and the sunset cutaways are gorgeous: the zoomed-in shot of Pip running past the stepping stones at 00:50-01:00 and the silhouetted pines against a peach sky at 05:55 and 11:52 are store-page screenshots on their own.",
+    "Every evening adds one clear new rule, explained on a tidy card, and you can see it change the play: Old Angus the ram planted with his name over him at 05:32, Old Fly lying down to hold a gap at 03:22, the mist at 07:32 where you only see a bubble round Pip and the bleat icons, the snow at 12:50, the night watch where the clock counts to dawn at 16:50.",
+    "Wolf snatches are tense and readable: a toothed red ring on the wolf, a dashed line to its target, a red banner with metres and seconds left and a close-up inset (04:12-04:17, 10:20-10:30, 15:40-15:50), and 'Sheep rescued!' when you get there in time."
+  ],
+  "worst_problems": [
+    {
+      "problem": "The screen is crowded with HUD. Every frame has a counter panel, the timer, a minimap, a row of five control chips, a hint ticker along the bottom and edge markers, and during a snatch you also get a red two-line banner, a close-up inset and more markers on top. In the storm the red banners, the inset and the red diamond markers stack up so much the field is the smallest thing on screen, and most of the text is too small to read at a glance.",
+      "where": "10:20-10:50, 15:40-15:50, 04:12-04:17; bottom bar in every frame",
+      "severity": "major",
+      "suggestion": "Hide the control chips once I have used each one, put the snatch info in one place (the banner or the inset, not both plus markers), and make the stuff that stays bigger and fewer."
+    },
+    {
+      "problem": "The first evening, the one that sells the game, is over in about a minute with three stars. The wolf shows up once by the pines at 00:30, never gets near the flock, and by 01:12 every sheep is home. No tension, no real sunset, and the trial right after it has no wolves either, so the first two and a half minutes never show the hook on the store page.",
+      "where": "00:10-01:15",
+      "severity": "major",
+      "suggestion": "Make the first evening long enough to see the sun go down and one wolf actually try for a straggler, even if it is easy to stop."
+    },
+    {
+      "problem": "Long stretches of dusk and night are a murky purple-brown wash. The ground, the trees, the path and the shadows all go the same muddy violet, big dark blotches sit on the grass for no visible reason, and the dark grey wolves almost vanish into it without their rings. The storm, played twice, is mostly this.",
+      "where": "06:15-06:47 (dark smudges by the lochan), 09:47-11:12, 15:00-16:47",
+      "severity": "major",
+      "suggestion": "Keep some contrast and colour in the dusk: lighter lit ground against darker shade, and no dark patches unless something is casting them."
+    },
+    {
+      "problem": "The flooded stream in the storm looks like a grey concrete road or a frozen path, pale with white patches, not water. I honestly thought the sheep could walk on it until the banner told me the ford was gone.",
+      "where": "10:30-10:57, 15:47, 16:00-16:05",
+      "severity": "minor",
+      "suggestion": "Make the floodwater look wet: brown and moving, with foam along the edges, darker than the banks."
+    },
+    {
+      "problem": "The Glenbrae trial is a flat mustard field with almost nothing on it, the hurdles are tiny from this height, and in the middle of it the game shouts 'One minute until nightfall: 5 more sheep needed!' even though the trial is on a 'Time left' clock with no night. The run also cuts away with the sheep still outside the pen, so I never saw how the scoring came out.",
+      "where": "01:22-02:50, message at 02:22",
+      "severity": "minor",
+      "suggestion": "Give the show field some life (crowd, flags, a judge's box) and a trial-specific warning, and show the points card at the end."
+    }
+  ],
+  "boredom_points": [
+    "The long drives in the trial (01:30-02:50) are a dog walking behind five sheep over an empty yellow field for over a minute.",
+    "The Wolf Moon replay at 14:40 is the same storm valley I had just watched at 09:15, in the same murky rain; a 'harder' version of a level is not new content.",
+    "Lots of evenings come down to the same loop from the same high camera: find a clump, walk behind it, push it over the bridge, repeat. The new rules help, but the bridge crossings at 08:40, 11:40 and 13:50 look like the same shot."
+  ],
+  "confusions": [
+    "At 05:07 in Lambing Time the HUD says 'Night falls in 30 seconds: 7 more sheep needed!' while lots of sheep are already in the fold, and then it cuts away, so I could not tell if that evening was won or lost.",
+    "The Mist evening ends at 09:10 in the middle of a snatch with no result screen, the same for the trial; I never knew if those were wins.",
+    "The dawn arrives with a jump at 17:15 from blue moonlight to a pink-and-gold morning with odd pink patches on the grass (17:20), and the result card then says 'Next: Mist on the Moor', which seems out of order after a later evening.",
+    "On the snow (12:50-14:37) the white sheep and Pip's dashed reach ring are hard to pick out against the white ground."
+  ],
+  "wish_list": [
+    "A camera that sits lower more often, or an option to play from the low view, because that is where the game looks best.",
+    "A tidier HUD option for people who already know the controls.",
+    "Whistle-style commands for Old Fly beyond lie down and come back, since a second dog is the best new toy here.",
+    "Different end-of-evening moments: a farmer at the gate, a lamb reunion, something that makes bringing them home feel like a reward."
+  ],
+  "one_line_review": "A gorgeous, clever little sheepdog game where the flock really behaves like a flock, let down by a cluttered HUD and a purple dusk that turns half of every evening to mud."
+}

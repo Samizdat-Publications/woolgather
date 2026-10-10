@@ -24,10 +24,13 @@ export class Minimap {
   memory: Map<number, { x: number; z: number; t: number }> | null = null;
   /** The valley's colour on the map follows the season. */
   private fill = 'rgba(112, 142, 74, 0.62)';
+  private paper = '#e8dcbc';
   setSeason(season: string) {
     // A watercolour wash over the paper, in the season's colour.
     // Deep enough that the white sheep dots stand out from the paper.
     const f = season === 'winter' ? 'rgba(150, 168, 190, 0.6)' : season === 'autumn' ? 'rgba(150, 124, 64, 0.62)' : 'rgba(112, 142, 74, 0.62)';
+    // The paper itself follows the season too: a cold white in the snow.
+    this.paper = season === 'winter' ? '#e4e8ec' : '#e8dcbc';
     if (f !== this.fill) {
       this.fill = f;
       this.refresh();
@@ -111,7 +114,7 @@ export class Minimap {
     c.clearRect(0, 0, this.fullW, this.h);
     const L = this.level;
     // A shepherd's map: inked on old paper (a flat green panel read as a programmer's placeholder).
-    c.fillStyle = '#e8dcbc';
+    c.fillStyle = this.paper;
     c.fillRect(0, 0, this.fullW, this.h);
     let seed = 7;
     const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -137,7 +140,7 @@ export class Minimap {
     c.beginPath();
     L.boundary.forEach(([x, z], i) => (i ? c.lineTo(this.px(x), this.pz(z)) : c.moveTo(this.px(x), this.pz(z))));
     c.closePath();
-    c.fillStyle = '#efe6cc';
+    c.fillStyle = this.paper === '#e8dcbc' ? '#efe6cc' : '#f0f3f6';
     c.fill();
     c.fillStyle = this.fill;
     c.fill();

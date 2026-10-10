@@ -1,0 +1,208 @@
+{
+ "label": "r07-season",
+ "scenario": "season",
+ "dist": "C:\\Users\\stewa\\ClaudeProjects\\Opu5.5 Game Prompt\\woolgather\\test-results\\dist-r07",
+ "url": "/?test=1&seed=11&diff=standard&quality=high",
+ "width": 1280,
+ "height": 720,
+ "fps": 20,
+ "frames": 21505,
+ "duration_s": 1075.25,
+ "real_s": 1338,
+ "mode": "ended",
+ "outcome": {
+  "kind": "win",
+  "reason": "dawn",
+  "stars": 3
+ },
+ "folded": 0,
+ "lost": 0,
+ "total": 12,
+ "target": 10,
+ "day_elapsed_s": 240.01,
+ "stills": [
+  {
+   "name": "title",
+   "file": "stills/title.jpg",
+   "video_t": 2.95,
+   "game_t": 0
+  },
+  {
+   "name": "season-map",
+   "file": "stills/season-map.jpg",
+   "video_t": 5.95,
+   "game_t": 0
+  },
+  {
+   "name": "evening-1-card",
+   "file": "stills/evening-1-card.jpg",
+   "video_t": 9.95,
+   "game_t": 0
+  },
+  {
+   "name": "e1-wolf",
+   "file": "stills/e1-wolf.jpg",
+   "video_t": 29.05,
+   "game_t": 18.2
+  },
+  {
+   "name": "e1-first-home",
+   "file": "stills/e1-first-home.jpg",
+   "video_t": 30.25,
+   "game_t": 19.4
+  },
+  {
+   "name": "e1-herding",
+   "file": "stills/e1-herding.jpg",
+   "video_t": 30.85,
+   "game_t": 20
+  },
+  {
+   "name": "e1-low-view",
+   "file": "stills/e1-low-view.jpg",
+   "video_t": 55.9,
+   "game_t": 45
+  },
+  {
+   "name": "evening-1-result",
+   "file": "stills/evening-1-result.jpg",
+   "video_t": 73.75,
+   "game_t": 60.4
+  },
+  {
+   "name": "season-map-after-1",
+   "file": "stills/season-map-after-1.jpg",
+   "video_t": 78.25,
+   "game_t": 60.4
+  },
+  {
+   "name": "evening-5-trial-card",
+   "file": "stills/evening-5-trial-card.jpg",
+   "video_t": 81.25,
+   "game_t": 60.4
+  },
+  {
+   "name": "evening-5-trial",
+   "file": "stills/evening-5-trial.jpg",
+   "video_t": 111.35,
+   "game_t": 30.05
+  },
+  {
+   "name": "evening-3-lambing-card",
+   "file": "stills/evening-3-lambing-card.jpg",
+   "video_t": 174.3,
+   "game_t": 90.05
+  },
+  {
+   "name": "evening-3-fly",
+   "file": "stills/evening-3-fly.jpg",
+   "video_t": 205.4,
+   "game_t": 31.05
+  },
+  {
+   "name": "evening-3-lambing",
+   "file": "stills/evening-3-lambing.jpg",
+   "video_t": 225.25,
+   "game_t": 50.05
+  },
+  {
+   "name": "evening-4-angus-card",
+   "file": "stills/evening-4-angus-card.jpg",
+   "video_t": 327.35,
+   "game_t": 148.87
+  },
+  {
+   "name": "evening-4-angus",
+   "file": "stills/evening-4-angus.jpg",
+   "video_t": 347.45,
+   "game_t": 27.75
+  },
+  {
+   "name": "evening-6-mist-card",
+   "file": "stills/evening-6-mist-card.jpg",
+   "video_t": 450.4,
+   "game_t": 124.21
+  },
+  {
+   "name": "evening-6-mist",
+   "file": "stills/evening-6-mist.jpg",
+   "video_t": 470.5,
+   "game_t": 56.1
+  },
+  {
+   "name": "evening-7-storm-card",
+   "file": "stills/evening-7-storm-card.jpg",
+   "video_t": 553.45,
+   "game_t": 132.6
+  },
+  {
+   "name": "evening-7-storm",
+   "file": "stills/evening-7-storm.jpg",
+   "video_t": 577.8,
+   "game_t": 45.05
+  },
+  {
+   "name": "evening-9-gather-card",
+   "file": "stills/evening-9-gather-card.jpg",
+   "video_t": 676.5,
+   "game_t": 139.57
+  },
+  {
+   "name": "evening-9-gather",
+   "file": "stills/evening-9-gather.jpg",
+   "video_t": 696.6,
+   "game_t": 81.6
+  },
+  {
+   "name": "evening-8-snow-card",
+   "file": "stills/evening-8-snow-card.jpg",
+   "video_t": 769.55,
+   "game_t": 148.1
+  },
+  {
+   "name": "evening-8-snow",
+   "file": "stills/evening-8-snow.jpg",
+   "video_t": 789.65,
+   "game_t": 57.2
+  },
+  {
+   "name": "wolf-moon-card",
+   "file": "stills/wolf-moon-card.jpg",
+   "video_t": 882.6,
+   "game_t": 146.26
+  },
+  {
+   "name": "wolf-moon-pack",
+   "file": "stills/wolf-moon-pack.jpg",
+   "video_t": 947.75,
+   "game_t": 95.59
+  },
+  {
+   "name": "wolf-moon-feint",
+   "file": "stills/wolf-moon-feint.jpg",
+   "video_t": 949.75,
+   "game_t": 97.59
+  },
+  {
+   "name": "evening-5-night",
+   "file": "stills/evening-5-night.jpg",
+   "video_t": 1022.7,
+   "game_t": 15
+  },
+  {
+   "name": "evening-5-dawn",
+   "file": "stills/evening-5-dawn.jpg",
+   "video_t": 1060.25,
+   "game_t": 228.01
+  },
+  {
+   "name": "evening-5-result",
+   "file": "stills/evening-5-result.jpg",
+   "video_t": 1075.2,
+   "game_t": 240.01
+  }
+ ],
+ "periodic_frames": 431,
+ "console_errors": [],
+ "scenario_error": null
+}

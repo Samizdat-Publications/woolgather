@@ -1434,6 +1434,11 @@ export class Game {
           this.ui.toast(s === 60 ? 'One minute until dawn: hold on!' : 'Dawn in 30 seconds!', 'warn');
           continue;
         }
+        if (sim.trial) {
+          // The trial runs on the judges' clock, not the sun.
+          this.ui.toast(s === 60 ? 'One minute left on the clock: pen them!' : '30 seconds left!', 'warn');
+          continue;
+        }
         const what = sim.targetMet ? 'latch the gate or bring the rest in!' : `${Math.max(0, sim.target - sim.folded)} more sheep needed!`;
         this.ui.toast(s === 60 ? `One minute until nightfall: ${what}` : `Night falls in 30 seconds: ${what}`, 'danger');
       }

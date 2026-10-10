@@ -29,7 +29,7 @@ const SHOTS = [
   ['long-light', 0.08, 0],
   ['far-bank', 0.35, 7],
   ['lambing', 0.15, 1],
-  ['angus', 0.42, 0],
+  ['angus', 0.3, 1],
   ['show', 0.25, 0],
   ['night-watch', 0.45, -1],
   ['mist', 0.3, 2],

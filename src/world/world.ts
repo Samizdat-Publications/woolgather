@@ -265,7 +265,8 @@ function waterMaterial(ford: { x: number; z: number; r: number } | null) {
         float refl = uReflect * (0.5 + 0.5 * smoothstep(0.3, 0.9, across)) * smoothstep(0.45, 0.8, sheen);
         col = mix(col, uTint * 0.95, refl * (1.0 - 0.75 * uRain));
         float streak = smoothstep(0.6, 0.82, vnoise(vec2(vUv.x * 2.4 - uTime * 0.32 * flow, vUv.y * 6.5)));
-        col = mix(col, col * 1.3 + vec3(0.025, 0.03, 0.035), streak * (0.4 - 0.15 * uRain) * (1.0 - smoothstep(0.7, 0.95, across)));
+        // Softer and broken up, so the flow never reads as lane markings on a grey road.
+        col = mix(col, col * 1.18 + vec3(0.015, 0.02, 0.025), streak * (0.28 - 0.12 * uRain) * (1.0 - smoothstep(0.7, 0.95, across)) * (0.4 + 0.6 * vnoise(vUv * vec2(0.6, 3.0))));
         vec2 p = vec2(vUv.x * 3.0 - uTime * 0.55 * flow, vUv.y * 11.0);
         float n = vnoise(p) * 0.6 + vnoise(p * vec2(2.1, 1.7) + 7.0) * 0.4;
         float glint = smoothstep(0.8, 0.9, n) * (1.0 - smoothstep(0.6, 0.9, across)) * 0.7;

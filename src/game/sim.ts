@@ -1145,7 +1145,7 @@ export class Sim {
           const near = 1 - clamp((Math.abs(along) - half) / 9, 0, 1);
           const lat = clamp(-across * (onDeck ? 1.8 : 0.9 + 0.9 * near), -4, 4);
           const dir = Math.abs(va) > 0.2 ? Math.sign(va) : -Math.sign(along);
-          const push = onDeck ? 2.6 : 1.4 + 1.2 * near;
+          const push = onDeck ? 2.8 : 1.6 + 1.6 * near;
           vx += -c.uz * lat + c.ux * dir * push;
           vz += c.ux * lat + c.uz * dir * push;
           if (onDeck && !c.ford) {
