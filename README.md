@@ -33,7 +33,7 @@ one Standard evening (see [Footage](#footage)); in that evening it brought all t
 
 ## The Season (Woolgather 2)
 
-Version 2 turns one evening into a season: **nine evenings on one hill farm**, midsummer to the first
+Version 2 turns one evening into a season: **ten evenings on one hill farm**, midsummer to the first
 snow, over **five places**, each evening adding one new thing to herd around.
 
 | # | Evening | Place | New tonight |
@@ -46,11 +46,22 @@ snow, over **five places**, each evening adding one new thing to herd around.
 | 6 | Night Watch | Loch Ailsa | guard the flock until dawn |
 | 7 | Mist on the Moor | The High Pass | mist: find the flock by its bleating |
 | 8 | The Storm | Hollow Valley | thunder that scatters the flock, and a flood |
-| 9 | First Snow | The High Pass | everything at once |
+| 9 | The Gathering | The High Pass | every flock off the hill, with Old Fly to help |
+| 10 | First Snow | The High Pass | everything at once |
 
-- **It is hard.** Each evening is short, the wolves come early, and from Old Angus on they hunt in
-  pairs: one shows itself on your side of the flock and feints, while its mate circles round to
-  the far side and waits for you to take the bait.
+- **Easy, Standard or Hard** (2.1), chosen on the season map or any evening's card. The first
+  evening is the same on all three. Harder means more to think about, not only more wolves:
+  - **Easy:** more daylight, the wolves later and alone.
+  - **Standard:** the evening as written, with its kinds of wolf.
+  - **Hard:** less daylight, wolves that hunt in pairs from the third evening, more old greys,
+    every wolf you chase off comes back once, and each evening adds something from an earlier one
+    (a black sheep on the far bank, lambs with Old Angus, the ram up in the mist, lambs in the storm).
+- **Wolves by kind.** The **old grey** is bigger and bolder: he only hears a bark from close by, and
+  one bark only staggers him; bark again while he is shaken, or run straight into him. **Young
+  wolves** are quick and nervy and bolt at one bark, but they come back from another side of the
+  valley. From Old Angus on (sooner on Hard) wolves hunt in pairs: one shows itself on your side
+  of the flock and feints, while its mate circles round to the far side and waits for you to take
+  the bait.
 - **Stars, ribbons and Wolf Moon.** Every evening has three stars and a ribbon (an optional
   challenge). Three stars open its **Wolf Moon**: the same evening shorter, with one more wolf, a
   full pack and one more sheep needed.
@@ -59,7 +70,8 @@ snow, over **five places**, each evening adding one new thing to herd around.
   **Old Fly** (F: Pip's mother lies down where he stands and holds that spot, so the sheep keep off
   it) and **The Bell-wether** (the flock keeps close round a ewe with a bell, and you can hear her in
   the mist).
-- **Pip's coats** are won with ribbons and Wolf Moon stars.
+- **Pip's coats** are won with ribbons and Wolf Moon stars. Win every evening of the season and
+  the last swatch in the row is not a coat at all: a **goose** will herd in Pip's place. It honks.
 - **Today's evening:** a new evening every day, made from the date: a place, the real season, the
   weather, two or three flocks.
 - **Classic evening** is the 1.0 game, at Gentle, Standard or Hard.
@@ -107,7 +119,7 @@ and open http://localhost:4317/.
 | Flank: run round the nearest flock ("away" / "come bye") | Z or X (hold) | D-pad left or right |
 | Outrun (charm) | Z and X together (hold) | Left stick click |
 | Old Fly: lie down here, or come back (charm) | F | D-pad down |
-| Bark: startles sheep, scares wolves off | Space or B | A or X |
+| Bark: startles sheep, scares wolves off (the old grey takes two) | Space or B | A or X |
 | Latch the gate once enough sheep are home | Enter | Y |
 | Pause (sound and graphics settings) | Esc or P | Start |
 | Sound on or off | M | |
@@ -181,13 +193,15 @@ map size and bloom. Both choices are remembered. `?quality=low` in the URL picks
 - `npm run playtest` (with `npm run dev` running, or `--serve <build>` for a frozen production
   build) plays the game in headless Chrome through real key presses: a herding bot wins a
   Standard day, an idle day loses, the gate is latched, the menus are driven, every season evening
-  starts, Old Fly and the Wolf Moon (rules and saves) are checked, and screenshots from the
-  player's camera land in `test-results/`, with the console log and 41 assertions.
+  starts, Old Fly, the Wolf Moon (rules and saves), the Easy / Standard / Hard setting, the old
+  grey's two barks, the young wolf and the goose are checked, and screenshots from the player's
+  camera land in `test-results/`, with the console log and 54 assertions.
 - `node tests/season-run.mjs` plays every season evening with a level-agnostic herding bot
   (`tests/bot2.mjs`): `--skill expert` (the default, textbook herding with perfect knowledge) or
   `--skill average` (a first-time player: reacts late to wolves it can see, aims loosely, pauses),
-  `--moon` for the Wolf Moon tier, `--dist` for a frozen build. The balance is set so the expert
-  has a fight and the average bot wins only some of the time.
+  `--moon` for the Wolf Moon tier, `--setting easy|standard|hard`, `--dist` for a frozen build.
+  The balance is set so that on Hard the expert wins most evenings but seldom all with three
+  stars, on Standard the average bot wins about half to two thirds, and on Easy nearly all.
 - `node tests/place-shots.mjs` takes unlabelled herding-camera shots of every place for a blind
   "can you tell the places apart?" test; `node tests/season-stills.mjs` takes the landing page's
   evening stills; `node tests/heavy.mjs` lists the heaviest meshes of an evening.

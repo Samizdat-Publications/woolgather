@@ -17,7 +17,11 @@ node tests/season-run.mjs --nobuild                         # reuse the last bui
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `--evenings a,b` | all eight | season evening ids (`long-light`, `far-bank`, `lambing`, `angus`, `night-watch`, `mist`, `storm`, `first-snow`) |
+| `--evenings a,b` | all ten | season evening ids (`long-light`, `far-bank`, `lambing`, `angus`, `show`, `night-watch`, `mist`, `storm`, `gather`, `first-snow`), or `daily-YYYY-MM-DD` |
+| `--setting s` | standard | the season's setting: `easy`, `standard` or `hard` (2.1) |
+| `--skill s` | expert | `expert` or `average` (see below) |
+| `--moon` |  | play each evening's Wolf Moon |
+| `--dist dir` | test-results/bot-dist | where to build and serve from (give concurrent runs their own) |
 | `--scale k` | 2 | game time scale (`__WG.setTimeScale`); the bot steps every ~50 ms of real time |
 | `--parallel n` | 1 | evenings played at once, one browser page each |
 | `--seed n` | 11 | the sim seed (`?seed=`); the flock's placement has its own fixed seed per evening |
@@ -114,6 +118,14 @@ moved for 0.8 s while trying to, he slides sideways for 0.9 s (the 1.0 unstick).
   strays like any other.
 
 ## Wolves
+
+The old grey (2.1) only hears a bark from about 12.9 m and takes two: the expert closes to 11.5 m
+before barking and keeps barking while he is staggered; the average bot barks from its usual 14 m
+and wastes some, as a first-time player would. The table on stdout counts the wolves that came
+out (`g/y/back/stag`: old greys, young wolves, wolves that came back, staggers).
+
+Average-skill numbers are only comparable from solo runs: two seasons at once slow the average
+bot enough to lose evenings it wins alone (the expert is not affected).
 
 - A snatch is answered whenever the game says it can be saved (`dragFeasible !== false`): Pip
   sprints at the wolf and barks within 14 m.
