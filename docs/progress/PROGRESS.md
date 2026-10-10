@@ -592,3 +592,21 @@ Captured from the player camera by the Playwright self-test after each milestone
 ![Crannach Corrie as a heather moor](season-day1b-s9-corrie.png)
 *Crannach Corrie as a heather moor*
 
+
+## 2.1 (2026-10-10)
+
+![Old Angus on Hard: the setting switch, the Hard layer (late lambs) and the wolves tonight](2.1-setting-hard-card.png)
+*Old Angus on Hard: the setting switch, the Hard layer (late lambs) and the wolves tonight*
+
+![The old grey, rearing back from a bark: one more while he is shaken drives him off](2.1-old-grey.png)
+*The old grey, rearing back from a bark: one more while he is shaken drives him off*
+
+![The goose, unlocked by winning the season, honking at the Far Bank](2.1-goose.png)
+*The goose, unlocked by winning the season, honking at the Far Bank*
+
+
+## 2.1 (2026-10-10)
+
+![The season map with Easy, Standard and Hard, at its full width](2.1-season-map.png)
+*The season map with Easy, Standard and Hard, at its full width*
+

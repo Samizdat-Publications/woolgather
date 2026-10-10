@@ -147,12 +147,11 @@ Progress screenshots (user request): after every self-test round, save the telli
 `node tools/save-progress.mjs <runDir> <label> "<file>=<caption>" ...` into `docs/progress/`
 (committed, captioned in `docs/progress/PROGRESS.md`). They feed the README later.
 
-Status: 2.0.0 ("The Season", tag `v2.0.0`) released and live at https://woolgather.pages.dev
-(the game at /play/), merged to `main`. 1.0.0 is tag `v1.0.0`. Run reports:
-`docs/OVERNIGHT-REPORT.md` (the season), `docs/RUN2-REPORT.md` (the hard rebalance, packs, Wolf
-Moon, charms, landmarks). **Next session: start with `docs/HANDOFF-NEXT.md`** (Stewart's playtest
-feedback: Easy / Standard / Hard difficulty levels, wolves that threaten by kind not number, a goose
-unlock). The DECISIONS log below has the history.
+Status: 2.1.0 (Easy / Standard / Hard, wolves by kind, the goose; tag `v2.1.0`) on `main` and live
+at https://woolgather.pages.dev (the game at /play/). 2.0.0 is tag `v2.0.0`, 1.0.0 `v1.0.0`. Run
+reports: `docs/OVERNIGHT-REPORT.md` (the season), `docs/RUN2-REPORT.md` (the hard rebalance,
+packs, Wolf Moon, charms, landmarks), `docs/RUN3-REPORT.md` (2.1). **Next session: start with
+`docs/HANDOFF-NEXT.md`.** The DECISIONS log below has the history.
 
 ## Asset list
 
