@@ -1,0 +1,38 @@
+{
+  "critic": "claude-video",
+  "first_impression": "The title screen and the sunset cutaways are lovely: low-poly pines against a peach sky, a little farmhouse with chimney smoke, sheep that look like popcorn clusters. In play it is mostly a high top-down view of a small dog trotting behind a small white blob. That works, but every evening ends up the same mauve-brown colour once the sun goes. There is clearly a real game here with a proper season structure. It just needs more punch on screen.",
+  "scores": { "visual_appeal": 7, "readability": 6, "game_feel": 6, "fun_factor": 6, "variety": 7, "sense_of_progression": 8, "want_to_keep_playing": 6, "would_wishlist": 6 },
+  "best_things": [
+    "The sunset cutaways (03:27, 05:55, 08:02) and the title screen (00:00) are screenshot-worthy: a peach and rose sky over black pine silhouettes, chimney smoke and the fold below, and they mark the turn from calm to danger really well.",
+    "The season map (00:05, 01:20) gives a clear reason to keep going: ten named evenings across the year, each adding one new thing (lambs, Old Angus the ram, mist, a storm, first snow), plus stars, ribbons and charms to unlock.",
+    "The wolf snatch at 04:10-05:15 is real drama: a red banner with distance and seconds left, a picture-in-picture of the wolf dragging a lamb, a big red ring on the wolf, then 'Sheep rescued!' after the sprint across the burn."
+  ],
+  "worst_problems": [
+    { "problem": "Past sunset the whole screen goes one muddy mauve-brown. Grass, heather, paths, rocks and the grey-blue wolves all sit on the same value, so the wolves read as smudges and you only find them by their red rings or edge markers.", "where": "04:30-05:25 (Lambing Time dusk), 06:00-07:27 (Old Angus)", "severity": "major", "suggestion": "Keep some contrast at dusk: let the grass stay darker and greener or bluer, and make the wolves clearly lighter or darker than the ground, so I can spot a wolf without reading a ring." },
+    { "problem": "Evenings just stop. The trial cuts from 'Time left 0:31' straight to the Lambing Time card, Lambing Time cuts at 'Nightfall in 0:08, 2 more to go' to the Old Angus card, and Old Angus cuts at 0:53 to Mist. No results screen, so I could not tell whether I won, lost or quit.", "where": "02:52 to 02:55, 05:25 to 05:27, 07:27 to 07:30", "severity": "major", "suggestion": "Always show the end-of-evening card (stars, sheep home, lost to wolves) like the lovely one at 01:15. If I quit to the map, say so." },
+    { "problem": "The herding loop looks identical minute to minute: a tiny dog behind a tiny flock, seen from very high up. The Glenbrae Trial is the worst: two minutes of near-identical frames on a plain mown field.", "where": "01:27-02:52 (trial), 07:40-08:57 (mist)", "severity": "major", "suggestion": "Bring the camera in closer by default, like the great close shots at 00:50-01:02 where the sheep and Pip actually have personality. Add more moments in the drive itself: sheep breaking off, a crowd reaction when a gate is cleared." },
+    { "problem": "The mist looks like a dirty lens: a grey wash over everything with a sepia-orange circle around Pip. It reads as a filter bug rather than fog rolling over a moor, and the flock, river and bridge all flatten into the same beige.", "where": "07:32-08:57", "severity": "minor", "suggestion": "Make the mist roll and drift with soft edges, and keep the clear area round Pip the true ground colour instead of tinting it orange." },
+    { "problem": "The HUD is busy and its text is tiny: a counter panel, timer bar, minimap, a full control bar along the bottom, a hint pill, top banners, edge icons and an inset camera all at once. During the snatch the red banner, inset and markers pile up.", "where": "04:10-04:17, 04:55-05:10, most frames", "severity": "minor", "suggestion": "Hide the control bar once I know the keys, make the text bigger and fewer, and keep one clear alert at a time." }
+  ],
+  "boredom_points": [
+    "The Glenbrae Trial (01:27-02:52): a flat yellow-striped field, five sheep, a few gates, and the camera just watches a dog walk behind them for two minutes.",
+    "Old Angus around 06:12-06:32: Pip runs alone across empty heather and swims across the lochan looking for sheep, with nothing happening on screen.",
+    "The mist evening: the same grey-beige frame with a dog and a fuzzy flock for over a minute; even the bridge crossing at 08:35 is hard to make out."
+  ],
+  "confusions": [
+    "Did I finish the trial or the lambing evening? Both cut away with time still on the clock and no result.",
+    "What the big yellow ring around Pip means (00:40, 07:15, and the double ring around Old Angus at 05:37). Is it a bark, a stare, or lying down?",
+    "The counter's rows of tiny dots and stars (for example '13, 15, 17' at 03:00) are too small to read at a glance.",
+    "Why the picture-in-picture shows a wolf in a pink and orange blur (04:10, 04:55); at that size I could not tell what was in it.",
+    "The many small round icons at the screen edges (sheep, house, wolf diamonds), especially the stack of sheep icons on the left in the mist (08:10-08:57)."
+  ],
+  "wish_list": [
+    "A closer, lower default camera, or one that pushes in during tense moments, so the animals have more character.",
+    "Real night: moonlight, a lantern, glowing wolf eyes, a darker blue instead of the mauve wash.",
+    "More reactions from the flock: a stray bolting, a ewe going back for her lamb, more bleats and panic you can see.",
+    "A results screen and replay highlight for every evening, including best times to beat.",
+    "A co-op mode with two dogs, or a whistle or handler mechanic.",
+    "Pip's coats or cosmetic unlocks shown somewhere in the menus (I only saw charms)."
+  ],
+  "one_line_review": "A pretty, cosy sheepdog game with a lovely sunset and a smart season structure, but the dusk turns everything to purple mush and the herding view is too far away to really feel it."
+}

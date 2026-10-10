@@ -40,6 +40,10 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
 | r07-season | claude-video | 8 | 6 | 7 | 7 | 8 | 7 | 7 | 7 | 7.13 |
 | r07-season | gemini-stills | 7 | 8 | 7 | 8 | 8 | 7 | 8 | 8 | 7.63 |
 | r07-season | gemini | 8 | 8 | 7 | 8 | 8 | 7 | 8 | 8 | 7.75 |
+| r08-season | claude-stills | 8 | 7 | 6 | 7 | 7 | 8 | 7 | 7 | 7.13 |
+| r08-season | claude-video | 7 | 6 | 6 | 6 | 7 | 8 | 6 | 6 | 6.50 |
+| r08-season | gemini-stills | 7 | 8 | 7 | 8 | 8 | 7 | 8 | 8 | 7.63 |
+| r08-season | gemini | 8 | 7 | 8 | 8 | 9 | 8 | 9 | 9 | 8.25 |
 
 ## One-line reviews
 
@@ -139,3 +143,14 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
   - worst problem (major): Wolf rescue timer and bridge chokepoints create cheap-feeling fail states when sprinting across water barriers.
 - **gemini**: A smart, surprisingly tense Scottish sheepdog sim that turns livestock management into pure tactical flow.
   - worst problem (major): Wolf snatch alerts slap an intrusive picture-in-picture box and a giant red countdown banner right across the top-left screen, ruining the pastoral mood and turning herding into an awkward high-speed sprint QTE.
+
+### r08-season
+
+- **claude-stills**: A gorgeous, gentle sheepdog game with a real season to work through, let down by a camera that sometimes hides the wolves in the trees and evenings that start to look like the same mustard field.
+  - worst problem (major): In the wolf moment the bottom third of the screen is a dark wall of foreground pines, and the wolf, the thing I most need to see, is a small purple shape inside that canopy, half under the controls bar. The banner says 'A wolf is stalking your flock!' but my eyes go to the empty meadow.
+- **claude-video**: A pretty, cosy sheepdog game with a lovely sunset and a smart season structure, but the dusk turns everything to purple mush and the herding view is too far away to really feel it.
+  - worst problem (major): Past sunset the whole screen goes one muddy mauve-brown. Grass, heather, paths, rocks and the grey-blue wolves all sit on the same value, so the wolves read as smudges and you only find them by their red rings or edge markers.
+- **gemini-stills**: A mechanically authentic, quietly charming sheepdog sim that respects the craft of herding, held back only by clunky keyboard controls and a brief campaign.
+  - worst problem (major): Keyboard controls look horribly cramped and overmapped (WASD + Shift + C + Q + Z + X + F + Space), demanding awkward finger gymnastics.
+- **gemini**: Untitled Goose Game meets A Short Hike with sheep; tense, charming, and shockingly faithful to real sheepdog handling.
+  - worst problem (major): During high-stakes wolf snatches, the camera doesn't zoom out or re-frame, forcing you to sprint blindly while staring at distance text and minimap icons instead of the action.

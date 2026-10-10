@@ -1,0 +1,94 @@
+{
+ "critic": "gemini",
+ "mode": "video",
+ "model": "gemini-3.8-flash",
+ "models_tried": [],
+ "source": "test-results/critic/r08-season/video-960.mp4",
+ "media": "Below is a video of someone playing it.",
+ "when": "2026-10-10T05:58:53.282Z",
+ "timing": {
+  "upload_s": 95.9,
+  "processing_s": 10.6,
+  "generate_s": 22.1,
+  "total_s": 128.6
+ },
+ "usage": {
+  "promptTokenCount": 36349,
+  "candidatesTokenCount": 1005,
+  "totalTokenCount": 38758,
+  "promptTokensDetails": [
+   {
+    "modality": "VIDEO",
+    "tokenCount": 35640
+   },
+   {
+    "modality": "TEXT",
+    "tokenCount": 709
+   }
+  ],
+  "thoughtsTokenCount": 1404,
+  "serviceTier": "standard"
+ },
+ "first_impression": "This is genuinely charming and way more mechanically thoughtful than I expected from a cozy itch.io title. It nails the authentic highland shepherd fantasy without feeling like a boring chore simulator.",
+ "scores": {
+  "visual_appeal": 8,
+  "readability": 7,
+  "game_feel": 8,
+  "fun_factor": 8,
+  "variety": 9,
+  "sense_of_progression": 8,
+  "want_to_keep_playing": 9,
+  "would_wishlist": 9
+ },
+ "best_things": [
+  "The core flocking physics and Pip's stalking/creeping mechanics feel authentic to actual border collie sheepdog work rather than generic arcade pushing.",
+  "The mission variety is surprisingly deep, throwing in legit sheepdog trials, helper dogs to command, stubborn rams, swimming, and night wolf ambushes.",
+  "The charm system and three-star objectives give genuine replay value and mastery goals beyond just scraping through the sunset timer."
+ ],
+ "worst_problems": [
+  {
+   "problem": "During high-stakes wolf snatches, the camera doesn't zoom out or re-frame, forcing you to sprint blindly while staring at distance text and minimap icons instead of the action.",
+   "where": "04:08 - 04:18",
+   "severity": "major",
+   "suggestion": "Pull the camera back dynamically during sprint rescues so both Pip and the fleeing predator stay in frame."
+  },
+  {
+   "problem": "The mist mechanic over-restricts visibility to Pip's tiny circle, turning wide pasture navigation into tedious squinting and slow crawling.",
+   "where": "07:33 - 07:52",
+   "severity": "major",
+   "suggestion": "Let sheep silhouettes or sound ripples show through the fog outside the dog's direct reach ring so it feels like hunting by ear rather than bumping into walls."
+  },
+  {
+   "problem": "Sheep bottlenecking at narrow pen gates can trigger jittery bouncing and sudden erratic turns right at the finish line.",
+   "where": "00:28 - 00:30",
+   "severity": "minor",
+   "suggestion": "Give gate entrances a slight funnel attractor once the flock is facing directly into the opening."
+  },
+  {
+   "problem": "Ground textures and foliage across the wider moors look noticeably flat and low-detail during long sprints between pastures.",
+   "where": "05:46 - 05:54",
+   "severity": "cosmetic",
+   "suggestion": "Add more micro-elevation, varied grass tufts, or heather clumps to break up the barren yellow-green flats."
+  },
+  {
+   "problem": "Commands for the second dog (Old Fly) feel under-telegraphed in the UI, making it easy to forget whether she is holding position or following.",
+   "where": "03:24 - 03:30",
+   "severity": "minor",
+   "suggestion": "Add a clear visual status marker or leash icon over Fly showing her current stance."
+  }
+ ],
+ "boredom_points": [
+  "Slowly nudging small groups across empty fields when wolves haven't spawned yet (00:15 - 00:20).",
+  "Combing the empty edges of the moor in thick fog trying to locate the last stray (08:44 - 08:59)."
+ ],
+ "confusions": [
+  "The exact difference between staring down Old Angus with creep vs barking to turn him without getting charged (05:34 - 05:39).",
+  "How wolf attack aggro priorities work when two wolves strike from opposite sides simultaneously (06:55 - 07:01)."
+ ],
+ "wish_list": [
+  "A free-roam training field where you can practice trial gate courses and dog whistling commands at your own pace.",
+  "Cosmetic dog customization (different coat colors, bandanas, or collie breeds like rough collies or kelpies).",
+  "Weather variants like driving rain and snowdrifts that affect sheep movement speed and sound travel."
+ ],
+ "one_line_review": "Untitled Goose Game meets A Short Hike with sheep; tense, charming, and shockingly faithful to real sheepdog handling."
+}
