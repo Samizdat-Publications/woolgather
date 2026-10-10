@@ -174,7 +174,9 @@ export class Stage {
     }
     // Mist colour: pearly grey that takes the evening's own light (gold, then rose, then lilac), so
     // it reads as lit air; dimmer under the moon.
-    this.mistColor.copy(m.fog).lerp(MIST, 0.88).multiplyScalar(0.86 - 0.5 * m.night).convertLinearToSRGB();
+    // (More of the light than before: a cool grey veil round a sunlit clear area read as a warm disc
+    // cut out of a grey filter, "a dirty lens".)
+    this.mistColor.copy(m.fog).lerp(MIST, 0.72).multiplyScalar(0.86 - 0.5 * m.night).convertLinearToSRGB();
     this.grade.setFlash(W.flash);
     this.key.color.copy(m.keyColor);
     this.key.intensity = m.keyIntensity;

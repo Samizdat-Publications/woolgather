@@ -91,7 +91,7 @@ Notes on the numbers:
 ## Overnight (2026-10-10, after Stewart's go-ahead: anything but the balance)
 
 No difficulty numbers were touched (tuning, targets, day lengths, wolf numbers and `bold` are as
-2.1.0 shipped). Released as **2.1.1** and deployed.
+2.1.0 shipped). Released as **2.1.1** and then **2.1.2**, both deployed.
 
 - **Landing page loads fast on phones.** Only the coarse scroll-scrub frames load with the page;
   the rest follow after it, nearest the scroll position first, and clip posters load as they near
@@ -120,6 +120,11 @@ No difficulty numbers were touched (tuning, targets, day lengths, wolf numbers a
   out of the sunset and twilight (the sunset keeps the grass green-gold; the twilight becomes a
   slate-blue moonlit night instead of lavender). `node tests/dusk-compare.mjs` captures both side by
   side; sheets in `docs/progress/` (`2.1-dusk-*.jpg`).
+- **2.1.2, later the same night:** the mist's veil takes more of the evening's light (a cool grey
+  veil round a sunlit clear area read as "a dirty lens"), and animals keep a little more of their
+  contrast inside it, so a ewe's dark face still tells her from a boulder (how far Pip can see is
+  unchanged). A hunting wolf's window through the trees is 1.7 times wider (stills critics since r00:
+  "the wolf is a small shape inside the canopy").
 - **A film tour of 2.1**: `npm run film -- --shoot tour` (the setting card, the old grey's two
   barks, a young wolf that comes back, the goose), 40 s with captions.
 

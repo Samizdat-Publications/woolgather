@@ -147,7 +147,7 @@ Progress screenshots (user request): after every self-test round, save the telli
 `node tools/save-progress.mjs <runDir> <label> "<file>=<caption>" ...` into `docs/progress/`
 (committed, captioned in `docs/progress/PROGRESS.md`). They feed the README later.
 
-Status: 2.1.1 (Easy / Standard / Hard, wolves by kind, the goose, overnight fixes; tag `v2.1.1`) on `main` and live
+Status: 2.1.2 (Easy / Standard / Hard, wolves by kind, the goose, overnight fixes; tag `v2.1.2`) on `main` and live
 at https://woolgather.pages.dev (the game at /play/). 2.0.0 is tag `v2.0.0`, 1.0.0 `v1.0.0`. Run
 reports: `docs/OVERNIGHT-REPORT.md` (the season), `docs/RUN2-REPORT.md` (the hard rebalance,
 packs, Wolf Moon, charms, landmarks), `docs/RUN3-REPORT.md` (2.1). **Next session: start with
@@ -1205,3 +1205,6 @@ Newest at the bottom. Record every non-obvious choice.
   named on screen. A dusk variant B (`?dusk=b`: less violet at sunset, a blue rather than lavender
   twilight) is kept opt-in for Stewart to choose: the critics' dusk advice has reversed before, so a
   colour change waits for his eye.
+- 2026-10-10 (2.1.2): the mist veil's colour is 72% pearl grey and 28% the evening's fog colour (was
+  88/12), and animals take 28% less of the veil; a hunting wolf's tree window is 1.7 times the usual
+  size (`focusPoints` carries a radius). Visual only: the clear radius and the evening are unchanged.

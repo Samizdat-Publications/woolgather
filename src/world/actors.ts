@@ -923,8 +923,10 @@ export class Actors {
   /** Points the camera should keep clear of trees: Pip first, then every wolf, then nearby sheep. */
   focusPoints(sim: Sim) {
     const d = sim.dog;
-    const pts: { x: number; z: number }[] = [{ x: d.x, z: d.z }];
-    for (const w of sim.wolves) if (w.state !== 'gone') pts.push({ x: w.x, z: w.z });
+    const pts: { x: number; z: number; r?: number }[] = [{ x: d.x, z: d.z }];
+    // A hunting wolf gets a wider window: it comes out of the pines, often low in the frame, and
+    // a window only as big as its ring left it half hidden among dark trees.
+    for (const w of sim.wolves) if (w.state !== 'gone') pts.push({ x: w.x, z: w.z, r: w.state === 'flee' ? 1 : 1.7 });
     const near = sim.sheep
       .filter((s) => s.state !== 'lost' && s.state !== 'folded' && s.state !== 'hidden' && (s.x - d.x) ** 2 + (s.z - d.z) ** 2 < 32 * 32)
       .sort((a, b) => (a.x - d.x) ** 2 + (a.z - d.z) ** 2 - ((b.x - d.x) ** 2 + (b.z - d.z) ** 2));

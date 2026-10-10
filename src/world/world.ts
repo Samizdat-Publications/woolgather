@@ -1017,7 +1017,7 @@ export function disposeWorld(w: WorldHandles) {
 }
 
 /** Per-frame world updates: water flow, sky colours, night glow, and fading trees that block the view. */
-export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, camera: THREE.Camera, focus: { x: number; z: number }[], dt: number, bufW = 1, bufH = 1, weather: { rain: number; cloud: number } = { rain: 0, cloud: 0 }) {
+export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, camera: THREE.Camera, focus: { x: number; z: number; r?: number }[], dt: number, bufW = 1, bufH = 1, weather: { rain: number; cloud: number } = { rain: 0, cloud: 0 }) {
   let n = 0;
   for (const p of focus) {
     if (n >= MAX_HOLES) break;
@@ -1026,7 +1026,7 @@ export function updateWorld(w: WorldHandles, mood: MoodValues, time: number, cam
     if (tmpP.z > 1 || Math.abs(tmpP.x) > 1.2 || Math.abs(tmpP.y) > 1.2) continue;
     const dist = camera.position.distanceTo(tmpS.set(p.x, y, p.z));
     const fov = (camera as THREE.PerspectiveCamera).fov ?? 34;
-    HOLES.value[n].set(((tmpP.x + 1) / 2) * bufW, ((tmpP.y + 1) / 2) * bufH, (3.18 * bufH * 0.5) / (Math.tan(THREE.MathUtils.degToRad(fov / 2)) * Math.max(10, dist)));
+    HOLES.value[n].set(((tmpP.x + 1) / 2) * bufW, ((tmpP.y + 1) / 2) * bufH, (3.18 * (p.r ?? 1) * bufH * 0.5) / (Math.tan(THREE.MathUtils.degToRad(fov / 2)) * Math.max(10, dist)));
     n++;
   }
   holeCountMain = n;
