@@ -58,20 +58,22 @@ function weatherize(m: THREE.Material) {
   m.onBeforeCompile = (shader, r) => {
     prev?.call(m, shader, r);
     shader.uniforms.uSnow = SNOW;
+    // Bushes and moor plants only take a dusting: white-capped round bushes read as a flock.
+    shader.uniforms.uSnowK = { value: /^(bush_|gorse|heather)/.test(m.name) ? 0.35 : 1 };
     shader.uniforms.uUpView = UP_VIEW;
     shader.uniforms.uWet = WET;
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform float uSnow;\nuniform float uWet;\nuniform vec3 uUpView;')
+      .replace('#include <common>', '#include <common>\nuniform float uSnow;\nuniform float uSnowK;\nuniform float uWet;\nuniform vec3 uUpView;')
       .replace(
         '#include <normal_fragment_maps>',
         `#include <normal_fragment_maps>
         float upness = dot(normal, uUpView);
-        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.95, 0.98), uSnow * smoothstep(0.3, 0.75, upness));
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.95, 0.98), uSnow * uSnowK * smoothstep(0.3, 0.75, upness));
         diffuseColor.rgb *= 1.0 - 0.22 * uWet;`,
       );
   };
   const base = prevKey ? prevKey() : '';
-  m.customProgramCacheKey = () => `${base}|wx`;
+  m.customProgramCacheKey = () => `${base}|wx${/^(bush_|gorse|heather)/.test(m.name) ? 'p' : ''}`;
   m.needsUpdate = true;
 }
 
@@ -925,13 +927,16 @@ export function buildWorld(level: Level, terrain: Terrain, a: Assets, gen: Gener
       if ((mm.name === 'heather' || mm.name === 'heather_b') && !heatherMaterials.includes(mm)) heatherMaterials.push(mm);
       if (mm !== groundMat && mm !== pathMat && !/^(plank_|post_wood|beam)/.test(mm.name)) weatherize(mm);
       if (!mm.emissive) continue;
-      if (mm.emissive.getHex() !== 0 && !stoneMaterials.includes(mm)) {
-        if (!glowMaterials.includes(mm)) glowMaterials.push(mm);
-      } else if (/^(stone_|drystone_|pillar|chimney_stone|house_plinth)/.test(mm.name) && !stoneMaterials.includes(mm)) {
-        mm.emissive.set(0x5a4a38);
-        mm.emissiveIntensity = 0;
-        stoneMaterials.push(mm);
-      }
+      // Stone first, by name: materials are cached across levels, and a stone material given its
+      // warm self-light by an earlier level would otherwise be taken for a lamp and glow white
+      // under the moon (the "boulders that look like sheep" at night).
+      if (/^(stone_|drystone_|pillar|chimney_stone|house_plinth)/.test(mm.name)) {
+        if (!stoneMaterials.includes(mm)) {
+          mm.emissive.set(0x5a4a38);
+          mm.emissiveIntensity = 0;
+          stoneMaterials.push(mm);
+        }
+      } else if (mm.emissive.getHex() !== 0 && !glowMaterials.includes(mm)) glowMaterials.push(mm);
     }
   });
 

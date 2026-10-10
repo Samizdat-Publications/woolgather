@@ -1,0 +1,74 @@
+{
+  "critic": "claude-video",
+  "mode": "contact sheets",
+  "model": "claude-opus (blind subagent)",
+  "first_impression": "This is a genuinely pretty little herding game with a real season behind it: a golden valley, a loch, a purple heather moor, mist, snow, a storm and a night watch, each with its own twist. The core loop reads instantly (get behind the clump, push it into the pen), but from the overhead camera a lot of evenings look like the same dog walking behind the same cotton-ball clump, and the dark evenings turn into purple mush.",
+  "scores": {
+    "visual_appeal": 8,
+    "readability": 6,
+    "game_feel": 6,
+    "fun_factor": 7,
+    "variety": 8,
+    "sense_of_progression": 8,
+    "want_to_keep_playing": 7,
+    "would_wishlist": 7
+  },
+  "best_things": [
+    "The places really differ: the green Hollow Valley (0:10), the loch with its pier and boat (3:05), the heather corrie (5:27), the grey mist with only a clear patch round Pip (7:32), and the snow with a black-and-teal burn and snowfall (12:50) would each make me click a screenshot.",
+    "Every evening adds one readable twist and tells you on a clean card: lambs and a lost lamb (2:55, 'You found the lost lamb! It follows Pip' at 5:15), Old Angus the ram with a name tag and curled horns who stands his ground (5:32-5:47), a sheepdog trial with gates in order (1:22), the storm, the dawn watch.",
+    "The progression is real: a season map with ten evenings, stars, ribbons, charms to wear (1:20, 2:55), a results card that says 'Evening 2 is open' and 'New charm: Swift Paws' (1:15), plus a harder 'Wolf Moon' replay (14:40) and a helper dog, Old Fly, in the later evenings."
+  ],
+  "worst_problems": [
+    {
+      "problem": "The storm and the late dusk evenings are a murky grey-violet soup: dark olive ground under rain, then purple everything, with sheep, Pip and wolves only findable by their outlines and rings. The Storm and the Wolf Moon replay look like one long dim smear.",
+      "where": "9:40-11:12, 15:00-16:45 (e.g. 10:42, 15:50, 16:40)",
+      "severity": "major",
+      "suggestion": "Keep a stormy mood but give me contrast: lightning flashes, lit lanterns, brighter wet grass, sheep that pop white, so I can actually see my flock in the bad weather."
+    },
+    {
+      "problem": "From the fixed overhead camera most of the play is the same picture: a small dog walking behind a clump of sheep across a big flat field. The Glenbrae Trial is about 90 seconds of five sheep shuffling across a flat mustard lawn with a few hurdles.",
+      "where": "1:25-2:52 (Glenbrae Trial), also 3:10-3:27, 11:30-12:45",
+      "severity": "major",
+      "suggestion": "Make the moment-to-moment drive more eventful: sheep that break off, obstacles that force choices, a crowd or judge reaction you can see at the trial, and shorter, punchier evenings."
+    },
+    {
+      "problem": "The Wolf Moon gets swamped by snatches: one red banner after another ('A wolf has a sheep on the far bank! 129 m - 20 s to save it') while the counter still says '6 more to go before dark' with a minute left. It looks like losing to things happening across the map rather than to my own herding, and the little 'Snatch!' inset picture is too small and blurry to tell me anything.",
+      "where": "15:25-16:32, inset at 10:20, 15:25, 16:12",
+      "severity": "major",
+      "suggestion": "Fewer snatches at once, or only ones I can plausibly reach; make the inset bigger and clearer, or drop it and just point the camera at the wolf for a second."
+    },
+    {
+      "problem": "The HUD is tiny and dense: the counter panel's dots, stars and 'can lose N more' text, the bottom row of key chips, the tip line and the banners are all hard to read, and at busy moments three or four messages are on screen at once.",
+      "where": "10:20, 15:30, 16:15, counter top left in every frame",
+      "severity": "minor",
+      "suggestion": "Bigger text, fewer simultaneous messages, and hide the key-chip bar after the first couple of evenings."
+    },
+    {
+      "problem": "Transitions are abrupt or skipped: dawn snaps from deep moonlit blue to bright rose-gold between two frames, the sunset cutaway takes over the whole screen for several seconds in the middle of a drive, and apart from the first evening I never see an evening end with a payoff (the night watch just loses its HUD at 17:52).",
+      "where": "17:12 to 17:15, cutaways at 3:30, 5:55, 11:52, 13:22-13:25, 14:57, ending at 17:52",
+      "severity": "minor",
+      "suggestion": "Fade dawn in over the last minute, make the sunset shot a short picture-in-picture or skippable, and give every evening a proper end beat (sheep in the fold, stars, a little celebration)."
+    }
+  ],
+  "boredom_points": [
+    "The Glenbrae Trial (1:25-2:52): a long stretch of identical frames, five sheep and a dog on a flat yellow field, the only change being which hurdle is next.",
+    "Old Angus evening (6:12-6:27): Pip runs alone along the lochan shore for 15 seconds while the flock sits in the fold, nothing happening on screen.",
+    "The Gathering (11:17-12:45): a big flock driven along a track for over a minute with Old Fly trotting at Pip's side; it looks pleasant but it is just walking.",
+    "The night watch middle (16:47-17:12): the flock stands in a bunch under the moon and Pip circles; tense on paper, static on screen."
+  ],
+  "confusions": [
+    "Old Fly, the red-brown and white helper dog, reads from above like a fox chasing Pip (3:00-3:27, 11:17), and in a game where predators snatch sheep that is a real double take.",
+    "The counter's rows of dots and small stars at the top left: I could not tell which dots were home, lost or still out at this size.",
+    "What the Wolf Moon actually changes beyond 'more wolves'; the card at 14:40 is too small to read.",
+    "At 10:27 the snatch alert is gone and I cannot tell whether the sheep was saved or lost.",
+    "Why some evenings in the montage just cut away with no result: did the player win or fail the Wolf Moon storm (it was still '6 more to go' at 16:30)?"
+  ],
+  "wish_list": [
+    "A camera that can swing to a lower three-quarter view during play more often; the low shot at 0:50-1:02 across the stream to the bridge is the best-looking footage in the video.",
+    "More reasons for the flock to misbehave mid-drive: a sheep that breaks for a gap, a gate that swings, a dog-shy ewe.",
+    "Visible crowd and judges at the trial, with a score pop per gate.",
+    "Co-op, with a second player as Old Fly.",
+    "A daily or endless mode with leaderboards for the trial points."
+  ],
+  "one_line_review": "A gorgeous, cosy sheepdog season with real variety and progression, let down by murky storm nights and long stretches of just walking behind the flock."
+}

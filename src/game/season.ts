@@ -177,7 +177,7 @@ export const SEASON: Evening[] = [
       levelId: 'loch',
       objective: 'watch',
       dayLength: 240,
-      target: 11,
+      target: 10,
       wolfStart: 0.03,
       maxWolves: 7,
       pack: 'full',
@@ -279,6 +279,8 @@ export const SEASON: Evening[] = [
       weather: 'clear',
       season: 'autumn',
       fly: true,
+      // From the top of the pass: the whole flock is walked down to the farm.
+      dogStart: [-150, 12],
       seed: 1010,
     },
   },

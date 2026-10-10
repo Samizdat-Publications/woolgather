@@ -142,8 +142,10 @@ export class Stage {
       const c = W.cloud;
       const lum = (col: THREE.Color) => 0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b;
       const grey = (col: THREE.Color, k: number, tint = GREY) => col.lerp(tmpC.copy(tint).multiplyScalar(lum(col) / lum(tint)), k);
-      m.keyIntensity *= 1 - 0.55 * c;
-      m.hemiIntensity *= 1 + 0.3 * c;
+      // (A storm was a dim grey-violet soup where only outlines and rings found the animals: the
+      // sky fill carries more and the exposure holds up.)
+      m.keyIntensity *= 1 - 0.5 * c;
+      m.hemiIntensity *= 1 + 0.5 * c;
       grey(m.keyColor, 0.6 * c);
       grey(m.hemiSky, 0.5 * c);
       grey(m.skyTop, 0.75 * c);
@@ -152,7 +154,7 @@ export class Stage {
       grey(m.ground, 0.4 * c);
       m.sunGlow.multiplyScalar(1 - 0.85 * c);
       m.shadow *= 1 - 0.65 * c;
-      m.exposure *= 1 - 0.08 * c;
+      m.exposure *= 1 + 0.06 * c;
     }
     if (W.snow > 0.001) {
       // Snow light: the warm key goes cool white and the sky fill blue, so snow reads as snow
@@ -276,7 +278,9 @@ export class Stage {
       // degrees to 15), so a player can watch the valley and the sky they are racing.
       const tilt = this.tilt;
       const len = Math.hypot(o.y, o.z);
-      const pitch = THREE.MathUtils.lerp(Math.atan2(o.y, o.z), THREE.MathUtils.degToRad(15), tilt);
+      // All the way in it tilts to 26 degrees: low enough to see the valley and the sky ahead, not so
+      // low that the grass and the nearest trees fill the view (15 degrees put the camera in the sward).
+      const pitch = THREE.MathUtils.lerp(Math.atan2(o.y, o.z), THREE.MathUtils.degToRad(26), tilt);
       this.camera.position.set(f.x + o.x * this.zoom, f.y + Math.sin(pitch) * len * this.zoom, f.z + Math.cos(pitch) * len * this.zoom);
       const dist = len * this.zoom;
       this.fogShift = dist - 48.2;

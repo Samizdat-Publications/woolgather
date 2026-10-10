@@ -61,7 +61,7 @@
     "noiseSeed": 57
   },
   "heather": [{ "maxZ": -36 }, { "maxX": -70 }, { "minX": 76 }, { "maxZ": -8 }, { "minX": 18 }],
-  "ground": { "grassA": "#86924e", "grassB": "#949858", "dry": "#a48c62", "lush": "#6c7c46", "heatherAmt": 1 },
+  "ground": { "grassA": "#86924e", "grassB": "#949858", "dry": "#a48c62", "lush": "#6c7c46", "heatherAmt": 0.5 },
   "titleShot": { "x": 0, "z": -6, "angle": 1.35 },
   "landmarks": [
     {"kind": "crag_a", "at": [6, -74], "angle": 0},

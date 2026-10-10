@@ -1148,6 +1148,13 @@ export class Sim {
           const push = onDeck ? 2.6 : 1.4 + 1.2 * near;
           vx += -c.uz * lat + c.ux * dir * push;
           vz += c.ux * lat + c.uz * dir * push;
+          if (onDeck && !c.ford) {
+            // On the deck, sideways motion dies away: sheep bounced from rail to rail and read as
+            // ricocheting boids (three critic rounds).
+            const vlat = -s.vx * c.uz + s.vz * c.ux;
+            vx -= -c.uz * vlat * 0.8;
+            vz -= c.ux * vlat * 0.8;
+          }
         }
       }
 

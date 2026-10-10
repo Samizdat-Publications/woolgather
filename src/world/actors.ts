@@ -410,12 +410,13 @@ export class Actors {
     this.blackInst = new RigInstancer(this.blackProto, 3);
     this.wolfInst = new RigInstancer(a.wolf, 10);
     this.root.add(this.sheepInst.group, this.ramInst.group, this.blackInst.group, this.wolfInst.group);
-    // Fly, Pip's mother (a charm): the same collie in red and white, a touch smaller and greyer
+    // Fly, Pip's mother (a charm): the same collie in blue merle and white, a touch smaller and greyer
     // in the face, so she never passes for Pip. Hidden unless the evening has her.
     const flyMats: Record<string, THREE.MeshLambertMaterial> = {};
     for (const [name, col] of [
-      ['coat_black', '#8a4226'],
-      ['coat_tan', '#d8b08a'],
+      // Blue merle: a red coat read from above as a fox chasing Pip.
+      ['coat_black', '#7a8496'],
+      ['coat_tan', '#c8a888'],
     ] as const) {
       const src = this.charMats.find((m) => m.name === name);
       if (!src) continue;

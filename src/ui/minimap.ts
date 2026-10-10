@@ -23,10 +23,11 @@ export class Minimap {
    */
   memory: Map<number, { x: number; z: number; t: number }> | null = null;
   /** The valley's colour on the map follows the season. */
-  private fill = 'rgba(132, 160, 92, 0.42)';
+  private fill = 'rgba(112, 142, 74, 0.62)';
   setSeason(season: string) {
     // A watercolour wash over the paper, in the season's colour.
-    const f = season === 'winter' ? 'rgba(200, 212, 226, 0.5)' : season === 'autumn' ? 'rgba(178, 150, 82, 0.42)' : 'rgba(132, 160, 92, 0.42)';
+    // Deep enough that the white sheep dots stand out from the paper.
+    const f = season === 'winter' ? 'rgba(150, 168, 190, 0.6)' : season === 'autumn' ? 'rgba(150, 124, 64, 0.62)' : 'rgba(112, 142, 74, 0.62)';
     if (f !== this.fill) {
       this.fill = f;
       this.refresh();
@@ -341,7 +342,7 @@ export class Minimap {
       }
       c.fillStyle = grabbed ? '#ff6b4a' : s.state === 'folded' ? '#f4e6c0' : s.kind === 'black' ? '#4a4450' : s.kind === 'ram' ? '#e8d8b4' : '#ffffff';
       c.fill();
-      c.lineWidth = 1.6;
+      c.lineWidth = 2;
       c.strokeStyle = 'rgba(30, 24, 34, 0.95)';
       c.stroke();
       if (bell) {

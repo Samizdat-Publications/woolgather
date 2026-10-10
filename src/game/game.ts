@@ -106,6 +106,7 @@ export class Game {
    * from beside Pip into the western sky (the evening waits), then back to the herding view.
    */
   private cutaway: { t: number; x: number; z: number; angle: number } | null = null;
+  private cutawaySeen = new Set<string>();
   /** In mist: where sheep bleated lately (a sheep glyph shows there for a moment). */
   private bleats = new Map<number, { x: number; z: number; until: number }>();
   /** Tips already given this session (the basics are not repeated every evening). */
@@ -1259,7 +1260,11 @@ export class Game {
       switch (e.type) {
         case 'dusk':
           this.ui.toast('The sun is setting. Wolves are stirring in the pines.', 'warn');
-          if (this.sim && !this.sim.watch && !this.opts.noCutaway) this.startCutaway(this.sim);
+          // The sunset cutaway once per evening per sitting: on a retry it took control away mid-drive.
+          if (this.sim && !this.sim.watch && !this.opts.noCutaway && !this.cutawaySeen.has(this.sim.rules.id)) {
+            this.cutawaySeen.add(this.sim.rules.id);
+            this.startCutaway(this.sim);
+          }
           break;
         case 'dawn':
           this.ui.toast('Dawn is breaking! The wolves slink back to the woods.', 'good');

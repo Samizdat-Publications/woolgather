@@ -32,6 +32,10 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
 | r05-season | claude-video | 7 | 6 | 6 | 7 | 8 | 8 | 7 | 7 | 7.00 |
 | r05-season | gemini-stills | 7 | 7 | 6 | 7 | 8 | 8 | 7 | 8 | 7.25 |
 | r05-season | gemini | 7 | 8 | 7 | 8 | 8 | 7 | 8 | 8 | 7.63 |
+| r06-season | claude-stills | 8 | 6 | 6 | 7 | 7 | 8 | 7 | 7 | 7.00 |
+| r06-season | claude-video | 8 | 6 | 6 | 7 | 8 | 8 | 7 | 7 | 7.13 |
+| r06-season | gemini-stills | 7 | 8 | 7 | 8 | 9 | 8 | 8 | 8 | 7.88 |
+| r06-season | gemini | 7 | 8 | 7 | 7 | 8 | 7 | 7 | 8 | 7.38 |
 
 ## One-line reviews
 
@@ -109,3 +113,14 @@ Scores are 1 to 10 from a "random gamer" critic who sees only footage and the st
   - worst problem (major): The camera angle in third-person view creates severe blind spots behind riverbanks and obstacles, making it hard to track stray sheep.
 - **gemini**: Equal parts soothing pastoral simulator and nerve-shredding wolf thriller - an absolute gem of an indie herding game.
   - worst problem (major): The camera defaults to an almost clinical top-down satellite view, stripping away the gorgeous atmospheric landscapes teased during cutscenes.
+
+### r06-season
+
+- **claude-stills**: A gorgeous, cosy sheepdog season with real structure and a sunset worth staying up for, held back by wolves hiding at the screen edge and too many evenings on the same yellow grass.
+  - worst problem (major): The wolf, the one thing I should be watching, keeps showing up as a small blob in the dark pine line at the very bottom of the screen, half under the stamina and controls bar, while the banner says 'A wolf is stalking your flock!'. The camera frames Pip and the fold and leaves the threat at the edge.
+- **claude-video**: A gorgeous, cosy sheepdog season with real variety and progression, let down by murky storm nights and long stretches of just walking behind the flock.
+  - worst problem (major): The storm and the late dusk evenings are a murky grey-violet soup: dark olive ground under rain, then purple everything, with sheep, Pip and wolves only findable by their outlines and rings. The Storm and the Wolf Moon replay look like one long dim smear.
+- **gemini-stills**: An authentic, surprisingly tense border collie simulator that trades brainless cozy fluff for real herding discipline.
+  - worst problem (major): Wolf threats trigger mostly off-screen with sudden text alerts, forcing frantic camera scanning rather than deliberate spatial defense.
+- **gemini**: A smart, tense sheepdog sim that nails the genuine drama of dusk herding, held back only by jittery bottleneck physics and an awkward low camera.
+  - worst problem (major): The zoomed-in third-person camera is disorienting, clips into the grass, and completely destroys tactical awareness of the flock.

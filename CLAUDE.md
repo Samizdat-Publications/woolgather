@@ -1122,3 +1122,12 @@ Newest at the bottom. Record every non-obvious choice.
   reviews called the view too far and the animals tiny; the closer view also shows the machair's
   flowers and sand. Camera advice has flip-flopped before, so the change is modest and the pitch is
   unchanged.
+- 2026-10-09 (Run 2, r06 fixes): a real bug found while chasing "white boulders look like sheep at
+  night": materials are cached across levels, so stone given its warm self-light by one level was
+  taken for a lamp by the next and glowed under the moon. Stone is now recognised by name first.
+  Also: snow only dusts bushes, gorse and heather (white-capped bushes read as a flock); the night
+  watch needs 10 of 12 again (at 11 the two- and three-star goals were the same); the Gathering
+  starts at the top of the pass; the storm's sky fill and exposure are up (a dim grey-violet
+  soup); the wheel's low view stops at 26 degrees, not 15 (four rounds said it put the camera in
+  the grass); the sunset cutaway plays once per evening per sitting; Old Fly is a blue merle (a
+  red coat read from above as a fox chasing Pip); sideways motion dies away on a bridge deck.
