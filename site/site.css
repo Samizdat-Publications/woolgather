@@ -1510,8 +1510,8 @@ kbd {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 215px), 1fr));
+  gap: 16px;
 }
 .sc {
   overflow: hidden;
@@ -1548,7 +1548,7 @@ kbd {
   font-size: 12px;
 }
 .sc h3 {
-  font-size: 23px;
+  font-size: 21px;
   margin: 0 0 6px;
 }
 .sc p:last-child {
