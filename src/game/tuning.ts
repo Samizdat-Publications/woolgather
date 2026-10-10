@@ -51,8 +51,13 @@ type EveningRules = Omit<Rules, 'id' | 'perks'>;
  */
 export function settingRules<R extends EveningRules>(r: R, setting: Setting, num: number, hard?: Partial<EveningRules>): R {
   if (num === 1) return r;
-  // On Standard a young wolf you chase off comes back once.
-  if (setting === 'standard') return { ...r, returns: r.returns ?? { young: 1, other: 0 }, bold: r.bold ?? 0.5 };
+  // On Standard a young wolf you chase off comes back once, and from the third evening the light
+  // goes a little sooner (the average-skill bot won 16 of 20 evenings as written; the aim is half
+  // to two thirds). The trial and the night watch keep their own clocks.
+  if (setting === 'standard') {
+    const tighter = (num >= 3 || num === 0) && r.objective === 'gather';
+    return { ...r, dayLength: tighter ? Math.round(r.dayLength * 0.95) : r.dayLength, returns: r.returns ?? { young: 1, other: 0 }, bold: r.bold ?? 0.6 };
+  }
   const watch = r.objective === 'watch';
   const trial = r.objective === 'trial';
   const k = r.kinds ?? {};

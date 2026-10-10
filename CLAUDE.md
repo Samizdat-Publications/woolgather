@@ -28,6 +28,12 @@ away before they drag a sheep into the trees. Night falls in violet and moonligh
   one ribbon per evening, a harder Wolf Moon tier at three stars, charms bought with stars (some
   verbs: the outrun, Old Fly, the bell-wether), Pip's coats, best times. Balance: the expert bot
   has a fight, the average bot wins only some of the time; `src/game/tuning.ts` scales it all.
+- **Settings** (2.1): Easy, Standard or Hard for the whole season, chosen on the season map or an
+  evening's card. Evening 1 is the same on all three. Harder means more complex, not only more
+  wolves: wolves by kind (the old grey takes two barks, young wolves bolt but come back), wolves
+  that return after a chase, bolder drags, packs, and on Hard each evening's own extra layer.
+- **The goose**: once every evening is won, a goose can herd in Pip's place (the last swatch in
+  the coat row). It honks instead of barking.
 - **Classic evening**: the 1.0 game in Hollow Valley at Gentle, Standard or Hard.
 
 ## Controls
@@ -1143,3 +1149,51 @@ Newest at the bottom. Record every non-obvious choice.
 - 2026-10-09 (Run 2, ship): today's evening was far too easy (the expert finished in a quarter of
   the day); its length is now 48 + 36 per flock (+ 30% of the place's extra, + 18 s in fog or
   snow) and it always has a gentle pack. Released as 2.0.0.
+- 2026-10-10 (2.1, Stewart's playtest: "much harder" than 1.0, the first evenings good starters,
+  the wolves not a meaningful threat; he wants Easy, Standard and Hard, harder meaning more
+  complex): the season has a setting, `Setting` in `tuning.ts`, applied by `settingRules` before
+  the Wolf Moon and `tuned()`. Easy is the 2.0 evening with more daylight, later and gentler
+  wolves, no packs beyond gentle, no old greys; Standard is the evening as written with its kinds
+  of wolf; Hard shortens the day, brings packs in from the third evening at full cunning, raises
+  the share of old greys, makes every chased wolf come back and adds the evening's `hard` layer
+  (season.ts: a black sheep on the far bank, lambs with Angus, the ram in the mist, lambs in the
+  storm...). Evening 1 is identical on all three. The setting lives in the saved progress
+  (`setting`, absent means Standard, so 2.0 saves load unchanged); each record keeps `on`, the
+  hardest setting it was won on (shown as a small Hard tag). Stars count the same on every
+  setting: the setting is about how the player wants to play, not a currency.
+- 2026-10-10 (2.1): wolves by kind, not count (`WOLF_KINDS` in config.ts, `Rules.kinds` shares).
+  The old grey: bigger, slower, braver (lets Pip within half the usual distance), hears a bark
+  only from 0.68 of the usual reach, and has grit 2: one bark staggers him (he rears and stands
+  still for 1.4 s, holding any sheep he has), a second within 7 s or Pip running into him drives
+  him off. The young wolf: small, quick and skittish (keeps 1.4x further from Pip), bolts at one
+  bark, and comes back from another den 6-10 s later. Every new kind is told: a deeper or higher
+  howl, a named toast the first time ("The old grey is out... bark twice, or run into him"), a
+  snarl and "Bark again" toast on a stagger, the snatch banner's instruction ("Bark twice, or run
+  into him"), the grey's wider, slower-turning ring, and the evening card teaches each kind the
+  first evening it comes out on the chosen setting. The evening's first wolf is always ordinary.
+  Wolves that were chased off come back once on Hard (young ones twice; on Standard and Easy only
+  the young, once), from a den at least 45 m from where they left, announced with an arrow.
+- 2026-10-10 (2.1): measured, the 2.0 wolves cost the average bot time but almost never sheep (two
+  sheep lost in a whole Standard season), which is what "not a meaningful threat" looks like in
+  numbers. `Rules.bold` (Easy 0, Standard 0.5, Hard 1) makes a snatch a real race: the drag is up
+  to 20% faster and slows far less when Pip is far away (0.85 instead of 0.55 of its speed beyond
+  85 m), a wolf may strike a sheep 6 m from Pip instead of 8, and waits 4 s in the valley
+  instead of 6 before its first charge. `rescueEta` knows the grey's shorter hearing and second
+  bark, so the "too far to save it" call stays honest.
+- 2026-10-10 (2.1): concurrent bot runs are not comparable for the average skill: with two
+  seasons at three pages each, the average bot lost the trial (no wolves, rules unchanged) 0 of 5
+  and took 67 s instead of 54 on the first evening. The expert is not affected. Average-skill
+  balance numbers come from solo runs only.
+- 2026-10-10 (2.1): the goose. `characters.py` builds `goose.glb` (`-- --only goose` rebuilds just
+  it) with the collie's rigid-part layout plus `wing_l`/`wing_r` (hinged at the shoulder, opened
+  with a ZYX rotation: swing out, then lift). `animateGoose`: a waddle that rolls the body from
+  foot to foot, wings half open and flapping at a run, the neck low to hiss when creeping, and a
+  honk that throws the neck up and spreads the wings. The honk is an ElevenLabs sample (`honk`
+  group, 13 credits); messages swap Pip and bark for the goose and honk while it herds
+  (`Ui.say`). Unlocked by winning every evening, offered as the last swatch of the coat row
+  (handoff: "through the coat picker"). Mechanics are Pip's exactly: it is a joke, not a nerf.
+- 2026-10-10 (2.1): the season map overflowed a 1280x720 window (already in 2.0: the header and
+  the coat row were cut off); the card now scrolls inside the window like the evening card, and
+  the charms sit four to a row. The tip beside the meters was placed at a fixed 580 px and
+  overlapped the bark chip once the lie-down and flank chips were added; it now follows the
+  meters' measured right edge.
