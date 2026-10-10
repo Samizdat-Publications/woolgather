@@ -116,6 +116,25 @@ export const WOLF = {
   lostDepth: 9,
 };
 
+/**
+ * Wolves by kind (Woolgather 2.1): the threat grows by what a wolf does, not only by how many.
+ * - wolf: the usual grey wolf.
+ * - grey: the old grey. Bigger, slower and braver: lets Pip come closer, hears a bark only from
+ *   nearer, and one bark only staggers him (grit 2): it takes a second bark while he is still
+ *   shaken, or Pip running into him, to drive him off. His drag is slower, so there is time.
+ * - young: quick and skittish. Keeps further from Pip and bolts at one bark, but comes back
+ *   soon after from another den.
+ * Speeds and the wary radius are multipliers on WOLF; hear multiplies the bark's reach on wolves.
+ */
+export type WolfKind = 'wolf' | 'grey' | 'young';
+export const WOLF_KINDS: Record<WolfKind, { radius: number; stalk: number; charge: number; drag: number; wary: number; hear: number; grit: number; touch: number }> = {
+  wolf: { radius: WOLF.radius, stalk: 1, charge: 1, drag: 1, wary: 1, hear: 1, grit: 1, touch: 0 },
+  grey: { radius: 1.1, stalk: 0.88, charge: 0.92, drag: 0.82, wary: 0.5, hear: 0.68, grit: 2, touch: 0.5 },
+  young: { radius: 0.75, stalk: 1.18, charge: 1.1, drag: 1.08, wary: 1.4, hear: 1, grit: 1, touch: 0 },
+};
+/** The old grey: how long a stagger holds him, and how long he stays shaken before his grit returns. */
+export const GREY = { stagger: 1.4, shaken: 7 };
+
 export const CAMERA = {
   // A three-quarter view from well back with a long lens: about 48 degrees down, the same ground
   // in view as a closer, wider camera, but things near the top of the screen are drawn about 0.73

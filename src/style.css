@@ -399,6 +399,22 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .tier { pointer-events: auto; padding: 6px 16px; border: 0; border-radius: 999px; background: transparent; color: var(--wool-3); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
 .tier.on { background: var(--wool); color: var(--ink); }
 .tier:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+/* The season's setting (Easy, Standard, Hard): on the season map and each evening's card. */
+.season-setting { width: 100%; }
+.setting-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px 12px; }
+.setting-label { font-size: 12.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--wool-2); }
+.setting-text { font-size: 13.5px; font-weight: 700; color: var(--wool-2); }
+.setting-switch .tier.set-hard.on { background: var(--ember); color: var(--wool); }
+.setting-switch .tier.set-easy.on { background: var(--moss); color: var(--wool); }
+.intro-setting:empty, .intro-wolves:empty { display: none; }
+.intro-setting { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.setting-note { margin: 0; max-width: 52ch; text-align: center; font-size: 13.5px; font-weight: 700; color: #f4b38e; }
+.intro-wolves { width: 100%; padding: 10px 16px 12px; border-radius: 12px; background: rgba(224, 112, 60, 0.1); border: 1.5px dashed rgba(224, 112, 60, 0.55); }
+.intro-wolves .new-label { font-size: 12.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ember); }
+.intro-wolves p { margin: 4px 0 0; font-size: 14.5px; font-weight: 600; line-height: 1.45; }
+.intro-wolves p.wolves-line { margin: 0; font-size: 13.5px; font-weight: 700; color: var(--wool-2); }
+.intro-wolves:has(> p.wolves-line:only-child) { padding: 6px 14px; }
+.ev-hard { margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: rgba(224, 112, 60, 0.28); color: #f4b38e; font-size: 11.5px; font-weight: 800; letter-spacing: 0.04em; }
 .intro-card.moon { background: linear-gradient(180deg, rgba(44, 34, 74, 0.96), rgba(28, 22, 46, 0.96)); }
 .intro-card.moon .tier.on { background: #c9b8ff; color: #1d1636; }
 .intro-card.moon .goal-row { color: #d3c4ff; }

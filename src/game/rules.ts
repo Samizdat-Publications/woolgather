@@ -77,6 +77,13 @@ export interface Rules {
   bell?: boolean;
   /** Trial judged strictly (Wolf Moon's championship course): missed gates and a slow round cost more. */
   strict?: boolean;
+  /** Share of the evening's wolves (after the first) that come as each kind; the rest are ordinary wolves. */
+  kinds?: { grey?: number; young?: number };
+  /**
+   * How many times a wolf that was chased off comes back (from another den, after a short while):
+   * young wolves `young` times, every other wolf `other` times.
+   */
+  returns?: { young: number; other: number };
 }
 
 /** The classic 1.0 evening in Hollow Valley at one of the three difficulties. */

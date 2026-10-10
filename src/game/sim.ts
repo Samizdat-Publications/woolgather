@@ -1,4 +1,4 @@
-import { DOG, SHEEP, WOLF } from './config';
+import { DOG, GREY, SHEEP, WOLF, WOLF_KINDS, type WolfKind } from './config';
 import type { Input } from './input';
 import type { Level, Pen } from './level';
 import { clamp, closestOnSegment, dampAngle, invLerp, lerp, Rng } from './math';
@@ -117,6 +117,15 @@ export interface Wolf extends Body {
   feintCd: number;
   /** Flanker: seconds spent in position on the far side of the flock. */
   posT: number;
+  kind: WolfKind;
+  /** Barks it can still take before it runs (the old grey has two). */
+  grit: number;
+  /** Seconds until a shaken old grey gets his grit back. */
+  gritT: number;
+  /** Seconds left of a stagger (stands still, flinching). */
+  staggerT: number;
+  /** How many times it has come back after being chased off. */
+  returns: number;
 }
 
 export type SimEvent =
@@ -124,7 +133,9 @@ export type SimEvent =
   | { type: 'folded'; x: number; z: number; id: number; count: number }
   | { type: 'bleat'; x: number; z: number; id: number; urgent: boolean; kind: SheepKind }
   /** A wolf leaves the trees; (tx, tz) is the sheep it is after. */
-  | { type: 'wolfSpawn'; x: number; z: number; id: number; tx: number; tz: number }
+  | { type: 'wolfSpawn'; x: number; z: number; id: number; tx: number; tz: number; kind: WolfKind; back: boolean }
+  /** The old grey took a bark and staggered: one more while he is shaken drives him off. */
+  | { type: 'wolfStagger'; x: number; z: number; id: number }
   | { type: 'wolfScared'; x: number; z: number; id: number }
   | { type: 'charge'; x: number; z: number; id: number }
   | { type: 'grab'; x: number; z: number; id: number }
@@ -207,6 +218,8 @@ export class Sim {
   private targetAnnounced = false;
   private nextWolfT = 0;
   private wolfIds = 0;
+  /** Wolves that were chased off and will come back from another den (game time due). */
+  private returning: { kind: WolfKind; returns: number; due: number; fromX: number; fromZ: number }[] = [];
   private thunderT = 0;
   private spookT = 12;
   private strayCd = 20;
@@ -744,8 +757,24 @@ export class Sim {
     }
     for (const w of this.wolves) {
       if (w.state === 'flee' || w.state === 'gone') continue;
-      if (Math.hypot(w.x - d.x, w.z - d.z) < this.barkWolfRadius) this.scareWolf(w);
+      if (Math.hypot(w.x - d.x, w.z - d.z) < this.barkWolfRadius * WOLF_KINDS[w.kind].hear) this.barkWolf(w);
     }
+  }
+
+  /** A bark lands on a wolf: most run, the old grey only staggers until he is shaken. */
+  private barkWolf(w: Wolf) {
+    if (w.grit > 1) {
+      w.grit--;
+      w.gritT = GREY.shaken;
+      w.staggerT = GREY.stagger;
+      if (w.state === 'charge') {
+        w.state = 'stalk';
+        w.stateT = 0;
+      }
+      this.events.push({ type: 'wolfStagger', x: w.x, z: w.z, id: w.id });
+      return;
+    }
+    this.scareWolf(w);
   }
 
   private ramYields(s: Sheep) {
@@ -1577,11 +1606,22 @@ export class Sim {
     return best;
   }
 
-  private spawnWolf() {
+  /** What kind the next new wolf is (the evening's first is always an ordinary wolf). */
+  private nextKind(): WolfKind {
+    const k = this.rules.kinds;
+    if (!k || this.wolfIds === 0) return 'wolf';
+    const r = this.rng.next();
+    if (r < (k.grey ?? 0)) return 'grey';
+    if (r < (k.grey ?? 0) + (k.young ?? 0)) return 'young';
+    return 'wolf';
+  }
+
+  private spawnWolf(back?: { kind: WolfKind; returns: number; fromX: number; fromZ: number }) {
     // Usually the sheep the dog is furthest from. The evening's first wolf instead goes for the
     // flock Pip is working, so the player meets it on screen before any sheep is lost.
     const d = this.dog;
     const first = this.wolfIds === 0;
+    const kind = back?.kind ?? this.nextKind();
     let s = this.pickTarget(d.x, d.z);
     if (first) {
       let bd = Infinity;
@@ -1597,7 +1637,7 @@ export class Sim {
     if (!s) return;
     // A pack: a lone wolf already stalking Pip's flock calls a second one, which goes for the far
     // side of the same flock while the first shows itself.
-    const bait = this.rules.pack && !first ? this.wolves.find((o) => o.state === 'stalk' && o.role === 'lone' && o.target && o.valleyT > 2 && Math.hypot(o.target.x - d.x, o.target.z - d.z) < 70) : undefined;
+    const bait = this.rules.pack && !first && !back ? this.wolves.find((o) => o.state === 'stalk' && o.role === 'lone' && o.target && o.valleyT > 2 && Math.hypot(o.target.x - d.x, o.target.z - d.z) < 70) : undefined;
     let flock: { cx: number; cz: number } | null = null;
     if (bait?.target) {
       flock = this.flockAround(bait.target);
@@ -1617,6 +1657,8 @@ export class Sim {
     for (const dn of this.level.dens) {
       const toDog = Math.hypot(dn[0] - d.x, dn[1] - d.z);
       if (toDog < 30) continue;
+      // A wolf coming back does not come out where it went in.
+      if (back && Math.hypot(dn[0] - back.fromX, dn[1] - back.fromZ) < 45) continue;
       // A flanker leaves from the den furthest round the far side of the flock from its mate.
       const dd = bait && flock ? -((dn[0] - flock.cx) * (flock.cx - bait.x) + (dn[1] - flock.cz) * (flock.cz - bait.z)) / (Math.hypot(dn[0] - flock.cx, dn[1] - flock.cz) || 1) : Math.hypot(dn[0] - s.x, dn[1] - s.z);
       if (dd < bd) {
@@ -1630,7 +1672,7 @@ export class Sim {
       z: den[1],
       vx: 0,
       vz: 0,
-      r: WOLF.radius,
+      r: WOLF_KINDS[kind].radius,
       state: 'stalk',
       facing: Math.atan2(s.x - den[0], s.z - den[1]),
       speed: 0,
@@ -1644,11 +1686,16 @@ export class Sim {
       feintT: 0,
       feintCd: 0,
       posT: 0,
+      kind,
+      grit: WOLF_KINDS[kind].grit,
+      gritT: 0,
+      staggerT: 0,
+      returns: back?.returns ?? 0,
     };
     const slot = this.wolves.findIndex((o) => o.state === 'gone');
     if (slot >= 0) this.wolves[slot] = w;
     else this.wolves.push(w);
-    this.events.push({ type: 'wolfSpawn', x: w.x, z: w.z, id: w.id, tx: s.x, tz: s.z });
+    this.events.push({ type: 'wolfSpawn', x: w.x, z: w.z, id: w.id, tx: s.x, tz: s.z, kind, back: !!back });
     if (bait) {
       bait.role = 'bait';
       bait.mate = w.id;
@@ -1704,6 +1751,7 @@ export class Sim {
     w.stateT = 0;
     w.target = null;
     w.feintT = 0;
+    w.staggerT = 0;
     this.events.push({ type: 'wolfScared', x: w.x, z: w.z, id: w.id });
   }
 
@@ -1736,9 +1784,16 @@ export class Sim {
   }
 
   private wolfGone(w: Wolf) {
+    // A wolf that was chased off (not one that got away with a sheep) may come back from another den.
+    const back = this.rules.returns;
+    const fled = w.state === 'flee';
     w.state = 'gone';
     w.target = null;
     this.nextWolfT = Math.max(this.nextWolfT, this.rng.range(...this.rules.wolfRespawn));
+    if (fled && back && w.returns < (w.kind === 'young' ? back.young : back.other) && !(this.watch && this.t > 0.88)) {
+      const wait = w.kind === 'young' ? this.rng.range(6, 10) : this.rng.range(11, 16);
+      this.returning.push({ kind: w.kind, returns: w.returns + 1, due: this.elapsed + wait, fromX: w.x, fromZ: w.z });
+    }
   }
 
   private updateWolves(dt: number) {
@@ -1746,7 +1801,14 @@ export class Sim {
     if (allowed === 0) this.nextWolfT = this.watch && this.t < 0.5 ? 2 : 5;
     const active = this.wolves.filter((w) => w.state !== 'gone').length;
     this.nextWolfT -= dt;
-    if (active < allowed && this.nextWolfT <= 0 && this.free > 0) {
+    const due = this.returning.findIndex((q) => q.due <= this.elapsed);
+    if (allowed === 0) this.returning.length = 0;
+    else if (due >= 0 && active < allowed + 1 && this.free > 0) {
+      // A wolf that was chased off comes back: it does not wait for a free place in the hunt.
+      const q = this.returning.splice(due, 1)[0];
+      this.spawnWolf(q);
+      this.nextWolfT = Math.max(this.nextWolfT, 4);
+    } else if (active < allowed && this.nextWolfT <= 0 && this.free > 0) {
       this.spawnWolf();
       this.nextWolfT = this.rng.range(...this.rules.wolfRespawn);
     }
@@ -1762,7 +1824,12 @@ export class Sim {
       w.stateT += dt;
 
       // Touching the dog always sends a wolf running; so does the ram's horns, and the dawn.
-      if (w.state !== 'flee' && Math.hypot(w.x - d.x, w.z - d.z) < DOG.wolfScareTouch) this.scareWolf(w);
+      const K = WOLF_KINDS[w.kind];
+      if (w.state !== 'flee' && Math.hypot(w.x - d.x, w.z - d.z) < DOG.wolfScareTouch + K.touch) this.scareWolf(w);
+      if (w.gritT > 0) {
+        w.gritT -= dt;
+        if (w.gritT <= 0) w.grit = K.grit;
+      }
       if (ram && w.state !== 'flee' && w.state !== 'drag' && Math.hypot(w.x - ram.x, w.z - ram.z) < 4.2) {
         this.scareWolf(w);
         this.events.push({ type: 'butt', x: (w.x + ram.x) / 2, z: (w.z + ram.z) / 2, wolf: true });
@@ -1803,11 +1870,11 @@ export class Sim {
         const sd = Math.hypot(sx, sz) || 1;
         tx = sx / sd;
         tz = sz / sd;
-        speed = WOLF.stalkSpeed * spd;
+        speed = WOLF.stalkSpeed * spd * K.stalk;
         const gentle = this.rules.pack !== 'full';
         const mate = this.mateOf(w);
-        // The bait is brazen: it lets Pip come closer before it gives ground.
-        const wary = w.role === 'bait' ? WOLF.dogWaryRadius * 0.6 : WOLF.dogWaryRadius;
+        // The bait is brazen: it lets Pip come closer before it gives ground. So is the old grey.
+        const wary = (w.role === 'bait' ? WOLF.dogWaryRadius * 0.6 : WOLF.dogWaryRadius) * K.wary;
         if (dogD < wary) {
           const k = 1 - dogD / wary;
           tx += (dogDx / dogD) * k * 2.2;
@@ -1937,7 +2004,7 @@ export class Sim {
         const sd = Math.hypot(sx, sz) || 1;
         tx = sx / sd;
         tz = sz / sd;
-        speed = WOLF.chargeSpeed * spd;
+        speed = WOLF.chargeSpeed * spd * K.charge;
         if (sd < WOLF.grabRange + s.r && !this.wolves.some((o) => o !== w && o.state === 'drag')) {
           this.snatchCd = this.watch ? 4 : 12;
           w.state = 'drag';
@@ -1990,13 +2057,20 @@ export class Sim {
         }
       }
 
+      if (w.staggerT > 0) {
+        // Staggered by a bark: he stops dead (still holding a sheep he has), facing Pip.
+        w.staggerT -= dt;
+        speed = 0;
+        tx = -dogDx;
+        tz = -dogDz;
+      }
       const tl = Math.hypot(tx, tz) || 1;
       let max = speed;
       const wasWet = w.inWater;
       w.inWater = this.level.inWater(w.x, w.z);
       if (w.inWater) max *= 0.6;
       if (wasWet !== w.inWater) this.events.push({ type: 'splash', x: w.x, z: w.z, big: false });
-      const rate = w.state === 'charge' ? 10 : 5;
+      const rate = w.staggerT > 0 ? 14 : w.state === 'charge' ? 10 : 5;
       w.vx = lerp(w.vx, (tx / tl) * max, 1 - Math.exp(-rate * dt));
       w.vz = lerp(w.vz, (tz / tl) * max, 1 - Math.exp(-rate * dt));
       w.x += w.vx * dt;
@@ -2016,7 +2090,7 @@ export class Sim {
     const d = this.dog;
     const far = Math.hypot(w.x - d.x, w.z - d.z);
     const light = w.target?.kind === 'lamb' ? 1.15 : 1;
-    return WOLF.dragSpeed * this.rules.wolfSpeedScale * light * lerp(1, 0.55, clamp((far - 25) / 60, 0, 1));
+    return WOLF.dragSpeed * WOLF_KINDS[w.kind].drag * this.rules.wolfSpeedScale * light * lerp(1, 0.55, clamp((far - 25) / 60, 0, 1));
   }
 
   /** Seconds until a dragged sheep is lost: the wolf's way to the loss line in the trees. */
@@ -2032,11 +2106,13 @@ export class Sim {
    * Seconds Pip needs to get within barking range of (x, z): sprinting while his stamina lasts,
    * then at a walk, plus a moment to wade if a stream is in the way.
    */
-  rescueEta(x: number, z: number) {
+  rescueEta(x: number, z: number, w?: Wolf) {
     const d = this.dog;
     const L = this.level;
-    let dist = Math.max(0, Math.hypot(x - d.x, z - d.z) - this.barkWolfRadius * 0.85);
-    const wade = L.acrossWater(d.x, d.z, x, z) ? 1 : 0;
+    // The old grey hears a bark only from nearer, and takes a second one (a bark's cooldown later).
+    const K = WOLF_KINDS[w?.kind ?? 'wolf'];
+    let dist = Math.max(0, Math.hypot(x - d.x, z - d.z) - this.barkWolfRadius * K.hear * 0.85);
+    const wade = (L.acrossWater(d.x, d.z, x, z) ? 1 : 0) + (w && w.grit > 1 ? DOG.barkCooldown * this.perks.barkCooldown : 0);
     const sprintFor = d.sprintLock ? 0 : d.stamina / (DOG.staminaDrain * this.perks.staminaDrain);
     const sprint = DOG.sprintSpeed * this.perks.speed;
     const sprintDist = sprintFor * sprint;

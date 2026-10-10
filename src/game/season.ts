@@ -1,6 +1,7 @@
 import { Rng } from './math';
 import { NO_PERKS, type FlockSpec, type Perks, type Rules, type Weather } from './rules';
 import type { Sim } from './sim';
+import { settingRules, type Setting } from './tuning';
 
 // The season: nine evenings on one hill farm from midsummer to the first snow. Each evening adds
 // one new thing to herd around, in one of three places, and has a ribbon: an optional challenge.
@@ -17,6 +18,11 @@ export interface Evening {
   newThing?: { title: string; text: string; tip: string };
   ribbon: { title: string; check: (sim: Sim) => boolean };
   rules: Omit<Rules, 'id' | 'perks'>;
+  /**
+   * On Hard: something from an earlier evening laid on top of this one's new thing (lambs with
+   * the ram, the ram in the mist, a black sheep on the far bank), with the target to match.
+   */
+  hard?: Partial<Omit<Rules, 'id' | 'perks'>> & { note: string };
 }
 
 const everyHome = (s: Sim) => s.folded === s.total;
@@ -77,6 +83,15 @@ export const SEASON: Evening[] = [
       season: 'summer',
       seed: 202,
     },
+    hard: {
+      note: 'A flighty black sheep is with the ewes on the far bank.',
+      flock: [
+        { at: 'hillside', ewes: 5 },
+        { at: 'farbank-south', ewes: 3, black: 1 },
+        { at: 'meadow', ewes: 3 },
+      ],
+      target: 10,
+    },
   },
   {
     id: 'lambing',
@@ -105,6 +120,16 @@ export const SEASON: Evening[] = [
       weather: 'clear',
       season: 'summer',
       seed: 303,
+      kinds: { young: 0.45 },
+    },
+    hard: {
+      note: 'The wolves hunt in pairs, and a black sheep runs with the ewes on the shore.',
+      flock: [
+        { at: 'north-hill', ewes: 3, lambs: 3 },
+        { at: 'promontory', ewes: 3, lambs: 3 },
+        { at: 'shore', ewes: 2, lambs: 2, black: 1 },
+      ],
+      target: 14,
     },
   },
   {
@@ -134,6 +159,16 @@ export const SEASON: Evening[] = [
       weather: 'clear',
       season: 'heather',
       seed: 404,
+      kinds: { grey: 0.35, young: 0.2 },
+    },
+    hard: {
+      note: 'Late lambs: two of the flocks have lambs at heel.',
+      flock: [
+        { at: 'tarnside', ewes: 4, ram: true, lambs: 2 },
+        { at: 'east-shelf', ewes: 4, lambs: 2 },
+        { at: 'screes', ewes: 3 },
+      ],
+      target: 13,
     },
   },
   {
@@ -188,6 +223,7 @@ export const SEASON: Evening[] = [
       weather: 'clear',
       season: 'heather',
       seed: 505,
+      kinds: { grey: 0.25, young: 0.3 },
     },
   },
   {
@@ -216,6 +252,16 @@ export const SEASON: Evening[] = [
       weather: 'fog',
       season: 'autumn',
       seed: 606,
+      kinds: { grey: 0.3, young: 0.25 },
+    },
+    hard: {
+      note: 'Old Angus is up there in the mist with the west flock.',
+      flock: [
+        { at: 'west-fold', ewes: 5, black: 1, ram: true },
+        { at: 'west-moor', ewes: 4 },
+        { at: 'crags', ewes: 3 },
+      ],
+      target: 12,
     },
   },
   {
@@ -248,6 +294,18 @@ export const SEASON: Evening[] = [
       floodAt: 0.38,
       thunder: [22, 36],
       seed: 707,
+      kinds: { grey: 0.35, young: 0.2 },
+    },
+    hard: {
+      note: 'Autumn lambs that bolt at every thunderclap, and the ford floods sooner.',
+      flock: [
+        { at: 'farbank-north', ewes: 4 },
+        { at: 'farbank-south', ewes: 4 },
+        { at: 'grove', ewes: 3, lambs: 2 },
+        { at: 'knoll', ewes: 3, lambs: 2 },
+      ],
+      target: 14,
+      floodAt: 0.3,
     },
   },
   {
@@ -282,6 +340,18 @@ export const SEASON: Evening[] = [
       // From the top of the pass: the whole flock is walked down to the farm.
       dogStart: [-150, 12],
       seed: 1010,
+      kinds: { grey: 0.3, young: 0.3 },
+    },
+    hard: {
+      note: 'A black sheep in the middle of the glen, and lambs at heel on the west moor.',
+      flock: [
+        { at: 'west-fold', ewes: 5 },
+        { at: 'west-moor', ewes: 5, lambs: 2 },
+        { at: 'crags', ewes: 4 },
+        { at: 'midglen', ewes: 4, black: 1 },
+        { at: 'east-moor', ewes: 4 },
+      ],
+      target: 20,
     },
   },
   {
@@ -312,6 +382,17 @@ export const SEASON: Evening[] = [
       weather: 'snow',
       season: 'winter',
       seed: 808,
+      kinds: { grey: 0.45, young: 0.2 },
+    },
+    hard: {
+      note: 'More of the flock is still out in the middle of the glen.',
+      flock: [
+        { at: 'west-fold', ewes: 5, ram: true },
+        { at: 'west-moor', ewes: 4, black: 1 },
+        { at: 'crags', ewes: 3 },
+        { at: 'midglen', ewes: 4 },
+      ],
+      target: 14,
     },
   },
 ];
@@ -364,6 +445,8 @@ export function perksFor(ids: string[]): Perks {
 export interface EveningRecord {
   stars: number;
   ribbon: boolean;
+  /** The hardest setting it has been won on (records from before 2.1 have none: Standard). */
+  on?: Setting;
   best?: number;
   time?: number;
   score?: number;
@@ -377,6 +460,8 @@ export interface Progress {
   last?: string;
   /** Pip's coat (an id from COATS). */
   coat?: string;
+  /** Easy, Standard or Hard (2.1; saves from before it play Standard). */
+  setting?: Setting;
 }
 
 /** Pip's coats: the black and white he is born with, and more won with ribbons and Wolf Moon stars. */
@@ -399,7 +484,10 @@ export function loadProgress(): Progress {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as Progress;
-      if (p && typeof p === 'object' && p.evenings) return { evenings: p.evenings, charms: Array.isArray(p.charms) ? p.charms : [], last: p.last, coat: typeof p.coat === 'string' ? p.coat : undefined };
+      if (p && typeof p === 'object' && p.evenings) {
+        const setting = p.setting === 'easy' || p.setting === 'hard' ? p.setting : undefined;
+        return { evenings: p.evenings, charms: Array.isArray(p.charms) ? p.charms : [], last: p.last, coat: typeof p.coat === 'string' ? p.coat : undefined, setting };
+      }
     }
   } catch {
     // Storage blocked or corrupt: a fresh season.
@@ -453,6 +541,19 @@ export function moonRules<R extends Omit<Rules, 'id' | 'perks'>>(r: R): R {
     target: Math.max(r.target, Math.min(total - 1, r.target + 1)),
   };
 }
+/** An evening's rules on the season's setting, under the Wolf Moon or not. */
+export function rulesFor(ev: Evening, setting: Setting, moon: boolean): Omit<Rules, 'id' | 'perks'> {
+  const { note: _note, ...hard } = ev.hard ?? { note: '' };
+  const r = settingRules(ev.rules, setting, ev.num, ev.hard ? hard : undefined);
+  return moon ? moonRules(r) : r;
+}
+
+const SETTING_RANK: Record<Setting, number> = { easy: 0, standard: 1, hard: 2 };
+/** The harder of two settings (a record keeps the hardest one an evening was won on). */
+export function harderSetting(a: Setting | undefined, b: Setting) {
+  return SETTING_RANK[a ?? 'standard'] >= SETTING_RANK[b] ? (a ?? 'standard') : b;
+}
+
 export function totalRibbons(p: Progress) {
   return seasonRecords(p).filter((e) => e.ribbon).length;
 }

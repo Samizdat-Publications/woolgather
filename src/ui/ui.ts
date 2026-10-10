@@ -2,7 +2,8 @@ import type { AudioSettings } from '../audio/engine';
 import { DIFFICULTIES, DOG, type Difficulty } from '../game/config';
 import type { Level } from '../game/level';
 import type { Rules } from '../game/rules';
-import { CHARMS, COATS, coatOpen, SECOND_CHARM_STARS, THIRD_CHARM_STARS, SEASON, dailyEvening, moonOpen, moonRules, moonStars, totalRibbons, totalStars, unlocked, type Evening, type Progress } from '../game/season';
+import { CHARMS, COATS, coatOpen, SECOND_CHARM_STARS, THIRD_CHARM_STARS, SEASON, dailyEvening, moonOpen, moonStars, rulesFor, totalRibbons, totalStars, unlocked, type Evening, type Progress } from '../game/season';
+import { SETTINGS, type Setting } from '../game/tuning';
 import type { Outcome, Sim } from '../game/sim';
 import { dawnTime, moodTime, SUN_MOON_SWAP } from '../render/daycycle';
 import { MARKER_ICONS } from './indicators';
@@ -35,6 +36,18 @@ const RIBBON = (on: boolean) =>
 
 const LOCK = '<svg class="lock" viewBox="0 0 20 22"><rect x="3" y="9" width="14" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 9V6.5a4 4 0 0 1 8 0V9" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
 
+/** The season's setting: Easy, Standard or Hard, on the season map and every evening's card. */
+const settingSwitch = (p: Progress) => {
+  const on: Setting = p.setting ?? 'standard';
+  const cur = SETTINGS.find((q) => q.id === on)!;
+  return `<div class="setting-row"><span class="setting-label">Setting</span><div class="tier-switch setting-switch">${SETTINGS.map((q) => `<button class="tier ${q.id === on ? 'on' : ''} set-${q.id}" data-act="setting" data-arg="${q.id}">${q.label}</button>`).join('')}</div><span class="setting-text">${cur.text}</span></div>`;
+};
+/** How each new kind of wolf is taught on the first evening it comes out. */
+const WOLF_TEXT = {
+  grey: 'The old grey: bigger, slower and bold. He only hears a bark from close by, and one bark (Space) only staggers him: bark again while he is shaken, or run straight into him.',
+  young: 'Young wolves: small, quick and nervy. They keep away from Pip and bolt at one bark, but they come back soon after from another side of the valley.',
+  back: 'A wolf you chase off tonight comes back once, from another den: keep an eye on the trees.',
+};
 const stars = (n: number, of = 3) => Array.from({ length: of }, (_, i) => `<span class="${i < n ? 'on' : ''}">★</span>`).join('');
 
 function legendIcon(kind: keyof typeof MARKER_ICONS) {
@@ -126,6 +139,7 @@ export class Ui {
             </div>
             <div class="season-tally"></div>
           </div>
+          <div class="season-setting"></div>
           <div class="season-grid"></div>
           <div class="charm-shelf"></div>
           <div class="btn-row">
@@ -139,7 +153,9 @@ export class Ui {
           <div class="kicker intro-kicker"></div>
           <h2 class="intro-title"></h2>
           <p class="intro-story"></p>
+          <div class="intro-setting"></div>
           <div class="intro-new"></div>
+          <div class="intro-wolves"></div>
           <div class="intro-goals"></div>
           <div class="intro-charms"></div>
           <div class="btn-row">
@@ -349,6 +365,11 @@ export class Ui {
     } else (document.activeElement as HTMLElement | null)?.blur?.();
   }
 
+  /** Keep the keyboard focus on a button after its screen is re-rendered (the setting switch). */
+  focusAct(act: string, arg: string) {
+    (this.root.querySelector(`.${this.current}-screen [data-act="${act}"][data-arg="${arg}"]`) as HTMLElement | null)?.focus({ preventScroll: true });
+  }
+
   // ---------------------------------------------------------------- season screens
 
   /** The season map: eight evenings with their stars and ribbons, and the charms. */
@@ -356,6 +377,7 @@ export class Ui {
     const s = totalStars(p);
     const ms = moonStars(p);
     const anyMoon = SEASON.some((e) => moonOpen(p, e));
+    $('.season-setting', this.root).innerHTML = settingSwitch(p);
     $('.season-tally', this.root).innerHTML = `<div class="tally"><span class="tally-n">${s - ms}</span><span class="tally-of">/ ${SEASON.length * 3} ★</span></div><div class="tally"><span class="tally-n">${totalRibbons(p)}</span><span class="tally-of">/ ${SEASON.length} ribbons</span></div>${anyMoon ? `<div class="tally moon-tally"><span class="tally-n">${ms}</span><span class="tally-of">/ ${SEASON.length * 3} ☾ Wolf Moon</span></div>` : ''}`;
     const firstOpen = SEASON.findIndex((e, i) => unlocked(p, i) && !(p.evenings[e.id]?.stars));
     const focusId = p.last ?? SEASON[Math.max(0, firstOpen)].id;
@@ -368,7 +390,7 @@ export class Ui {
         <span class="ev-when">${e.when}</span>
         <b class="ev-title">${e.title}</b>
         <span class="ev-place">${e.place}</span>
-        <span class="ev-foot">${open ? `<span class="ev-stars">${stars(rec?.stars ?? 0)}</span>${RIBBON(!!rec?.ribbon)}` : `${LOCK}<span class="ev-lock">Win evening ${e.num - 1} to open</span>`}</span>
+        <span class="ev-foot">${open ? `<span class="ev-stars">${stars(rec?.stars ?? 0)}</span>${RIBBON(!!rec?.ribbon)}${rec?.on === 'hard' && rec.stars ? '<span class="ev-hard" title="Won on Hard">Hard</span>' : ''}` : `${LOCK}<span class="ev-lock">Win evening ${e.num - 1} to open</span>`}</span>
         ${moonOpen(p, e) ? `<span class="ev-moon" title="Wolf Moon">☾ <span class="ev-stars">${stars(rec?.moon?.stars ?? 0)}</span></span>` : ''}
       </button>`;
     }).join('') + this.dailyCard(p, focusId);
@@ -400,7 +422,21 @@ export class Ui {
   }
 
   renderIntro(e: Evening, p: Progress, moon = false) {
-    const r = moon ? moonRules(e.rules) : e.rules;
+    const setting: Setting = p.setting ?? 'standard';
+    const r = rulesFor(e, setting, moon);
+    $('.intro-setting', this.root).innerHTML = e.num === 1 ? '' : `${settingSwitch(p)}${setting === 'hard' && e.hard ? `<p class="setting-note">On Hard: ${escapeHtml(e.hard.note)}</p>` : ''}`;
+    // The kinds of wolf out tonight; the first evening a kind comes out on this setting teaches it.
+    const kinds = (['grey', 'young'] as const).filter((k) => (r.kinds?.[k] ?? 0) > 0);
+    const first = (k: 'grey' | 'young') => SEASON.find((q) => (rulesFor(q, setting, false).kinds?.[k] ?? 0) > 0) === e;
+    const teach = kinds.filter((k) => first(k) && !moon);
+    const back = r.returns && (r.returns.other > 0 || kinds.includes('young'));
+    $('.intro-wolves', this.root).innerHTML = teach.length
+      ? `<div class="new-label">New wolves tonight</div>${teach.map((k) => `<p>${keycaps(WOLF_TEXT[k])}</p>`).join('')}${back && r.returns!.other > 0 ? `<p>${WOLF_TEXT.back}</p>` : ''}`
+      : kinds.length
+      ? `<p class="wolves-line">Wolves tonight: ${kinds.map((k) => (k === 'grey' ? 'the old grey (bark twice)' : 'young wolves (they come back)')).join(' and ')}${r.returns && r.returns.other > 0 ? ' · a wolf you chase off comes back once' : ''}</p>`
+      : r.returns && r.returns.other > 0 && r.wolfStart !== null
+      ? `<p class="wolves-line">${WOLF_TEXT.back}</p>`
+      : '';
     $('.intro-card', this.root).classList.toggle('moon', moon);
     const tier = moonOpen(p, e)
       ? `<div class="tier-switch"><button class="tier ${moon ? '' : 'on'}" data-act="tier" data-arg="evening">The evening</button><button class="tier ${moon ? 'on' : ''}" data-act="tier" data-arg="moon">☾ Wolf Moon</button></div>${moon ? '<p class="tier-note">Under the Wolf Moon: a shorter evening, the wolves out sooner and hunting as a pack, and one more sheep needed.</p>' : ''}`
@@ -412,13 +448,14 @@ export class Ui {
     $('.intro-new', this.root).innerHTML = e.newThing ? `<div class="new-label">New tonight: ${escapeHtml(e.newThing.title)}</div><p>${keycaps(e.newThing.text)}</p>` : '';
     const rec = moon ? p.evenings[e.id]?.moon : p.evenings[e.id];
     const two = Math.ceil((r.target + total) / 2);
+    const onHard = rec?.on === 'hard' && rec.stars ? ' · won on Hard' : '';
     const goals =
       r.objective === 'trial'
         ? '<span>★ 55 points</span><span>★★ 75</span><span>★★★ 90</span>'
         : r.objective === 'watch'
         ? `<span>★ lose no more than ${total - r.target}</span><span>★★ lose ${Math.floor((total - r.target) / 2)} or fewer</span><span>★★★ lose none</span>`
         : `<span>★ ${r.target} of ${total} home</span><span>★★ ${two}</span><span>★★★ all ${total}</span>`;
-    $('.intro-goals', this.root).innerHTML = `${tier}<div class="goal-row">${goals}</div><div class="ribbon-row">${RIBBON(!!rec?.ribbon)}<span>${escapeHtml(e.ribbon.title)}</span></div>${rec?.stars ? `<div class="best">Your best: ${stars(rec.stars)}${rec.time ? ` · home in ${fmtTime(rec.time)}` : ''}${rec.score !== undefined ? ` · ${rec.score} points` : ''}</div>` : ''}`;
+    $('.intro-goals', this.root).innerHTML = `${tier}<div class="goal-row">${goals}</div><div class="ribbon-row">${RIBBON(!!rec?.ribbon)}<span>${escapeHtml(e.ribbon.title)}</span></div>${rec?.stars ? `<div class="best">Your best: ${stars(rec.stars)}${rec.time ? ` · home in ${fmtTime(rec.time)}` : ''}${rec.score !== undefined ? ` · ${rec.score} points` : ''}${onHard}</div>` : ''}`;
     const s = totalStars(p);
     const slots = s >= THIRD_CHARM_STARS ? 3 : s >= SECOND_CHARM_STARS ? 2 : 1;
     const got = CHARMS.filter((c) => s >= c.stars);

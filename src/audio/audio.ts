@@ -147,9 +147,18 @@ export class GameAudio {
           // The pack greets the sunset from the far side of the valley.
           if (!this.rec('howl', { pan: this.lx > 0 ? -0.6 : 0.6, level: 0.8 }, 0.9, true)) this.sfx.howl({ pan: this.lx > 0 ? -0.6 : 0.6, level: 0.8 }, true);
           break;
-        case 'wolfSpawn':
-          if (!this.rec('howl', this.where(e.x, e.z, 0.45), 0.8, true)) this.sfx.howl(this.where(e.x, e.z, 0.45));
+        case 'wolfSpawn': {
+          // The old grey's howl is deeper, the young wolf's higher and thinner.
+          const rate = e.kind === 'grey' ? 0.74 : e.kind === 'young' ? 1.22 : 1;
+          if (!this.rec('howl', this.where(e.x, e.z, 0.45), e.kind === 'grey' ? 0.95 : 0.8, true, rate)) this.sfx.howl(this.where(e.x, e.z, 0.45));
           break;
+        }
+        case 'wolfStagger': {
+          // He takes the bark with a snarl, not a yelp: he is not beaten yet.
+          const w = this.where(e.x, e.z, 0.5);
+          if (!this.rec('growl', w, 1, false, 0.7)) this.sfx.growl(w);
+          break;
+        }
         case 'pack':
           // The bait calls; a beat later its mate answers from the far side.
           if (!this.rec('howl', this.where(e.x, e.z, 0.5), 0.85, true)) this.sfx.howl(this.where(e.x, e.z, 0.5), true);

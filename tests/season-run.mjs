@@ -2,7 +2,7 @@
 //
 //   node tests/season-run.mjs [--evenings long-light,far-bank,...] [--scale 2] [--port 4790]
 //        [--parallel 2] [--seed 11] [--cap 12] [--quality low] [--wait 0.45] [--out season-run]
-//        [--nobuild] [--headed] [--skill expert|average] [--dist test-results/bot-dist]
+//        [--nobuild] [--headed] [--skill expert|average] [--setting easy|standard|hard] [--dist test-results/bot-dist]
 //
 // --moon plays each evening's Wolf Moon (the harder tier).
 // --skill average plays like a person on a first play (see docs/BOT2.md); expert is the default.
@@ -56,6 +56,8 @@ const OUT_NAME = opt('out', 'season-run');
 const SKILL = opt('skill', 'expert');
 /** --moon plays each evening's Wolf Moon. */
 const MOON = flag('moon');
+/** --setting easy|standard|hard: the season's setting (2.1). */
+const SETTING = opt('setting', 'standard');
 const distDir = path.resolve(root, opt('dist', path.join('test-results', 'bot-dist')));
 const traceDir = path.join(root, 'test-results', OUT_NAME);
 const t0 = Date.now();
@@ -164,6 +166,7 @@ async function playEvening(id) {
     await page.goto(`${baseUrl}?test=1&seed=${SEED}&quality=${QUALITY}`);
     await page.waitForFunction(() => !!window.__WG, null, { timeout: 180000 });
     await page.evaluate((m) => window.__WG.progress(m ? 'moon' : 'all'), MOON);
+    await page.evaluate((s) => window.__WG.setting(s), SETTING);
     const ok = await page.evaluate(([e, m]) => window.__WG.evening(e, true, m), [id, MOON]);
     if (!ok) throw new Error(`__WG.evening('${id}') returned false`);
     await page.waitForFunction(() => window.__WG.state().mode === 'playing', null, { timeout: 30000 });
@@ -240,6 +243,9 @@ async function playEvening(id) {
     rec.grabs = counts.grab ?? 0;
     rec.barks = bot.barks;
     rec.events = counts;
+    // The kinds of wolf that came out (and came back), and how often the old grey staggered.
+    const spawns = events.filter((e) => e.type === 'wolfSpawn');
+    rec.wolves = { wolf: spawns.filter((e) => e.kind === 'wolf').length, grey: spawns.filter((e) => e.kind === 'grey').length, young: spawns.filter((e) => e.kind === 'young').length, back: spawns.filter((e) => e.back).length, staggers: counts.wolfStagger ?? 0 };
     const kind = (k) => end.sheep.filter((s) => s.kind === k).map((s) => s.state);
     rec.animals = {
       ram: kind('ram'),
@@ -307,13 +313,14 @@ await browser.close();
 server.close();
 
 const out = path.join(root, 'test-results', `${OUT_NAME}.json`);
-fs.writeFileSync(out, JSON.stringify({ when: new Date().toISOString(), skill: SKILL, moon: MOON, scale: SCALE, seed: SEED, quality: QUALITY, wait: WAIT, results }, null, 2));
+fs.writeFileSync(out, JSON.stringify({ when: new Date().toISOString(), skill: SKILL, setting: SETTING, moon: MOON, scale: SCALE, seed: SEED, quality: QUALITY, wait: WAIT, results }, null, 2));
 
 const pad = (s, n) => String(s).padEnd(n);
-console.log('');
-console.log(pad('evening', 12), pad('outcome', 18), pad('stars', 6), pad('home', 8), pad('need', 5), pad('lost', 5), pad('resc', 5), pad('time', 9), pad('ribbon', 7), pad('stuck', 6), 'errors');
+console.log(`
+${SKILL} bot · ${SETTING}${MOON ? ' · Wolf Moon' : ''} · seed ${SEED}`);
+console.log(pad('evening', 12), pad('outcome', 18), pad('stars', 6), pad('home', 8), pad('need', 5), pad('lost', 5), pad('resc', 5), pad('time', 9), pad('ribbon', 7), pad('stuck', 6), pad('wolves g/y/back/stag', 21), 'errors');
 for (const r of results) {
   const o = r.outcome ? `${r.outcome.kind}/${r.outcome.reason}` : '-';
-  console.log(pad(r.id, 12), pad(o.slice(0, 17), 18), pad(r.stars, 6), pad(`${r.folded}/${r.total}`, 8), pad(r.target, 5), pad(r.lost, 5), pad(r.rescues, 5), pad(`${r.elapsed}/${r.dayLength ?? '?'}`, 9), pad(r.ribbon ? 'yes' : 'no', 7), pad(r.stuck ?? '-', 6), r.errors?.length ?? 0, r.stranded?.length ? `stranded: ${r.stranded.map((s) => s.id).join(',')}` : '', r.lambGivenUp ? 'lost lamb stuck at the gate' : '');
+  console.log(pad(r.id, 12), pad(o.slice(0, 17), 18), pad(r.stars, 6), pad(`${r.folded}/${r.total}`, 8), pad(r.target, 5), pad(r.lost, 5), pad(r.rescues, 5), pad(`${r.elapsed}/${r.dayLength ?? '?'}`, 9), pad(r.ribbon ? 'yes' : 'no', 7), pad(r.stuck ?? '-', 6), pad(r.wolves ? `${r.wolves.wolf + r.wolves.grey + r.wolves.young}: ${r.wolves.grey}/${r.wolves.young}/${r.wolves.back}/${r.wolves.staggers}` : '-', 21), r.errors?.length ?? 0, r.stranded?.length ? `stranded: ${r.stranded.map((s) => s.id).join(',')}` : '', r.lambGivenUp ? 'lost lamb stuck at the gate' : '');
 }
 console.log(`\nwrote ${path.relative(root, out)} and traces in ${path.relative(root, traceDir)}/ (${((Date.now() - t0) / 60000).toFixed(1)} min)`);

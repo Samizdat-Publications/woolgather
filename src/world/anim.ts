@@ -200,17 +200,20 @@ export function animateWolf(r: Rig, st: AnimState, w: Wolf, dt: number, time: nu
   const stalking = w.state === 'stalk' && !charging;
   const dragging = w.state === 'drag';
   const fleeing = w.state === 'flee';
+  // The old grey, staggered by a bark: he rears back with his head up and ears flat, then shakes it off.
+  const reel = w.staggerT > 0 ? Math.min(1, w.staggerT / 0.4) : 0;
   // A stalking wolf slinks: belly low, legs folded, head level with its back.
   st.crouch = damp(st.crouch, stalking ? 1 : dragging ? 0.45 : 0, 5, dt);
   const bob = st.amp * (1 - st.gallop) * 0.03 * Math.abs(Math.sin(TAU * st.phase)) + st.gallop * 0.05 * Math.sin(TAU * st.phase + 1.2);
   crouch(r, p, st.crouch, bob, 0.3);
-  r.body.rotation.x = st.gallop * 0.14 * Math.sin(TAU * st.phase) - (dragging ? 0.1 : 0);
+  r.body.rotation.x = st.gallop * 0.14 * Math.sin(TAU * st.phase) - (dragging ? 0.1 : 0) - reel * 0.22;
+  r.body.rotation.z = reel * 0.12 * Math.sin(time * 26);
   if (r.head) {
     // Low and forward when stalking, braced down gripping the prey while dragging.
-    const want = stalking ? 0.38 : dragging ? 0.5 : charging ? 0.12 : 0;
+    const want = reel > 0 ? -0.35 : stalking ? 0.38 : dragging ? 0.5 : charging ? 0.12 : 0;
     r.head.rotation.x = damp(r.head.rotation.x, want, 6, dt) + (dragging ? 0.05 * Math.sin(time * 9) : 0);
   }
-  for (const e of r.ears) e.rotation.x = damp(e.rotation.x, charging || fleeing ? -0.6 : stalking ? 0.15 : 0, 8, dt);
+  for (const e of r.ears) e.rotation.x = damp(e.rotation.x, charging || fleeing || reel > 0 ? -0.6 : stalking ? 0.15 : 0, 8, dt);
   if (r.tail) {
     // Level when hunting, streaming at the charge, tucked between the legs in flight.
     const want = fleeing ? -0.75 : stalking ? -0.3 : charging ? 0.25 : -0.1;

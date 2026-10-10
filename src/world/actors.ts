@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import type { WolfKind } from '../game/config';
 import type { Sim } from '../game/sim';
 import type { MoodValues } from '../render/daycycle';
 import { AnimState, animateDog, animateSheep, animateWolf, sheepBleat } from './anim';
@@ -11,6 +12,8 @@ import type { Terrain } from './terrain';
 
 // Characters are drawn larger than life so they read from the herding camera's height.
 export const SCALE = { dog: 2.4, sheep: 1.9, wolf: 2.3, lamb: 1.18, ram: 3.05 };
+/** Each kind of wolf drawn bigger or smaller than an ordinary one, and its danger ring with it. */
+const WOLF_LOOK: Record<WolfKind, { scale: number; ring: number }> = { wolf: { scale: 1, ring: 1 }, grey: { scale: 1.24, ring: 1.22 }, young: { scale: 0.8, ring: 0.84 } };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
 /** The reach ring by moonlight: a cooler, brighter white. */
 const RING_NIGHT = new THREE.Color('#e8f0ff');
@@ -294,7 +297,7 @@ export class Actors {
   readonly root = new THREE.Group();
   readonly dog: Rig;
   private sheep: Rig[] = [];
-  private wolves = new Map<number, { rig: Rig; danger: GroundRing; under: GroundRing; glow: THREE.Sprite; dash: GroundDash; mark: GroundRing; anim: AnimState }>();
+  private wolves = new Map<number, { rig: Rig; danger: GroundRing; under: GroundRing; glow: THREE.Sprite; dash: GroundDash; mark: GroundRing; anim: AnimState; kind: WolfKind }>();
   private dogAnim = new AnimState();
   private sheepAnim: AnimState[] = [];
   private glowMat = new THREE.SpriteMaterial({ map: glowTexture(), color: 0xffb040, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
@@ -409,7 +412,49 @@ export class Actors {
     this.ramInst = new RigInstancer(this.ramProto, 2);
     this.blackInst = new RigInstancer(this.blackProto, 3);
     this.wolfInst = new RigInstancer(a.wolf, 10);
-    this.root.add(this.sheepInst.group, this.ramInst.group, this.blackInst.group, this.wolfInst.group);
+    // The old grey: a darker, grizzled coat (never white on top), pale scars across the face and a
+    // torn ear, drawn bigger; the young wolf: a paler, sandier coat, drawn smaller.
+    const wolfMat = (name: string) => this.charMats.find((m) => m.name === name);
+    const recolour = (prefix: string, cols: Record<string, string>) => {
+      const out: Record<string, THREE.MeshLambertMaterial> = {};
+      for (const [name, col] of Object.entries(cols)) {
+        const src = wolfMat(name);
+        if (!src) continue;
+        const c = src.clone();
+        c.name = `${prefix}_${name}`;
+        c.color.set(col);
+        this.patchChar(c, name === 'wolf_light', this.wolfRim);
+        out[name] = c;
+      }
+      return out;
+    };
+    this.greyProto = withMaterials(a.wolf, recolour('grey', { wolf_grey: '#5e5a5c', wolf_saddle: '#2e2c32', wolf_light: '#a49c90' }));
+    const gHead = this.greyProto.getObjectByName('head') as THREE.Mesh | undefined;
+    if (gHead) {
+      const box = new THREE.Box3();
+      gHead.traverse((o) => {
+        const m = o as THREE.Mesh;
+        if (m.isMesh) {
+          m.geometry.computeBoundingBox();
+          box.union(m.geometry.boundingBox!);
+        }
+      });
+      const scar = new THREE.MeshLambertMaterial({ name: 'grey_scar', color: '#d8c4b8', emissive: new THREE.Color(0x2a2220), flatShading: true });
+      this.patchChar(scar, true, this.wolfRim);
+      const size = box.getSize(new THREE.Vector3());
+      for (const [sx, rot] of [[-0.18, 0.5], [0.12, -0.35]] as const) {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(size.x * 0.09, size.y * 0.06, size.z * 0.42), scar);
+        m.position.set(box.min.x + size.x * (0.5 + sx), box.max.y - size.y * 0.02, box.min.z + size.z * 0.62);
+        m.rotation.y = rot;
+        gHead.add(m);
+      }
+    }
+    const torn = this.greyProto.getObjectByName('ear_l');
+    if (torn) torn.scale.set(0.85, 0.62, 0.85);
+    this.youngProto = withMaterials(a.wolf, recolour('young', { wolf_grey: '#a69c88', wolf_saddle: '#6e6658' }));
+    this.greyInst = new RigInstancer(this.greyProto, 6);
+    this.youngInst = new RigInstancer(this.youngProto, 6);
+    this.root.add(this.sheepInst.group, this.ramInst.group, this.blackInst.group, this.wolfInst.group, this.greyInst.group, this.youngInst.group);
     // Fly, Pip's mother (a charm): the same collie in blue merle and white, a touch smaller and greyer
     // in the face, so she never passes for Pip. Hidden unless the evening has her.
     const flyMats: Record<string, THREE.MeshLambertMaterial> = {};
@@ -472,6 +517,13 @@ export class Actors {
   private noKeep = { value: 0 };
   private ramProto!: THREE.Object3D;
   private blackProto!: THREE.Object3D;
+  private greyProto!: THREE.Object3D;
+  private youngProto!: THREE.Object3D;
+  private greyInst!: RigInstancer;
+  private youngInst!: RigInstancer;
+  private wolfInstFor(kind: WolfKind) {
+    return kind === 'grey' ? this.greyInst : kind === 'young' ? this.youngInst : this.wolfInst;
+  }
   private ramInst!: RigInstancer;
   private blackInst!: RigInstancer;
   /** The sim the flock rigs were made for (a new evening may bring different animals). */
@@ -724,8 +776,16 @@ export class Actors {
       if (w.state === 'gone') continue;
       seen.add(w.id);
       let v = this.wolves.get(w.id);
+      if (v && v.kind !== w.kind) {
+        // A new wolf in a reused id's place (never in practice: ids only count up).
+        this.root.remove(v.rig.root, v.danger.mesh, v.under.mesh, v.dash.mesh, v.mark.mesh);
+        this.wolfInstFor(v.kind).remove(v.rig.root);
+        this.wolves.delete(w.id);
+        v = undefined;
+      }
+      const look = WOLF_LOOK[w.kind];
       if (!v) {
-        const r = rig(this.a.wolf, SCALE.wolf);
+        const r = rig(w.kind === 'grey' ? this.greyProto : w.kind === 'young' ? this.youngProto : this.a.wolf, SCALE.wolf * look.scale);
         // A toothed red ring that hugs the ground around every hunting wolf, over a dark band: it
         // frames the animal instead of covering it, and the teeth and the dark band still read
         // for players who cannot tell red from green.
@@ -743,8 +803,8 @@ export class Actors {
         const dash = new GroundDash(0xff4a30, this.terrain);
         const mark = new GroundRing(this.a.fx.get('bark_ring')!, 0xff4a30, this.terrain, 0.1);
         this.root.add(r.root, under.mesh, danger.mesh, dash.mesh, mark.mesh);
-        this.wolfInst.add(r.root);
-        v = { rig: r, danger, under, glow, dash, mark, anim: new AnimState() };
+        this.wolfInstFor(w.kind).add(r.root);
+        v = { rig: r, danger, under, glow, dash, mark, anim: new AnimState(), kind: w.kind };
         this.wolves.set(w.id, v);
       }
       const y = h(w.x, w.z);
@@ -764,8 +824,8 @@ export class Actors {
       const pulse = 0.5 + 0.5 * Math.sin(this.time * rate);
       v.danger.mesh.visible = v.under.mesh.visible = w.state !== 'flee';
       if (v.danger.mesh.visible) {
-        const r = carrying ? 3.7 + 0.35 * pulse : charging ? 3.4 + 0.25 * pulse : 2.9 + 0.12 * pulse;
-        v.danger.place(w.x, w.z, r, this.time * (carrying ? 2.2 : 0.8));
+        const r = (carrying ? 3.7 + 0.35 * pulse : charging ? 3.4 + 0.25 * pulse : 2.9 + 0.12 * pulse) * look.ring;
+        v.danger.place(w.x, w.z, r, this.time * (carrying ? 2.2 : 0.8) * (w.kind === 'grey' ? 0.6 : 1));
         v.under.place(w.x, w.z, r + 0.15);
       }
       v.danger.mesh.material.opacity = carrying ? 0.85 + 0.15 * pulse : charging ? 0.75 + 0.2 * pulse : 0.5 + 0.12 * pulse;
@@ -790,7 +850,7 @@ export class Actors {
     for (const [id, v] of this.wolves) {
       if (!seen.has(id)) {
         this.root.remove(v.rig.root, v.danger.mesh, v.under.mesh, v.dash.mesh, v.mark.mesh);
-        this.wolfInst.remove(v.rig.root);
+        this.wolfInstFor(v.kind).remove(v.rig.root);
         this.wolves.delete(id);
       }
     }
@@ -798,6 +858,8 @@ export class Actors {
     this.ramInst.update();
     this.blackInst.update();
     this.wolfInst.update();
+    this.greyInst.update();
+    this.youngInst.update();
   }
 
   private instFor(kind: string) {
@@ -811,11 +873,13 @@ export class Actors {
   warmUpObjects() {
     const r = rig(this.a.wolf, SCALE.wolf);
     (r.head ?? r.root).add(new THREE.Sprite(this.glowMat));
+    const grey = rig(this.greyProto, SCALE.wolf);
+    const young = rig(this.youngProto, SCALE.wolf);
     const under = new GroundRing(this.a.fx.get('thick_ring')!, 0x1a1420, this.terrain, 0.09);
     const danger = new GroundRing(this.a.fx.get('danger_ring')!, 0xff4a30, this.terrain, 0.1);
     const dash = new GroundDash(0xff4a30, this.terrain);
     const mark = new GroundRing(this.a.fx.get('bark_ring')!, 0xff4a30, this.terrain, 0.1);
-    return [r.root, under.mesh, danger.mesh, dash.mesh, mark.mesh];
+    return [r.root, grey.root, young.root, under.mesh, danger.mesh, dash.mesh, mark.mesh];
   }
 
   /** A sheep gives a little hop (it made it home). */

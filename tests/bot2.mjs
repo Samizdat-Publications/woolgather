@@ -860,12 +860,15 @@ export class HerdBot2 {
     }
     if (threat) {
       const d = dist(threat, dog);
-      const barkAt = watch ? 16 : 14;
+      // The old grey only hears a bark from about 12.9 m (and takes two): the expert closes in
+      // first; a first-time player barks from the usual distance and wastes some.
+      const grey = threat.kind === 'grey';
+      const barkAt = grey && this.skillName === 'expert' ? 11.5 : watch ? 16 : 14;
       return {
         target: { x: threat.x, z: threat.z },
         sprint: d > (this.skillName === 'expert' ? 6 : 10),
         bark: canBark && d < barkAt && (!quiet || threat.state === 'drag' || d < 9),
-        why: `wolf ${threat.state} ${d.toFixed(0)}m`,
+        why: `wolf ${threat.kind ?? 'wolf'} ${threat.state}${threat.stagger ? ' (staggered)' : ''} ${d.toFixed(0)}m`,
         cat: threat.state === 'drag' ? 'rescue' : 'wolf',
       };
     }

@@ -1,4 +1,4 @@
-import { tuned } from './tuning';
+import { tuned, type Setting } from './tuning';
 import * as THREE from 'three';
 import hollowDef from '../../level/hollow.json';
 import lochDef from '../../level/loch.json';
@@ -21,12 +21,12 @@ import { Terrain } from '../world/terrain';
 import { generateTerrain, type Season } from '../world/terraingen';
 import { WeatherFx } from '../world/weatherfx';
 import { buildWorld, disposeWorld, setNearCut, treeHoles, updateWorld, type WorldHandles } from '../world/world';
-import type { Difficulty } from './config';
+import { WOLF_KINDS, type Difficulty } from './config';
 import { Input } from './input';
 import { Level } from './level';
 import type { LevelDef } from './leveldef';
 import { classicRules, type Rules } from './rules';
-import { COATS, coatOpen, dailyEvening, loadProgress, moonOpen, moonRules, perksFor, verbsFor, THIRD_CHARM_STARS, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type EveningRecord, type Progress } from './season';
+import { COATS, coatOpen, dailyEvening, harderSetting, loadProgress, moonOpen, rulesFor, perksFor, verbsFor, THIRD_CHARM_STARS, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type EveningRecord, type Progress } from './season';
 import { Sim, type SimEvent } from './sim';
 
 // Top-level state machine: title -> (season map -> evening card) or classic -> playing <-> paused
@@ -268,6 +268,9 @@ export class Game {
           this.actors?.setCoat(COATS.find((c) => c.id === arg)!.color);
         }
         break;
+      case 'setting':
+        if (arg === 'easy' || arg === 'standard' || arg === 'hard') this.setSetting(arg);
+        break;
       case 'tier':
         // The intro card's switch between the evening and its Wolf Moon.
         if (this.evening) {
@@ -302,11 +305,28 @@ export class Game {
     }
   }
 
+  /** Easy, Standard or Hard (remembered with the season's progress). */
+  get setting(): Setting {
+    return this.progress.setting ?? 'standard';
+  }
+
   private eveningRules(ev: Evening): Rules {
     const v = verbsFor(this.progress.charms);
+    const base = rulesFor(ev, this.setting, this.moon && moonOpen(this.progress, ev));
     // An evening may bring a helper itself (Fly comes along for the Gathering, charm or not).
-    const r: Rules = { ...ev.rules, id: ev.id, perks: perksFor(this.progress.charms), fly: ev.rules.fly || v.fly, outrun: ev.rules.outrun || v.outrun, bell: ev.rules.bell || v.bell };
-    return tuned(this.moon && moonOpen(this.progress, ev) ? moonRules(r) : r);
+    return tuned({ ...base, id: ev.id, perks: perksFor(this.progress.charms), fly: base.fly || v.fly, outrun: base.outrun || v.outrun, bell: base.bell || v.bell });
+  }
+
+  private setSetting(s: Setting) {
+    this.progress.setting = s === 'standard' ? undefined : s;
+    saveProgress(this.progress);
+    this.ui.renderSeason(this.progress);
+    if (this.evening && this.ui.current === 'intro') {
+      this.ui.renderIntro(this.evening, this.progress, this.moon);
+      // The establishing shot shows the flock the setting brings (Hard may add some).
+      this.makeViewSim({ ...rulesFor(this.evening, this.setting, false), id: 'view' });
+      this.ui.focusAct('setting', s);
+    } else if (this.ui.current === 'season') this.ui.focusAct('setting', s);
   }
 
   /** Wear or take off a charm (one slot, two once enough stars are earned). */
@@ -395,7 +415,7 @@ export class Game {
     saveProgress(this.progress);
     this.loadPlace(ev.rules.levelId, ev.rules.season);
     this.menuRules = ev.rules as Rules;
-    this.makeViewSim({ ...ev.rules, id: 'view' });
+    this.makeViewSim({ ...rulesFor(ev, this.setting, false), id: 'view' });
     this.ui.renderIntro(ev, this.progress, this.moon);
     this.setMode('menu');
     this.ui.show('intro');
@@ -807,6 +827,7 @@ export class Game {
       const rec: EveningRecord = {
         stars: Math.max(prev?.stars ?? 0, o.stars),
         ribbon: (prev?.ribbon ?? false) || ribbon,
+        on: prev?.stars ? harderSetting(prev.on, this.setting) : this.setting,
         best: Math.max(prev?.best ?? 0, sim.folded),
         time: time === undefined ? prev?.time : Math.min(prev?.time ?? Infinity, time),
         score: score === undefined ? prev?.score : Math.max(prev?.score ?? 0, score),
@@ -1167,6 +1188,11 @@ export class Game {
           p.dust(e.x, e.z, 0, 0, 1.6);
           this.hitStop = Math.max(this.hitStop, 0.05);
           break;
+        case 'wolfStagger':
+          p.dust(e.x, e.z, 0, 0, 1.4);
+          p.ripple(e.x, e.z, 1, 4, 0.5);
+          this.stage.addShake(0.15);
+          break;
         case 'folded': {
           p.heart(e.x, e.z);
           p.ripple(e.x, e.z, 0.8, 4, 0.5);
@@ -1278,9 +1304,21 @@ export class Game {
         case 'wolfSpawn': {
           const d = this.sim?.dog;
           if (!d) break;
-          if (Math.hypot(e.tx - d.x, e.tz - d.z) >= 26) this.ui.toast(`A wolf is after the sheep ${this.level.placeName(e.tx, e.tz)}!`, 'warn');
+          const where = this.level.placeName(e.tx, e.tz);
+          // Each new kind of wolf is named and explained the first time it comes out.
+          if (e.kind === 'grey' && !this.said.has('grey')) {
+            this.said.add('grey');
+            this.ui.toast(`The old grey is out, after the sheep ${where}! One bark only staggers him: bark twice, or run into him`, 'warn');
+          } else if (e.kind === 'young' && !this.said.has('young')) {
+            this.said.add('young');
+            this.ui.toast(`A young wolf, after the sheep ${where}! Quick and easily scared, but it comes back`, 'warn');
+          } else if (e.back) this.ui.toast(`${e.kind === 'young' ? 'The young wolf' : e.kind === 'grey' ? 'The old grey' : 'A wolf you chased off'} is back, after the sheep ${where}! ${this.arrowTo(e.x, e.z)}`, 'warn');
+          else if (Math.hypot(e.tx - d.x, e.tz - d.z) >= 26) this.ui.toast(`${e.kind === 'grey' ? 'The old grey' : e.kind === 'young' ? 'A young wolf' : 'A wolf'} is after the sheep ${where}!`, 'warn');
           break;
         }
+        case 'wolfStagger':
+          this.ui.toast('The old grey staggers! Bark again before he shakes it off', 'warn');
+          break;
         case 'fly':
           if (e.down) this.once('flyDown', () => this.ui.toast('Fly lies down and holds that spot: the sheep keep off her. F again calls her back', 'good'));
           break;
@@ -1451,22 +1489,27 @@ export class Game {
       const far = Math.hypot(s.x - d.x, s.z - d.z);
       const eta = sim.dragEta(dragger);
       const secs = Math.max(1, Math.ceil(eta));
-      const margin = eta - sim.rescueEta(dragger.x, dragger.z);
+      const margin = eta - sim.rescueEta(dragger.x, dragger.z, dragger);
       if (this.dragFeasible === null) this.dragFeasible = margin > 0.5;
       else if (this.dragFeasible && margin < -1) this.dragFeasible = false;
       else if (!this.dragFeasible && margin > 1.5) this.dragFeasible = true;
       const place = this.level.placeName(s.x, s.z);
       const what = s.kind === 'lamb' ? 'lamb' : 'sheep';
-      const inRange = Math.hypot(dragger.x - d.x, dragger.z - d.z) < sim.barkWolfRadius - 1;
+      const grey = dragger.kind === 'grey';
+      const inRange = Math.hypot(dragger.x - d.x, dragger.z - d.z) < sim.barkWolfRadius * (grey ? WOLF_KINDS.grey.hear : 1) - 1;
+      const who = grey ? 'The old grey' : 'A wolf';
       if (inRange || far < 16) {
-        this.ui.alert(`A wolf has one of your ${what === 'lamb' ? 'lambs' : 'sheep'}! ${secs} s to save it`, inRange ? 'Bark (Space) now: it drops the sheep!' : 'Run at it or bark (Space) near it: it drops the sheep');
+        this.ui.alert(
+          `${who} has one of your ${what === 'lamb' ? 'lambs' : 'sheep'}! ${secs} s to save it`,
+          grey ? (dragger.grit > 1 ? 'Bark (Space) twice, or run into him: he drops the sheep' : 'He is shaken: bark (Space) again now!') : inRange ? 'Bark (Space) now: it drops the sheep!' : 'Run at it or bark (Space) near it: it drops the sheep',
+        );
         this.ui.hint('');
       } else if (this.dragFeasible) {
         const dist = Math.round(Math.hypot(dragger.x - d.x, dragger.z - d.z));
-        this.ui.alert(`A wolf has a ${what} ${place}! ${this.arrowTo(dragger.x, dragger.z)} ${dist} m · ${secs} s to save it`, 'Sprint (Shift) to it, then run at it or bark (Space) near it');
+        this.ui.alert(`${who} has a ${what} ${place}! ${this.arrowTo(dragger.x, dragger.z)} ${dist} m · ${secs} s to save it`, grey ? 'Sprint (Shift) to him, then bark (Space) twice or run into him' : 'Sprint (Shift) to it, then run at it or bark (Space) near it');
         this.ui.hint('');
       } else {
-        this.ui.alert(`A wolf is carrying a ${what} off ${place}! ${this.arrowTo(dragger.x, dragger.z)}`, 'Too far to save it: keep the rest of the flock together', true);
+        this.ui.alert(`${who} is carrying a ${what} off ${place}! ${this.arrowTo(dragger.x, dragger.z)}`, 'Too far to save it: keep the rest of the flock together', true);
         this.ui.hint('');
       }
       this.dragHint = true;
@@ -1559,6 +1602,13 @@ export class Game {
     return true;
   }
 
+  /** Test hook: play the season on Easy, Standard or Hard. */
+  testSetting(s: Setting) {
+    this.progress.setting = s === 'standard' ? undefined : s;
+    saveProgress(this.progress);
+    return this.setting;
+  }
+
   /** Test hook: wear these charms (unlocking them as if enough stars had been earned). */
   testCharms(ids: string[]) {
     this.progress.charms = ids.filter((id) => CHARMS.some((c) => c.id === id));
@@ -1638,6 +1688,7 @@ export class Game {
       screen: this.ui.current,
       fps: Math.round(this.fps() * 10) / 10,
       difficulty: this.ui.difficulty,
+      setting: this.setting,
       evening: this.evening?.id ?? null,
       levelId: this.level.def.id,
       objective: s?.rules.objective ?? null,
@@ -1660,7 +1711,7 @@ export class Game {
               // On screen: what a player can see (the average-skill bot only reacts to these).
               tmpV.set(w.x, this.terrain.height(w.x, w.z) + 0.8, w.z).project(this.stage.camera);
               const onScreen = tmpV.z < 1 && Math.abs(tmpV.x) < 0.97 && Math.abs(tmpV.y) < 0.95;
-              return { id: w.id, x: w.x, z: w.z, state: w.state, target: w.target?.id ?? -1, onScreen, role: w.role, mate: w.mate, feint: w.feintT > 0 };
+              return { id: w.id, x: w.x, z: w.z, state: w.state, target: w.target?.id ?? -1, onScreen, role: w.role, mate: w.mate, feint: w.feintT > 0, kind: w.kind, grit: w.grit, stagger: w.staggerT > 0 };
             })
         : [],
       dragFeasible: this.dragFeasible,
