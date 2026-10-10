@@ -134,10 +134,24 @@
     const order = [];
     for (const stride of [16, 8, 4, 2, 1]) for (let i = 0; i < n; i += stride) if (!order.includes(i)) order.push(i);
     if (!order.includes(n - 1)) order.splice(1, 0, n - 1);
-    let next = 0;
+    // Only the coarse frames load with the page (about eight of them); the rest wait for the page's
+    // own load, so a phone on a slow connection is not held up by ninety frames it may never scroll
+    // through. After that the frame nearest the scroll position goes first, then coarse to fine.
+    const coarse = order.findIndex((i) => i % 16 !== 0 && i !== n - 1);
+    const requested = new Set();
+    let pageLoaded = document.readyState === 'complete';
+    let inFlight = 0;
+    const pick = () => {
+      if (!pageLoaded) return order.slice(0, coarse).find((i) => !requested.has(i));
+      // the frame the reader is looking at, if nothing loaded is within two frames of it
+      if (Math.abs(nearest(want) - want) > 2 && !requested.has(want)) return want;
+      return order.find((i) => !requested.has(i));
+    };
     const load = () => {
-      if (next >= order.length) return;
-      const i = order[next++];
+      const i = pick();
+      if (i === undefined) return;
+      requested.add(i);
+      inFlight++;
       const img = new Image();
       img.decoding = 'async';
       img.onload = () => {
@@ -146,13 +160,24 @@
           sizeCanvas();
           dusk.classList.add('live');
         }
+        inFlight--;
         draw();
         load();
       };
-      img.onerror = load;
+      img.onerror = () => {
+        inFlight--;
+        load();
+      };
       img.src = src(i);
     };
     for (let k = 0; k < 4; k++) load();
+    if (!pageLoaded)
+      window.addEventListener('load', () => {
+        pageLoaded = true;
+        for (let k = inFlight; k < 4; k++) load();
+      });
+    // a jump in the scroll asks for the frame it lands on
+    window.addEventListener('scroll', () => pageLoaded && inFlight < 4 && load(), { passive: true });
     window.addEventListener('scroll', requestScrub, { passive: true });
     window.addEventListener('resize', () => {
       sizeCanvas();
@@ -738,13 +763,26 @@
   })();
 
   // ---------------------------------------------------------------- clips
+  const posters = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        const v = e.target;
+        if (v.dataset.poster) v.poster = v.dataset.poster;
+        posters.unobserve(v);
+      }
+    },
+    { rootMargin: '900px 0px' },
+  );
   function makeVideo(name, label) {
     const v = document.createElement('video');
     v.muted = true;
     v.loop = true;
     v.playsInline = true;
     v.preload = 'none';
-    v.poster = `media/${name}.jpg`;
+    // The poster is fetched as the clip comes near the screen, not with the page.
+    v.dataset.poster = `media/${name}.jpg`;
+    posters.observe(v);
     v.setAttribute('aria-label', label);
     const s = document.createElement('source');
     s.src = `media/${name}.mp4`;
