@@ -328,7 +328,7 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .classic { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 12px; border-top: 1.5px dashed var(--stitch); }
 
 .season-screen, .intro-screen { background: radial-gradient(ellipse at 50% 55%, rgba(20, 16, 26, 0.55), rgba(20, 16, 26, 0.25) 70%); }
-.season-card { width: min(1200px, 96vw); max-height: calc(100vh - 24px); overflow-y: auto; gap: 14px; padding: 22px 28px 20px; }
+.season-card { width: min(1120px, 96vw); max-width: min(1120px, 96vw); max-height: calc(100vh - 24px); overflow-y: auto; gap: 14px; padding: 22px 28px 20px; }
 .season-head { width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .season-head h2 { margin-top: 2px; }
 .season-tally { display: flex; gap: 18px; }
@@ -382,7 +382,15 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .intro-charms .charm small { display: none; }
 .intro-card { max-height: calc(100vh - 24px); overflow-y: auto; }
 
-.intro-card { width: min(640px, 94vw); gap: 12px; padding: 26px 32px 26px; }
+.intro-card { width: min(680px, 94vw); gap: 12px; padding: 26px 32px 26px; }
+/* On a 720p screen the evening card is tight: a smaller title and less air, so Begin stays on it. */
+@media (max-height: 780px) {
+  .intro-card { gap: 9px; padding: 18px 28px 18px; }
+  .intro-card h2 { font-size: 38px; }
+  .intro-story { font-size: 15.5px; line-height: 1.42; }
+  .intro-new { padding: 8px 14px 10px; }
+  .intro-new p { font-size: 14.5px; }
+}
 .intro-card h2 { font-size: 46px; text-align: center; }
 .intro-story { margin: 0; max-width: 520px; font-size: 16.5px; font-weight: 600; line-height: 1.5; text-align: center; color: var(--wool-2); text-wrap: pretty; }
 .intro-new:empty, .intro-charms:empty { display: none; }

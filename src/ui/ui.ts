@@ -37,10 +37,10 @@ const RIBBON = (on: boolean) =>
 const LOCK = '<svg class="lock" viewBox="0 0 20 22"><rect x="3" y="9" width="14" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 9V6.5a4 4 0 0 1 8 0V9" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
 
 /** The season's setting: Easy, Standard or Hard, on the season map and every evening's card. */
-const settingSwitch = (p: Progress) => {
+const settingSwitch = (p: Progress, withText = true) => {
   const on: Setting = p.setting ?? 'standard';
   const cur = SETTINGS.find((q) => q.id === on)!;
-  return `<div class="setting-row"><span class="setting-label">Setting</span><div class="tier-switch setting-switch">${SETTINGS.map((q) => `<button class="tier ${q.id === on ? 'on' : ''} set-${q.id}" data-act="setting" data-arg="${q.id}">${q.label}</button>`).join('')}</div><span class="setting-text">${cur.text}</span></div>`;
+  return `<div class="setting-row"><span class="setting-label">Setting</span><div class="tier-switch setting-switch">${SETTINGS.map((q) => `<button class="tier ${q.id === on ? 'on' : ''} set-${q.id}" data-act="setting" data-arg="${q.id}">${q.label}</button>`).join('')}</div>${withText ? `<span class="setting-text">${cur.text}</span>` : ''}</div>`;
 };
 /** How each new kind of wolf is taught on the first evening it comes out. */
 const WOLF_TEXT = {
@@ -425,7 +425,7 @@ export class Ui {
   renderIntro(e: Evening, p: Progress, moon = false) {
     const setting: Setting = p.setting ?? 'standard';
     const r = rulesFor(e, setting, moon);
-    $('.intro-setting', this.root).innerHTML = e.num === 1 ? '' : `${settingSwitch(p)}${setting === 'hard' && e.hard ? `<p class="setting-note">On Hard: ${escapeHtml(e.hard.note)}</p>` : ''}`;
+    $('.intro-setting', this.root).innerHTML = e.num === 1 ? '' : `${settingSwitch(p, false)}${setting === 'hard' && e.hard ? `<p class="setting-note">On Hard: ${escapeHtml(e.hard.note)}</p>` : ''}`;
     // The kinds of wolf out tonight; the first evening a kind comes out on this setting teaches it.
     const kinds = (['grey', 'young'] as const).filter((k) => (r.kinds?.[k] ?? 0) > 0);
     const first = (k: 'grey' | 'young') => SEASON.find((q) => (rulesFor(q, setting, false).kinds?.[k] ?? 0) > 0) === e;
