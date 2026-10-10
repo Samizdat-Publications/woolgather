@@ -102,7 +102,7 @@ export class Ui {
           <div class="creep-pip flank-pip"><span>Flank <kbd>Z</kbd><kbd>X</kbd></span></div>
           <div class="creep-pip outrun-pip" hidden><span>Outrun <kbd>Z</kbd>+<kbd>X</kbd></span></div>
           <div class="creep-pip fly-pip" hidden><span>Fly <kbd>F</kbd></span></div>
-          <div class="bark-pip"><div class="bark-fill"></div><span>Bark <kbd>Space</kbd></span></div>
+          <div class="bark-pip"><div class="bark-fill"></div><span><span class="bark-word">Bark</span> <kbd>Space</kbd></span></div>
         </div>
         <div class="hud-hint"></div>
         <div class="hud-prompt" hidden></div>
@@ -394,11 +394,12 @@ export class Ui {
         ${moonOpen(p, e) ? `<span class="ev-moon" title="Wolf Moon">☾ <span class="ev-stars">${stars(rec?.moon?.stars ?? 0)}</span></span>` : ''}
       </button>`;
     }).join('') + this.dailyCard(p, focusId);
-    $('.charm-shelf', this.root).innerHTML = `<div class="charm-title">Pip's charms <small>earned with stars · wear ${s >= THIRD_CHARM_STARS ? 'three' : s >= SECOND_CHARM_STARS ? 'two' : 'one'} on any evening</small></div><div class="charm-row">${CHARMS.map((c) => `<span class="charm ${s >= c.stars ? 'got' : ''}"><b>${c.title}</b><small>${s >= c.stars ? c.text : `${c.stars} ★ to earn`}</small></span>`).join('')}</div><div class="charm-title">Pip's coat <small>won with ribbons and Wolf Moon stars</small></div><div class="coat-row">${COATS.map((c) => {
+    $('.charm-shelf', this.root).innerHTML = `<div class="charm-title">Pip's charms <small>earned with stars · wear ${s >= THIRD_CHARM_STARS ? 'three' : s >= SECOND_CHARM_STARS ? 'two' : 'one'} on any evening</small></div><div class="charm-row">${CHARMS.map((c) => `<span class="charm ${s >= c.stars ? 'got' : ''}"><b>${c.title}</b><small>${s >= c.stars ? c.text : `${c.stars} ★ to earn`}</small></span>`).join('')}</div><div class="charm-title">Pip's coat <small>won with ribbons, Wolf Moon stars and the whole season</small></div><div class="coat-row">${COATS.map((c) => {
       const open = coatOpen(p, c.id);
       const on = (p.coat ?? 'black') === c.id;
       const need = c.ribbons ? `${c.ribbons} ribbons` : c.moon ? `${c.moon} ☾ stars` : '';
-      return `<button class="coat ${on ? 'on' : ''} ${open ? '' : 'locked'}" data-act="coat" data-arg="${c.id}"${open ? '' : ' tabindex="-1"'}><span class="coat-swatch" style="background:${c.color}"></span><span><b>${c.title}</b>${open ? '' : `<small>${need}</small>`}</span></button>`;
+      const need2 = c.season ? 'Win every evening' : need;
+      return `<button class="coat ${on ? 'on' : ''} ${open ? '' : 'locked'} ${c.season ? 'goose' : ''}" data-act="coat" data-arg="${c.id}"${open ? '' : ' tabindex="-1"'}><span class="coat-swatch${c.season ? ' goose-swatch' : ''}" style="background:${c.color}"></span><span><b>${c.title}</b>${open ? (c.season ? '<small>herds in Pip\'s place</small>' : '') : `<small>${need2}</small>`}</span></button>`;
     }).join('')}</div>`;
     const done = SEASON.filter((e) => (p.evenings[e.id]?.stars ?? 0) > 0).length;
     const complete = done === SEASON.length;
@@ -431,7 +432,7 @@ export class Ui {
     const teach = kinds.filter((k) => first(k) && !moon);
     const back = r.returns && (r.returns.other > 0 || kinds.includes('young'));
     $('.intro-wolves', this.root).innerHTML = teach.length
-      ? `<div class="new-label">New wolves tonight</div>${teach.map((k) => `<p>${keycaps(WOLF_TEXT[k])}</p>`).join('')}${back && r.returns!.other > 0 ? `<p>${WOLF_TEXT.back}</p>` : ''}`
+      ? `<div class="new-label">New wolves tonight</div>${teach.map((k) => `<p>${keycaps(this.say(WOLF_TEXT[k]))}</p>`).join('')}${back && r.returns!.other > 0 ? `<p>${WOLF_TEXT.back}</p>` : ''}`
       : kinds.length
       ? `<p class="wolves-line">Wolves tonight: ${kinds.map((k) => (k === 'grey' ? 'the old grey (bark twice)' : 'young wolves (they come back)')).join(' and ')}${r.returns && r.returns.other > 0 ? ' · a wolf you chase off comes back once' : ''}</p>`
       : r.returns && r.returns.other > 0 && r.wolfStart !== null
@@ -445,7 +446,7 @@ export class Ui {
     $('.intro-kicker', this.root).textContent = `${e.num ? `Evening ${e.num}` : 'Today'} · ${e.when} · ${e.place}`;
     $('.intro-title', this.root).textContent = e.title;
     $('.intro-story', this.root).textContent = e.story;
-    $('.intro-new', this.root).innerHTML = e.newThing ? `<div class="new-label">New tonight: ${escapeHtml(e.newThing.title)}</div><p>${keycaps(e.newThing.text)}</p>` : '';
+    $('.intro-new', this.root).innerHTML = e.newThing ? `<div class="new-label">New tonight: ${escapeHtml(e.newThing.title)}</div><p>${keycaps(this.say(e.newThing.text))}</p>` : '';
     const rec = moon ? p.evenings[e.id]?.moon : p.evenings[e.id];
     const two = Math.ceil((r.target + total) / 2);
     const onHard = rec?.on === 'hard' && rec.stars ? ' · won on Hard' : '';
@@ -568,7 +569,7 @@ export class Ui {
     const key = `${text}|${sub}`;
     if (el.dataset.key !== key) {
       el.dataset.key = key;
-      el.innerHTML = keycaps(text) + (sub ? `<span class="toast-sub">${keycaps(sub)}</span>` : '');
+      el.innerHTML = keycaps(this.say(text)) + (sub ? `<span class="toast-sub">${keycaps(this.say(sub))}</span>` : '');
     }
     if (el.className !== cls) el.className = cls;
     const alerting = !!text && (!!this.alertText || this.toastKind === 'warn' || this.toastKind === 'danger');
@@ -579,7 +580,24 @@ export class Ui {
     const el = $('.hud-hint', this.root);
     if (el.dataset.text === text) return;
     el.dataset.text = text;
-    el.innerHTML = keycaps(text);
+    el.innerHTML = keycaps(this.say(text));
+  }
+
+  /** The goose herds tonight: the messages say so (a honk, not a bark). */
+  setGoose(on: boolean) {
+    this.goose = on;
+    $('.bark-word', this.root).textContent = on ? 'Honk' : 'Bark';
+  }
+  private goose = false;
+  /** Pip and his bark in a message become the goose and its honk while the goose is herding. */
+  say(t: string) {
+    if (!this.goose) return t;
+    return t
+      .replace(/\bPip's\b/g, "the goose's")
+      .replace(/\bPip\b/g, 'the goose')
+      .replace(/(^|[.!?:·]\s+)the goose/g, (_m, a: string) => `${a}The goose`)
+      .replace(/\bBark/g, 'Honk')
+      .replace(/\bbark/g, 'honk');
   }
 
   prompt(html: string | null, short = '') {
@@ -851,7 +869,7 @@ export class Ui {
       ${losses ? `<div class="losses"><b>Taken by wolves:</b> ${sim.lost} (${escapeHtml(losses)})</div>` : ''}
       ${ev ? this.seasonStrip(ctx.progress, ev) : ''}
       ${bestLine}${nextLine}${unlock}
-      ${tip ? `<div class="tip"><b>Tip</b> ${keycaps(tip)}</div>` : ''}`;
+      ${tip ? `<div class="tip"><b>Tip</b> ${keycaps(this.say(tip))}</div>` : ''}`;
     const btns: string[] = [];
     if (ev && win && ctx.next) btns.push(`<button class="btn primary" data-act="next">Next: ${escapeHtml(ctx.next.title)} <kbd>Enter</kbd></button>`);
     btns.push(`<button class="btn ${btns.length ? '' : 'primary'}" data-act="restart">${win ? 'Play again' : 'Try again'}${btns.length ? '' : ' <kbd>Enter</kbd>'}</button>`);

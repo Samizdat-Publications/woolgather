@@ -414,6 +414,9 @@ input[type='range']:focus-visible { outline: 2px solid var(--gold-hi); outline-o
 .intro-wolves p { margin: 4px 0 0; font-size: 14.5px; font-weight: 600; line-height: 1.45; }
 .intro-wolves p.wolves-line { margin: 0; font-size: 13.5px; font-weight: 700; color: var(--wool-2); }
 .intro-wolves:has(> p.wolves-line:only-child) { padding: 6px 14px; }
+/* The goose in the coat row: a white swatch with an orange bill. */
+.coat-swatch.goose-swatch { position: relative; box-shadow: inset 0 0 0 1.5px rgba(35, 28, 43, 0.35); }
+.coat-swatch.goose-swatch::after { content: ''; position: absolute; right: -3px; top: 42%; width: 9px; height: 5px; border-radius: 0 3px 3px 0; background: #f28a1e; }
 .ev-hard { margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: rgba(224, 112, 60, 0.28); color: #f4b38e; font-size: 11.5px; font-weight: 800; letter-spacing: 0.04em; }
 .intro-card.moon { background: linear-gradient(180deg, rgba(44, 34, 74, 0.96), rgba(28, 22, 46, 0.96)); }
 .intro-card.moon .tier.on { background: #c9b8ff; color: #1d1636; }

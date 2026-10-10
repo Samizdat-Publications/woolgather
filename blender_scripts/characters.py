@@ -1,10 +1,10 @@
-"""Characters: Pip the collie, the sheep and the wolf.
+"""Characters: Pip the collie, the sheep, the wolf and the goose.
 
-Outputs public/assets/collie.glb, sheep.glb, wolf.glb. Each is an empty root with rigid parts
+Outputs public/assets/collie.glb, sheep.glb, wolf.glb, goose.glb. Each is an empty root with rigid parts
 (body, head, tail, leg_fl/fr/bl/br, plus ears/eyes where present) whose origins sit on their
 joints, so the game animates them procedurally. Forward is -Y (three.js +Z).
 
-    blender --background --factory-startup --python blender_scripts/characters.py [-- --preview]
+    blender --background --factory-startup --python blender_scripts/characters.py [-- --preview] [--only goose]
 """
 
 import math
@@ -187,9 +187,70 @@ def wolf():
     return root
 
 
+def goose():
+    """The goose: a white farm goose with an orange bill and feet, unlocked to herd in Pip's place.
+    Rigid parts like the collie's: body, head (neck and head together, pivot at the neck's base),
+    tail, two legs (named leg_fl and leg_fr so the game's rig finds them) and two wings that open."""
+    white = W.mat("goose_white", "#f6f2ea", 0.85)
+    grey = W.mat("goose_grey", "#d8d3c8", 0.85)
+    tip = W.mat("goose_tip", "#8f8a80", 0.85)
+    orange = W.mat("goose_orange", "#f28a1e", 0.6)
+    nail = W.mat("goose_nail", "#3a2a1c", 0.5)
+    eye = W.mat("goose_eye", "#1c2232", 0.35)
+    catch = W.mat("eye_catchlight", "#ffffff", 0.2)
+
+    root = W.empty("goose")
+
+    b = W.Part("body")
+    v = b.sphere(white, loc=(0, 0.03, 0), scale=(0.2, 0.34, 0.18), seg=10, rings=7)
+    b.jitter(v, 0.012, seed=11)
+    v = b.sphere(white, loc=(0, -0.2, -0.02), scale=(0.17, 0.18, 0.16), seg=9, rings=6)  # full breast
+    b.jitter(v, 0.01, seed=12)
+    v = b.ico(white, loc=(0, 0.3, 0.05), radius=0.1, scale=(1.0, 1.4, 0.8))  # rump, tapering up
+    b.jitter(v, 0.01, seed=13)
+    b.sphere(grey, loc=(0, 0.08, -0.13), scale=(0.15, 0.24, 0.07), seg=8, rings=5)  # soiled belly
+    body = b.finish(parent=root, pivot=(0, 0, 0.4))
+
+    h = W.Part("head")
+    h.limb(white, (0, 0, 0), (0, -0.05, 0.2), 0.075, 0.058, seg=8)  # neck, thick at the base
+    h.limb(white, (0, -0.05, 0.2), (0, -0.07, 0.31), 0.058, 0.05, seg=8)
+    v = h.sphere(white, loc=(0, -0.1, 0.34), scale=(0.068, 0.1, 0.072), seg=8, rings=6)
+    h.jitter(v, 0.006, seed=14)
+    h.limb(orange, (0, -0.17, 0.33), (0, -0.28, 0.305), 0.04, 0.018, seg=7)  # bill
+    h.ico(nail, loc=(0, -0.285, 0.305), radius=0.016)
+    for sx in (1, -1):
+        h.ico(eye, loc=(0.052 * sx, -0.135, 0.36), radius=0.017)
+        h.ico(catch, loc=(0.058 * sx, -0.145, 0.367), radius=0.006)
+    h.finish(parent=body, pivot=(0, -0.29, 0.1))
+
+    # Wings folded along the sides, hinged at the shoulder so the game can spread them (a honk).
+    for sx, name in ((1, "wing_l"), (-1, "wing_r")):
+        w = W.Part(name)
+        v = w.sphere(grey, loc=(0.0, 0.17, -0.03), scale=(0.06, 0.25, 0.09), seg=8, rings=5)
+        w.jitter(v, 0.006, seed=15)
+        w.ico(tip, loc=(0.0, 0.38, 0.0), radius=0.055, scale=(0.75, 1.7, 0.45))
+        w.finish(parent=body, pivot=(0.15 * sx, -0.12, 0.07))
+
+    t = W.Part("tail")
+    v = t.ico(white, loc=(0, 0.04, 0.01), radius=0.07, scale=(1.1, 1.2, 0.5), rot=(math.radians(-30), 0, 0))
+    t.jitter(v, 0.006, seed=16)
+    t.finish(parent=body, pivot=(0, 0.35, 0.07))
+
+    # Orange legs with broad webbed feet, set wide for the waddle.
+    for sx, name in ((1, "leg_fl"), (-1, "leg_fr")):
+        L = W.Part(name)
+        L.limb(orange, (0, 0, 0), (0, 0.01, -0.2), 0.03, 0.022, seg=6)
+        v = L.ico(orange, loc=(0, -0.05, -0.222), radius=0.065, scale=(1.0, 1.35, 0.18))
+        L.finish(parent=body, pivot=(0.085 * sx, 0.05, -0.16))
+    return root
+
+
 def main():
     preview = "--preview" in W.args()
-    for name, build in (("collie", collie), ("sheep", sheep), ("wolf", wolf)):
+    only = W.args()[W.args().index("--only") + 1] if "--only" in W.args() else None
+    for name, build in (("collie", collie), ("sheep", sheep), ("wolf", wolf), ("goose", goose)):
+        if only and name != only:
+            continue
         W.reset()
         root = build()
         W.export_glb(f"{name}.glb", [root])

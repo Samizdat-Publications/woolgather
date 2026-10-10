@@ -21,6 +21,11 @@
       "bark_2.mp3",
       "bark_3.mp3"
     ],
+    "honk": [
+      "honk_1.mp3",
+      "honk_2.mp3",
+      "honk_3.mp3"
+    ],
     "howl": [
       "howl_1.mp3",
       "howl_2.mp3"

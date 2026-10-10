@@ -1666,35 +1666,10 @@ export class Sim {
         den = dn;
       }
     }
-    const w: Wolf = {
-      id: this.wolfIds++,
-      x: den[0],
-      z: den[1],
-      vx: 0,
-      vz: 0,
-      r: WOLF_KINDS[kind].radius,
-      state: 'stalk',
-      facing: Math.atan2(s.x - den[0], s.z - den[1]),
-      speed: 0,
-      target: s,
-      respawnT: 0,
-      stateT: 0,
-      inWater: false,
-      valleyT: 0,
-      role: bait ? 'flanker' : 'lone',
-      mate: bait ? bait.id : -1,
-      feintT: 0,
-      feintCd: 0,
-      posT: 0,
-      kind,
-      grit: WOLF_KINDS[kind].grit,
-      gritT: 0,
-      staggerT: 0,
-      returns: back?.returns ?? 0,
-    };
-    const slot = this.wolves.findIndex((o) => o.state === 'gone');
-    if (slot >= 0) this.wolves[slot] = w;
-    else this.wolves.push(w);
+    const w = this.addWolf(kind, den[0], den[1], s);
+    w.role = bait ? 'flanker' : 'lone';
+    w.mate = bait ? bait.id : -1;
+    w.returns = back?.returns ?? 0;
     this.events.push({ type: 'wolfSpawn', x: w.x, z: w.z, id: w.id, tx: s.x, tz: s.z, kind, back: !!back });
     if (bait) {
       bait.role = 'bait';
@@ -1702,6 +1677,59 @@ export class Sim {
       bait.feintCd = 2;
       this.events.push({ type: 'pack', x: bait.x, z: bait.z, id: bait.id, fx: w.x, fz: w.z, fid: w.id });
     }
+  }
+
+  /** A new wolf at (x, z), stalking a sheep, in the first free slot. */
+  private addWolf(kind: WolfKind, x: number, z: number, s: Sheep) {
+    const w: Wolf = {
+      id: this.wolfIds++,
+      x,
+      z,
+      vx: 0,
+      vz: 0,
+      r: WOLF_KINDS[kind].radius,
+      state: 'stalk',
+      facing: Math.atan2(s.x - x, s.z - z),
+      speed: 0,
+      target: s,
+      respawnT: 0,
+      stateT: 0,
+      inWater: false,
+      valleyT: 0,
+      role: 'lone',
+      mate: -1,
+      feintT: 0,
+      feintCd: 0,
+      posT: 0,
+      kind,
+      grit: WOLF_KINDS[kind].grit,
+      gritT: 0,
+      staggerT: 0,
+      returns: 0,
+    };
+    const slot = this.wolves.findIndex((o) => o.state === 'gone');
+    if (slot >= 0) this.wolves[slot] = w;
+    else this.wolves.push(w);
+    return w;
+  }
+
+  /** Test hook: a wolf of a kind stalking the nearest sheep, `dist` metres east of Pip. */
+  testWolf(kind: WolfKind, dist: number) {
+    const d = this.dog;
+    let s: Sheep | null = null;
+    let bd = Infinity;
+    for (const q of this.sheep) {
+      if (!this.isFree(q) || q.kind === 'ram') continue;
+      const dd = Math.hypot(q.x - d.x, q.z - d.z);
+      if (dd < bd) {
+        bd = dd;
+        s = q;
+      }
+    }
+    if (!s) return -1;
+    const w = this.addWolf(kind, d.x + dist, d.z, s);
+    w.valleyT = 0;
+    return w.id;
   }
 
   /** The middle and spread of the free sheep within 16 m of a sheep (its flock, roughly). */
@@ -1901,7 +1929,8 @@ export class Sim {
           }
         }
         const sheepToDog = Math.min(Math.hypot(s.x - d.x, s.z - d.z), fly ? Math.hypot(s.x - fly.x, s.z - fly.z) + 1 : Infinity);
-        const seenLongEnough = w.valleyT > (this.watch ? 3 : w.id === 0 ? 10 : 6);
+        const bold = this.rules.bold ?? 0;
+        const seenLongEnough = w.valleyT > (this.watch ? 3 : w.id === 0 ? 10 : 6 - 2 * bold);
         let mayCharge = !someoneDragging && this.snatchCd <= 0 && seenLongEnough;
         let range: number = WOLF.chargeRange;
         let lurk = true;
@@ -1986,7 +2015,7 @@ export class Sim {
         }
         const tgt = w.target ?? s;
         const td = Math.hypot(tgt.x - w.x, tgt.z - w.z);
-        if (mayCharge && td < range && Math.hypot(tgt.x - d.x, tgt.z - d.z) > (this.watch ? 6 : 8)) {
+        if (mayCharge && td < range && Math.hypot(tgt.x - d.x, tgt.z - d.z) > (this.watch ? 6 : 8 - 2 * bold)) {
           w.state = 'charge';
           w.stateT = 0;
           w.feintT = 0;
@@ -2090,7 +2119,8 @@ export class Sim {
     const d = this.dog;
     const far = Math.hypot(w.x - d.x, w.z - d.z);
     const light = w.target?.kind === 'lamb' ? 1.15 : 1;
-    return WOLF.dragSpeed * WOLF_KINDS[w.kind].drag * this.rules.wolfSpeedScale * light * lerp(1, 0.55, clamp((far - 25) / 60, 0, 1));
+    const bold = this.rules.bold ?? 0;
+    return WOLF.dragSpeed * (1 + 0.2 * bold) * WOLF_KINDS[w.kind].drag * this.rules.wolfSpeedScale * light * lerp(1, 0.55 + 0.3 * bold, clamp((far - 25) / 60, 0, 1));
   }
 
   /** Seconds until a dragged sheep is lost: the wolf's way to the loss line in the trees. */

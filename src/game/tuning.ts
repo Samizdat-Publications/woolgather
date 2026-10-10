@@ -52,7 +52,7 @@ type EveningRules = Omit<Rules, 'id' | 'perks'>;
 export function settingRules<R extends EveningRules>(r: R, setting: Setting, num: number, hard?: Partial<EveningRules>): R {
   if (num === 1) return r;
   // On Standard a young wolf you chase off comes back once.
-  if (setting === 'standard') return { ...r, returns: r.returns ?? { young: 1, other: 0 } };
+  if (setting === 'standard') return { ...r, returns: r.returns ?? { young: 1, other: 0 }, bold: r.bold ?? 0.5 };
   const watch = r.objective === 'watch';
   const trial = r.objective === 'trial';
   const k = r.kinds ?? {};
@@ -83,5 +83,6 @@ export function settingRules<R extends EveningRules>(r: R, setting: Setting, num
     pack: h.pack || ((num >= 3 || num === 0) && h.maxWolves >= 2) ? 'full' : undefined,
     kinds: { grey: Math.min(0.55, Math.max(0.3, (hk.grey ?? 0) + 0.12)), young: Math.min(0.35, (hk.young ?? 0) + 0.05) },
     returns: { young: 2, other: 1 },
+    bold: 1,
   };
 }

@@ -28,6 +28,9 @@ export class GameAudio {
   private far: GainNode | null = null;
   private rules: Rules | null = null;
 
+  /** The goose is herding (an unlock): it honks instead of barking. */
+  goose = false;
+
   constructor(private level: Level) {
     // Browsers keep audio locked until the player presses something.
     const unlock = () => this.engine.unlock();
@@ -89,7 +92,8 @@ export class GameAudio {
     for (const e of events) {
       switch (e.type) {
         case 'bark':
-          if (!this.rec('bark', { pan: 0, level: 1 }, 0.85)) this.sfx.bark();
+          // The goose honks where Pip would bark.
+          if (!this.rec(this.goose ? 'honk' : 'bark', { pan: 0, level: 1 }, 0.85)) this.sfx.bark();
           break;
         case 'bleat': {
           // In mist, distant bleats carry (that is how the flock is found).

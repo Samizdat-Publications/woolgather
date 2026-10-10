@@ -166,6 +166,7 @@ function exposeTestHooks() {
     progress: (what: 'reset' | 'all' | 'moon') => game.testProgress(what),
     charms: (ids: string[]) => game.testCharms(ids),
     setting: (s: 'easy' | 'standard' | 'hard') => game.testSetting(s),
+    wolf: (kind: 'wolf' | 'grey' | 'young', dist: number) => game.testWolf(kind, dist),
     /**
      * Walkability for the bot's path planner on a 2 m grid over the level: 0 open ground, 1 water
      * (sheep refuse it), 2 solid (walls, rocks, buildings, outside the valley), 3 a crossing.

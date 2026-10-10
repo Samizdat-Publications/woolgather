@@ -8,6 +8,8 @@ const BASE = `${import.meta.env.BASE_URL}assets/`;
 
 export interface Assets {
   collie: THREE.Object3D;
+  /** The goose: an unlock that herds in Pip's place. */
+  goose: THREE.Object3D;
   sheep: THREE.Object3D;
   wolf: THREE.Object3D;
   nature: Map<string, THREE.Object3D>;
@@ -59,7 +61,7 @@ function childrenByName(scene: THREE.Object3D) {
 
 export async function loadAssets(onProgress: (done: number, total: number) => void): Promise<Assets> {
   const loader = new GLTFLoader();
-  const files = ['collie', 'sheep', 'wolf', 'nature', 'structures', 'fx', 'landmarks'];
+  const files = ['collie', 'goose', 'sheep', 'wolf', 'nature', 'structures', 'fx', 'landmarks'];
   const total = files.length;
   let done = 0;
   const tick = () => onProgress(++done, total);
@@ -80,6 +82,7 @@ export async function loadAssets(onProgress: (done: number, total: number) => vo
   };
   return {
     collie: pick(scenes.collie, 'collie'),
+    goose: pick(scenes.goose, 'goose'),
     sheep: pick(scenes.sheep, 'sheep'),
     wolf: pick(scenes.wolf, 'wolf'),
     nature: childrenByName(scenes.nature),

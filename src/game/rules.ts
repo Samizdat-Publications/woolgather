@@ -84,6 +84,11 @@ export interface Rules {
    * young wolves `young` times, every other wolf `other` times.
    */
   returns?: { young: number; other: number };
+  /**
+   * How bold the wolves are, 0..1 (the setting raises it): a bolder wolf drags faster and does not
+   * slow down for a far-off Pip, strikes at a sheep closer to him, and waits less before a charge.
+   */
+  bold?: number;
 }
 
 /** The classic 1.0 evening in Hollow Valley at one of the three difficulties. */

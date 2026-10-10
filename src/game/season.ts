@@ -129,7 +129,7 @@ export const SEASON: Evening[] = [
         { at: 'promontory', ewes: 3, lambs: 3 },
         { at: 'shore', ewes: 2, lambs: 2, black: 1 },
       ],
-      target: 14,
+      target: 13,
     },
   },
   {
@@ -261,7 +261,9 @@ export const SEASON: Evening[] = [
         { at: 'west-moor', ewes: 4 },
         { at: 'crags', ewes: 3 },
       ],
-      target: 12,
+      // The ram is slow work in the mist: Hard keeps this evening's full length.
+      dayLength: 355,
+      target: 11,
     },
   },
   {
@@ -304,8 +306,8 @@ export const SEASON: Evening[] = [
         { at: 'grove', ewes: 3, lambs: 2 },
         { at: 'knoll', ewes: 3, lambs: 2 },
       ],
-      target: 14,
-      floodAt: 0.3,
+      target: 13,
+      floodAt: 0.32,
     },
   },
   {
@@ -464,17 +466,29 @@ export interface Progress {
   setting?: Setting;
 }
 
-/** Pip's coats: the black and white he is born with, and more won with ribbons and Wolf Moon stars. */
-export const COATS: { id: string; title: string; color: string; ribbons?: number; moon?: number }[] = [
+/**
+ * Pip's coats: the black and white he is born with, and more won with ribbons and Wolf Moon stars.
+ * The last is not a coat at all: once every evening of the season is won, a goose herds instead.
+ */
+export const COATS: { id: string; title: string; color: string; ribbons?: number; moon?: number; season?: boolean }[] = [
   { id: 'black', title: 'Black and white', color: '#2a2e3c' },
   { id: 'red', title: 'Red and white', color: '#7c3c22', ribbons: 3 },
   { id: 'merle', title: 'Blue merle', color: '#6e7888', ribbons: 6 },
   { id: 'sable', title: 'Sable', color: '#9a6a34', moon: 6 },
   { id: 'slate', title: 'Moonlit slate', color: '#3e4658', moon: 15 },
+  { id: 'goose', title: 'A goose', color: '#f6f2ea', season: true },
 ];
 export function coatOpen(p: Progress, id: string) {
   const c = COATS.find((q) => q.id === id);
-  return !!c && totalRibbons(p) >= (c.ribbons ?? 0) && moonStars(p) >= (c.moon ?? 0);
+  return !!c && totalRibbons(p) >= (c.ribbons ?? 0) && moonStars(p) >= (c.moon ?? 0) && (!c.season || seasonWon(p));
+}
+/** Every evening of the season won (on any setting). */
+export function seasonWon(p: Progress) {
+  return SEASON.every((e) => (p.evenings[e.id]?.stars ?? 0) > 0);
+}
+/** The goose is herding tonight. */
+export function gooseOn(p: Progress) {
+  return p.coat === 'goose' && coatOpen(p, 'goose');
 }
 
 const KEY = 'woolgather.season.v1';

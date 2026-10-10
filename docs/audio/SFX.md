@@ -44,7 +44,7 @@ rain?.setGain(0.5, 2); // glide (time constant in seconds); rain?.stop() fades o
 `play` adds a random +-4% detune unless `rate` is given, and takes `delay` in seconds. One-shots sit at
 -16 LUFS and loops at -24 LUFS, so set gains against the synthesised mix by ear.
 
-One-shot groups: `bleat_ewe`, `bleat_lamb`, `bleat_ram`, `bark`, `howl`, `growl`, `yelp`, `thunder`, `gate`, `splash`, `stamp`, `butt`, `whoosh_birds`, `flutter`.
+One-shot groups: `bleat_ewe`, `bleat_lamb`, `bleat_ram`, `bark`, `honk`, `howl`, `growl`, `yelp`, `thunder`, `gate`, `splash`, `stamp`, `butt`, `whoosh_birds`, `flutter`.
 Loops: `wind`, `rain`, `stream`, `night`, `dawn`, `loch`.
 
 ## Regenerating
@@ -76,6 +76,9 @@ downloads outside the repo so `--reprocess --raw-dir <dir>` can redo the process
 | bark | bark_1.mp3 | One single sharp bark from a medium-size border collie dog, energetic and alert, not aggressive, one bark only, close microphone, outdoors, isolated, no music, no human voices, no background noise | 0.8 s | 0.34 s | -14.2 / -2.4 dB | Generated with the ElevenLabs Sound Effects API for this project |
 | bark | bark_2.mp3 | A border collie barks once, a bright quick "woof" to move sheep, eager and keen, one bark only, close microphone, outdoors, isolated, no music, no human voices, no background noise | 0.8 s | 0.61 s | -16.4 / -4.9 dB | Generated with the ElevenLabs Sound Effects API for this project |
 | bark | bark_3.mp3 | A single short excited bark from a working sheepdog, mid-pitched and crisp, not growling, one bark only, close microphone, outdoors, isolated, no music, no human voices, no background noise | 0.8 s | 0.37 s | -14.1 / -1.9 dB | Generated with the ElevenLabs Sound Effects API for this project |
+| honk | honk_1.mp3 | One single loud indignant honk from a white farmyard goose, a brassy nasal "HONK", one honk only, close microphone, outdoors, isolated, no music, no human voices, no background noise | 0.8 s | 0.33 s | -15.8 / -6.8 dB | Generated with the ElevenLabs Sound Effects API for this project |
+| honk | honk_2.mp3 | A farm goose honks once, sharp and cross, a short trumpeting honk, one call only, no other birds, close microphone, outdoors, isolated, no music, no human voices, no background noise | 0.8 s | 0.74 s | -17.6 / -5.0 dB | Generated with the ElevenLabs Sound Effects API for this project |
+| honk | honk_3.mp3 | A single angry goose honk with a little hiss at the end, a domestic goose chasing something, one honk only, close microphone, outdoors, isolated, no music, no human voices, no background noise | 0.9 s | 0.62 s | -18.9 / -8.2 dB | Generated with the ElevenLabs Sound Effects API for this project |
 | howl | howl_1.mp3 | A single lone wolf howl rising and falling, heard from a distance across open hills at dusk, natural valley echo, one howl only, no other animals, no music, no human voices, no wind | 4 s | 3.18 s | -18.1 / -9.3 dB | Generated with the ElevenLabs Sound Effects API for this project |
 | howl | howl_2.mp3 | One long mournful wolf howl far away across a highland glen at nightfall, soft distant echo, a single wolf, no other animals, no music, no human voices, no wind | 4 s | 3.11 s | -18.0 / -7.4 dB | Generated with the ElevenLabs Sound Effects API for this project |
 | growl | growl_1.mp3 | A wolf's menacing growl with teeth bared, a rough throaty snarl with a rattle in the mid-range, not just a low rumble, no barking, close microphone, outdoors, isolated, no music, no human voices, no background noise | 1.2 s | 1.00 s | -16.9 / -2.9 dB | Generated with the ElevenLabs Sound Effects API for this project |
@@ -102,4 +105,4 @@ downloads outside the repo so `--reprocess --raw-dir <dir>` can redo the process
 | dawn | dawn.mp3 | A gentle dawn chorus in the countryside: songbirds singing softly in the distance, blackbirds and robins, calm and airy, no music, no voices, seamless ambience | 11 s | 9.95 s | -28.5 / -9.7 dB | Generated with the ElevenLabs Sound Effects API for this project |
 | loch | loch.mp3 | Gentle small waves lapping softly on a stony lake shore, calm water, slow rhythm, no wind, no birds, no music, no voices, seamless ambience | 11 s | 10.00 s | -30.7 / -2.0 dB | Generated with the ElevenLabs Sound Effects API for this project |
 
-Total size of `public/audio/`: 1115 KB.
+Total size of `public/audio/`: 1137 KB.

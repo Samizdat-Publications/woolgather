@@ -123,6 +123,49 @@ export function animateDog(r: Rig, st: AnimState, d: Dog, dt: number, time: numb
   }
 }
 
+/**
+ * The goose, herding in Pip's place: a waddle (the body rolls from foot to foot), wings half open
+ * and flapping at a run, the neck stretched low and forward to hiss when creeping, flat on the
+ * ground lying down, and on a honk the neck shoots up and the wings spread wide.
+ */
+export function animateGoose(r: Rig, st: AnimState, d: Dog, dt: number, time: number, lookAt: number | null) {
+  const p = rest(r, st);
+  const fwd = d.vx * Math.sin(d.facing) + d.vz * Math.cos(d.facing);
+  gait(r, st, fwd, dt, 0.5, 99, 99, 0.75);
+  const s = d.speed;
+  const turn = turnRate(st, d.facing, dt);
+  st.crouch = damp(st.crouch, d.lying ? 2.4 : d.creeping ? 0.6 : 0, d.lying ? 12 : 8, dt);
+  const honk = d.sinceBark < 0.5 ? Math.sin((d.sinceBark / 0.5) * Math.PI) : 0;
+  const run = clamp((s - 5) / 6, 0, 1);
+  const waddle = Math.sin(TAU * st.phase) * clamp(st.amp / 0.4, 0, 1);
+  crouch(r, p, st.crouch, Math.abs(waddle) * 0.02 + honk * 0.05, 0.3);
+  r.body.rotation.z = waddle * 0.17 * (1 - run * 0.5) + clamp(-turn * 0.04, -0.2, 0.2) * clamp(s / 6, 0, 1);
+  r.body.rotation.x = run * 0.18 - honk * 0.12;
+  r.body.rotation.y = waddle * 0.08;
+  if (r.head) {
+    st.headYaw = damp(st.headYaw, lookAt === null ? 0 : clamp(lookAt, -0.8, 0.8), 6, dt);
+    r.head.rotation.y = st.headYaw - r.body.rotation.y;
+    // Neck forward at a run, low and level to hiss when creeping, up and back on a honk.
+    const want = d.creeping && !d.lying ? 0.95 : run * 0.55;
+    r.head.rotation.x = damp(r.head.rotation.x, want, 8, dt) - honk * 0.75;
+  }
+  for (let i = 0; i < r.wings.length; i++) {
+    const w = r.wings[i];
+    const side = i === 0 ? 1 : -1;
+    w.rotation.order = 'ZYX';
+    const flap = run * (0.5 + 0.35 * Math.sin(time * 15)) + honk * 1.1 + (d.creeping && !d.lying ? 0.25 : 0);
+    w.rotation.y = -side * clamp(flap, 0, 1.3) * 0.9;
+    w.rotation.z = side * clamp(flap, 0, 1.3) * 0.7;
+  }
+  if (r.tail) {
+    // Geese waggle their tails in short bursts when they stop.
+    const still = clamp(1 - s / 2, 0, 1);
+    const burst = Math.max(0, Math.sin(time * 0.9 + st.seed)) ** 6;
+    r.tail.rotation.y = still * burst * 0.5 * Math.sin(time * TAU * 5);
+    r.tail.rotation.x = 0.15 * run;
+  }
+}
+
 /** Turn rate (radians a second, smoothed) for leaning into corners. */
 function turnRate(st: AnimState, facing: number, dt: number) {
   let df = facing - st.prevFacing;

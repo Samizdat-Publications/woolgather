@@ -92,6 +92,18 @@ const GROUPS = [
     ],
   },
   {
+    // The goose (an unlock that herds in Pip's place): a honk works like the bark.
+    group: 'honk',
+    check: [0.12, 1.0],
+    single: true,
+    alt: 'Goose honk, one single loud honk from a farmyard goose, clean close recording, isolated',
+    variants: [
+      { dur: 0.8, prompt: `One single loud indignant honk from a white farmyard goose, a brassy nasal "HONK", one honk only, ${DRY}` },
+      { dur: 0.8, prompt: `A farm goose honks once, sharp and cross, a short trumpeting honk, one call only, no other birds, ${DRY}` },
+      { dur: 0.9, prompt: `A single angry goose honk with a little hiss at the end, a domestic goose chasing something, one honk only, ${DRY}` },
+    ],
+  },
+  {
     group: 'howl',
     check: [1.5, 4.6],
     alt: 'Wolf howl, one lone wolf, distant, long rising and falling howl with a soft echo, no other sounds',

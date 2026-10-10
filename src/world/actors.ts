@@ -3,7 +3,7 @@ import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WolfKind } from '../game/config';
 import type { Sim } from '../game/sim';
 import type { MoodValues } from '../render/daycycle';
-import { AnimState, animateDog, animateSheep, animateWolf, sheepBleat } from './anim';
+import { AnimState, animateDog, animateGoose, animateSheep, animateWolf, sheepBleat } from './anim';
 import type { Assets } from './assets';
 import type { Terrain } from './terrain';
 
@@ -11,7 +11,7 @@ import type { Terrain } from './terrain';
 // procedural animation can move them (milestone 3 adds the full motion).
 
 // Characters are drawn larger than life so they read from the herding camera's height.
-export const SCALE = { dog: 2.4, sheep: 1.9, wolf: 2.3, lamb: 1.18, ram: 3.05 };
+export const SCALE = { dog: 2.4, goose: 2.7, sheep: 1.9, wolf: 2.3, lamb: 1.18, ram: 3.05 };
 /** Each kind of wolf drawn bigger or smaller than an ordinary one, and its danger ring with it. */
 const WOLF_LOOK: Record<WolfKind, { scale: number; ring: number }> = { wolf: { scale: 1, ring: 1 }, grey: { scale: 1.24, ring: 1.22 }, young: { scale: 0.8, ring: 0.84 } };
 const RIM_MOON = new THREE.Color(0.62, 0.7, 1.0);
@@ -129,6 +129,8 @@ export interface Rig {
   tail: THREE.Object3D | null;
   legs: THREE.Object3D[];
   ears: THREE.Object3D[];
+  /** The goose's wings (empty for the four-legged rigs). */
+  wings: THREE.Object3D[];
 }
 
 export function rig(proto: THREE.Object3D, scale: number): Rig {
@@ -143,6 +145,7 @@ export function rig(proto: THREE.Object3D, scale: number): Rig {
     tail: by('tail'),
     legs: ['leg_fl', 'leg_fr', 'leg_bl', 'leg_br'].map(by).filter((o): o is THREE.Object3D => !!o),
     ears: ['ear_l', 'ear_r'].map(by).filter((o): o is THREE.Object3D => !!o),
+    wings: ['wing_l', 'wing_r'].map(by).filter((o): o is THREE.Object3D => !!o),
   };
 }
 
@@ -321,6 +324,13 @@ export class Actors {
     this.dogHalo = addOutline(this.dog.root, 0xfff0d0, 0.048);
     addOutline(this.dog.root, 0x1c2030, 0.032);
     this.root.add(this.dog.root);
+    // The goose: herds in Pip's place once the season is done (picked with the coats). The same
+    // ink line and rim; hidden unless chosen.
+    this.goose = rig(a.goose, SCALE.goose);
+    this.gooseHalo = addOutline(this.goose.root, 0xfff0d0, 0.048);
+    addOutline(this.goose.root, 0x1c2030, 0.032);
+    this.goose.root.visible = false;
+    this.root.add(this.goose.root);
     // A chevron in front of Pip, pointing where he faces: it finds him in a crowd and cannot be
     // mistaken for his reach ring.
     this.marker = new GroundRing(a.fx.get('chevron')!, 0xffd27a, terrain, 0.1);
@@ -362,13 +372,13 @@ export class Actors {
     //   animals stand off the ground at dusk and at night.
     // The wolves' slate coat keeps its cool colour (it stands off the warm ground by hue); only
     // their pale muzzle and chest are kept neutral.
-    const neutral = new Set(['wool', 'coat_white', 'coat_black', 'wolf_light']);
-    for (const proto of [a.sheep, a.collie, a.wolf]) {
+    const neutral = new Set(['wool', 'coat_white', 'coat_black', 'wolf_light', 'goose_white', 'goose_grey']);
+    for (const proto of [a.sheep, a.collie, a.wolf, a.goose]) {
       const rimU = proto === a.wolf ? this.wolfRim : this.rim;
       proto.traverse((o) => {
         const m = (o as THREE.Mesh).material as THREE.MeshLambertMaterial | undefined;
         if (!m || !m.isMeshLambertMaterial || m.name === 'wolf_eyes' || this.charMats.includes(m)) return;
-        if (m.name === 'wool' || m.name === 'coat_white') m.emissive.set(m.name === 'wool' ? 0x4c4842 : 0x3a3834);
+        if (m.name === 'wool' || m.name === 'coat_white' || m.name === 'goose_white') m.emissive.set(m.name === 'wool' ? 0x4c4842 : 0x3a3834);
         this.patchChar(m, neutral.has(m.name), rimU);
       });
     }
@@ -485,6 +495,17 @@ export class Actors {
     this.charMats.find((m) => m.name === 'coat_black')?.color.set(hex);
   }
 
+  /** The goose herds in Pip's place (true), or Pip himself (false). */
+  setGoose(on: boolean) {
+    this.isGoose = on;
+    this.dog.root.visible = !on;
+    this.goose.root.visible = on;
+  }
+  isGoose = false;
+  private goose: Rig;
+  private gooseHalo: THREE.MeshBasicMaterial;
+  private gooseAnim = new AnimState();
+
   private bellMat = new THREE.MeshLambertMaterial({ name: 'bell_brass', color: '#c8952e', emissive: new THREE.Color(0x3a2808), flatShading: true });
   private flyDog: Rig;
   private flyRing: GroundRing;
@@ -581,6 +602,8 @@ export class Actors {
     const halo = Math.min(1, Math.max(0, (night - 0.3) / 0.4));
     this.dogHalo.color.copy(HALO_DAY).lerp(HALO_NIGHT, halo);
     this.dogHalo.userData.width.value = 0.048 + 0.014 * halo;
+    this.gooseHalo.color.copy(this.dogHalo.color);
+    this.gooseHalo.userData.width.value = this.dogHalo.userData.width.value;
     // Most of a coloured key light is taken out of white wool and coat, orange or pink: the sheep
     // stay white through the sunset (a touch of warmth is left). By moonlight the fleece may cool.
     const k = mood.keyColor;
@@ -603,7 +626,8 @@ export class Actors {
     this.marker.mesh.visible = showRings;
 
 
-    const dr = this.dog.root;
+    const player = this.isGoose ? this.goose : this.dog;
+    const dr = player.root;
     dr.position.set(d.x, h(d.x, d.z), d.z);
     dr.rotation.y = d.facing;
     let lookAt: number | null = null;
@@ -627,9 +651,11 @@ export class Actors {
     // Butted by the ram: Pip reels, rocking and spinning a little until he finds his feet.
     dr.rotation.z = d.stunT > 0 ? Math.sin(d.stunT * 26) * 0.32 * Math.min(1, d.stunT / 0.3) : 0;
     if (d.stunT > 0) dr.rotation.y += Math.sin(d.stunT * 9) * 0.6 * d.stunT;
-    animateDog(this.dog, this.dogAnim, d, dt, this.time, lookAt === null ? null : lookAt - this.idleTurn);
-    if (this.dogAnim.steps !== this.dogSteps) {
-      this.dogSteps = this.dogAnim.steps;
+    const pa = this.isGoose ? this.gooseAnim : this.dogAnim;
+    if (this.isGoose) animateGoose(this.goose, this.gooseAnim, d, dt, this.time, lookAt === null ? null : lookAt - this.idleTurn);
+    else animateDog(this.dog, this.dogAnim, d, dt, this.time, lookAt === null ? null : lookAt - this.idleTurn);
+    if (pa.steps !== this.dogSteps) {
+      this.dogSteps = pa.steps;
       if (d.speed > 8 && !d.inWater) step(d.x, d.z, d.vx, d.vz, 1);
     }
     this.marker.place(d.x + Math.sin(d.facing) * 2.1, d.z + Math.cos(d.facing) * 2.1, 0.85, -d.facing);

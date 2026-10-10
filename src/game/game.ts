@@ -26,7 +26,7 @@ import { Input } from './input';
 import { Level } from './level';
 import type { LevelDef } from './leveldef';
 import { classicRules, type Rules } from './rules';
-import { COATS, coatOpen, dailyEvening, harderSetting, loadProgress, moonOpen, rulesFor, perksFor, verbsFor, THIRD_CHARM_STARS, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type EveningRecord, type Progress } from './season';
+import { COATS, coatOpen, dailyEvening, gooseOn, harderSetting, loadProgress, moonOpen, rulesFor, perksFor, verbsFor, THIRD_CHARM_STARS, saveProgress, SEASON, totalStars, CHARMS, SECOND_CHARM_STARS, type Evening, type EveningRecord, type Progress } from './season';
 import { Sim, type SimEvent } from './sim';
 
 // Top-level state machine: title -> (season map -> evening card) or classic -> playing <-> paused
@@ -156,7 +156,8 @@ export class Game {
     this.assets = assets;
     this.actors = new Actors(assets, this.terrain);
     const coat = COATS.find((c) => c.id === this.progress.coat && coatOpen(this.progress, c.id));
-    if (coat) this.actors.setCoat(coat.color);
+    if (coat && coat.id !== 'goose') this.actors.setCoat(coat.color);
+    this.applyGoose();
     this.stage.scene.add(this.actors.root);
     this.weatherFx = new WeatherFx();
     this.stage.scene.add(this.weatherFx.root);
@@ -265,7 +266,9 @@ export class Game {
           this.progress.coat = arg;
           saveProgress(this.progress);
           this.ui.renderSeason(this.progress);
-          this.actors?.setCoat(COATS.find((c) => c.id === arg)!.color);
+          if (arg !== 'goose') this.actors?.setCoat(COATS.find((c) => c.id === arg)!.color);
+          this.applyGoose();
+          this.ui.focusAct('coat', arg);
         }
         break;
       case 'setting':
@@ -303,6 +306,15 @@ export class Game {
         this.howtoFrom = null;
         break;
     }
+  }
+
+  private gooseHello = false;
+  /** The goose herds in Pip's place when it is the chosen coat (and the season has been won). */
+  private applyGoose() {
+    const on = gooseOn(this.progress);
+    this.actors?.setGoose(on);
+    this.ui.setGoose(on);
+    this.audio.goose = on;
   }
 
   /** Easy, Standard or Hard (remembered with the season's progress). */
@@ -487,6 +499,11 @@ export class Game {
     const d = this.sim.dog;
     this.stage.snapTo(d.x, this.terrain.height(d.x, d.z), d.z, BASE_ZOOM);
     this.ui.clearToasts();
+    if (gooseOn(this.progress) && !this.gooseHello) {
+      // The first evening the goose herds, once a sitting.
+      this.gooseHello = true;
+      this.ui.toast('A goose? The sheep are not sure about this. Neither are the wolves. Honk (Space) to move them', 'good');
+    }
     this.gateGlow = false;
     this.warnedAt.clear();
     this.tipsShown.clear();
@@ -1602,6 +1619,11 @@ export class Game {
     return true;
   }
 
+  /** Test hook: a wolf of a kind `dist` m east of Pip (returns its id, or -1). */
+  testWolf(kind: 'wolf' | 'grey' | 'young', dist: number) {
+    return this.sim ? this.sim.testWolf(kind, dist) : -1;
+  }
+
   /** Test hook: play the season on Easy, Standard or Hard. */
   testSetting(s: Setting) {
     this.progress.setting = s === 'standard' ? undefined : s;
@@ -1689,6 +1711,7 @@ export class Game {
       fps: Math.round(this.fps() * 10) / 10,
       difficulty: this.ui.difficulty,
       setting: this.setting,
+      goose: !!this.actors?.isGoose,
       evening: this.evening?.id ?? null,
       levelId: this.level.def.id,
       objective: s?.rules.objective ?? null,
