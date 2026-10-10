@@ -64,6 +64,13 @@ snow, over **five places**, each evening adding one new thing to herd around.
   weather, two or three flocks.
 - **Classic evening** is the 1.0 game, at Gentle, Standard or Hard.
 
+| | |
+| --- | --- |
+| ![Loch Ailsa: a machair by the loch with a jetty and a rowing boat](site/media/season/lambing.jpg) | ![Crannach Corrie: Old Angus and his ewes on the heather moor](site/media/season/angus.jpg) |
+| **Lambing Time** on Loch Ailsa | **Old Angus** in Crannach Corrie |
+| ![The Glenbrae Trial: the show field with its gates and crowd](site/media/season/show.jpg) | ![First Snow on the High Pass](site/media/season/first-snow.jpg) |
+| **The Glenbrae Trial** | **First Snow** on the High Pass |
+
 Each place has its own ground and landmarks: a green machair with a jetty on Loch Ailsa, a heather
 moor under crags and screes in Crannach Corrie, standing stones and a stell in Hollow Valley, a mown
 show field with a crowd and a judges' box at Glenbrae, a stony pass with cairns and peat hags.
@@ -171,10 +178,19 @@ map size and bloom. Both choices are remembered. `?quality=low` in the URL picks
 
 ## Testing
 
-- `npm run playtest` (with `npm run dev` running) plays the game in headless Chrome through real
-  key presses: a herding bot wins a Standard day, an idle day loses, the gate is latched, the menus
-  are driven, and screenshots from the player's camera land in `test-results/`, with the console
-  log and 20 assertions.
+- `npm run playtest` (with `npm run dev` running, or `--serve <build>` for a frozen production
+  build) plays the game in headless Chrome through real key presses: a herding bot wins a
+  Standard day, an idle day loses, the gate is latched, the menus are driven, every season evening
+  starts, Old Fly and the Wolf Moon (rules and saves) are checked, and screenshots from the
+  player's camera land in `test-results/`, with the console log and 41 assertions.
+- `node tests/season-run.mjs` plays every season evening with a level-agnostic herding bot
+  (`tests/bot2.mjs`): `--skill expert` (the default, textbook herding with perfect knowledge) or
+  `--skill average` (a first-time player: reacts late to wolves it can see, aims loosely, pauses),
+  `--moon` for the Wolf Moon tier, `--dist` for a frozen build. The balance is set so the expert
+  has a fight and the average bot wins only some of the time.
+- `node tests/place-shots.mjs` takes unlabelled herding-camera shots of every place for a blind
+  "can you tell the places apart?" test; `node tests/season-stills.mjs` takes the landing page's
+  evening stills; `node tests/heavy.mjs` lists the heaviest meshes of an evening.
 - `node tests/perf.mjs` measures frame times, draw calls, triangles and GPU time for each phase of
   the evening against the production preview (`--analyze` breaks the cost down). On the laptop it
   was built on (an RTX 5070 Ti) the game runs at 140-230 fps at 1080p, limited by the CPU; Auto

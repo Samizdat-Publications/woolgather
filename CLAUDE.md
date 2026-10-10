@@ -20,11 +20,14 @@ away before they drag a sheep into the trees. Night falls in violet and moonligh
   or night falls with the target met, or you latch the gate early once the target is met.
 - Lose: night falls before the target is met, or wolves take so many sheep that the target is
   no longer reachable.
-- **The Season** (branch `season`, Woolgather 2): nine evenings on one hill farm from midsummer to
-  the first snow, over five places (Hollow Valley, Loch Ailsa, Crannach Corrie, Glenbrae Show Field,
-  The High Pass), each adding one thing: crossings, lambs and a lost lamb, Old Angus the ram, a
-  sheepdog trial (gates in order, judged on points), a night watch until dawn, mist, a storm with a
-  flood, first snow. Stars plus one ribbon per evening, charms (perks) bought with stars, best times.
+- **The Season** (Woolgather 2): ten evenings on one hill farm from midsummer to the first snow,
+  over five places (Hollow Valley, Loch Ailsa, Crannach Corrie, Glenbrae Show Field, The High Pass),
+  each adding one thing: crossings, lambs and a lost lamb, Old Angus the ram and wolves that hunt in
+  pairs, a sheepdog trial (gates in order, judged on points), a night watch until dawn, mist, a
+  storm with a flood, the Gathering (every flock off the hill, with Old Fly), first snow. Stars plus
+  one ribbon per evening, a harder Wolf Moon tier at three stars, charms bought with stars (some
+  verbs: the outrun, Old Fly, the bell-wether), Pip's coats, best times. Balance: the expert bot
+  has a fight, the average bot wins only some of the time; `src/game/tuning.ts` scales it all.
 - **Classic evening**: the 1.0 game in Hollow Valley at Gentle, Standard or Hard.
 
 ## Controls
@@ -72,8 +75,12 @@ Ctrl is deliberately unused: Ctrl+W closes the browser tab and cannot be interce
   `BLENDER_PATH`). During development the scripts are run through the Blender MCP.
 - `npm run playtest` runs the Playwright self-test (scripted input, screenshots, console log)
   against a running dev server. Screenshots land in `test-results/`.
-- `node tests/season-run.mjs [--evenings a,b] [--parallel 3]` builds and plays every season evening
-  with `tests/bot2.mjs` (a level-agnostic A* herding bot, `docs/BOT2.md`) and reports the results.
+- `node tests/season-run.mjs [--evenings a,b] [--parallel 3] [--skill expert|average] [--moon]
+  [--dist <build>]` builds and plays every season evening with `tests/bot2.mjs` (a level-agnostic A*
+  herding bot, `docs/BOT2.md`) and reports the results. Give concurrent runs their own `--dist`.
+- `node tests/playtest.mjs --serve <build>` runs the self-test on a frozen build (no dev server).
+- `node tests/place-shots.mjs`, `tests/season-stills.mjs`, `tests/heavy.mjs`: blind place-test
+  shots, the landing page's evening stills, the heaviest meshes of an evening.
 - `node tests/perf-season.mjs --dist <build>` measures fps, draw calls and triangles per evening.
 - `node tests/shot.mjs "<step>" ...` quick screenshots of the dev server (see the file for steps).
 - Critic system (`docs/critic/README.md`): `node tests/critic/capture.mjs --dist <build> --label rNN
