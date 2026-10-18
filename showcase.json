@@ -1,0 +1,33 @@
+{
+  "name": "Woolgather",
+  "repo": "woolgather",
+  "pitch": "A cosy-tense sheepdog game: herd the flock into the fold before nightfall, and before the wolves come out.",
+  "status": "v1",
+  "version": "2.1.3",
+  "kind": "game",
+  "started": "2026-09-24",
+  "updated": "2026-10-09",
+  "tech": [
+    "TypeScript",
+    "Three.js",
+    "Blender",
+    "Web Audio"
+  ],
+  "links": {
+    "landing": "https://woolgather.pages.dev",
+    "play": "https://woolgather.pages.dev/play/",
+    "devlog": ""
+  },
+  "hero": {
+    "gif": "docs/media/sunset.gif",
+    "poster": "site/media/sunset.jpg",
+    "clip": "site/media/sunset.mp4"
+  },
+  "credits": [
+    {
+      "what": "Fraunces and Nunito fonts",
+      "who": "Undercase Type; Vernon Adams and contributors (via @fontsource)",
+      "licence": "SIL OFL 1.1"
+    }
+  ]
+}

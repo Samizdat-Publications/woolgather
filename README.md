@@ -1,5 +1,7 @@
 # Woolgather
 
+![Status: v1.0](https://img.shields.io/badge/status-v1.0-2ea043)
+
 **Herd the flock home before nightfall.** A cosy-tense sheepdog game in the browser, built with
 Vite, TypeScript and Three.js.
 
@@ -254,3 +256,7 @@ https://woolgather.pages.dev).
 | `site/` | the landing page and its media |
 | `tests/` | self-test, perf, look-dev, film, media and site-check scripts |
 | `tools/` | asset, progress-screenshot and site build tools |
+
+## Licence
+
+Code is MIT (see [LICENSE](LICENSE)). Third-party assets listed above keep their own licences.
